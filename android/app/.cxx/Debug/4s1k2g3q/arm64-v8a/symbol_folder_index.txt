@@ -1,0 +1,1 @@
+C:\xampp\htdocs\project\wicomPaymenpApp\build\app\intermediates\cxx\Debug\4s1k2g3q\obj\arm64-v8a

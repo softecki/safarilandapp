@@ -1,0 +1,1 @@
+C:\xampp\htdocs\project\wicomPaymenpApp\build\app\intermediates\cxx\RelWithDebInfo\6n475y1h\obj\x86

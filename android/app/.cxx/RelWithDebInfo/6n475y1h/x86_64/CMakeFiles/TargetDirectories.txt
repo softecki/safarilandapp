@@ -1,0 +1,2 @@
+C:/xampp/htdocs/project/wicomPaymenpApp/android/app/.cxx/RelWithDebInfo/6n475y1h/x86_64/CMakeFiles/edit_cache.dir
+C:/xampp/htdocs/project/wicomPaymenpApp/android/app/.cxx/RelWithDebInfo/6n475y1h/x86_64/CMakeFiles/rebuild_cache.dir

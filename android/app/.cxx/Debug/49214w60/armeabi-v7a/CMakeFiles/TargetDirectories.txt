@@ -1,0 +1,2 @@
+C:/xampp/htdocs/project/dodomaapp/android/app/.cxx/Debug/49214w60/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/xampp/htdocs/project/dodomaapp/android/app/.cxx/Debug/49214w60/armeabi-v7a/CMakeFiles/rebuild_cache.dir

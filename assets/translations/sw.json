@@ -1,0 +1,15 @@
+{
+  "title": "Habari",
+  "language": "Lugha",
+  "Sign_in_with_your_Phone_Number": "Ingia kwa Nambari yako ya Simu",
+  "Phone_number": "Namba Ya Simu",
+  "LOGIN": "INGIA",
+  "Sign_Up": "Jisajili",
+  "Login_Successful": "Umefanikiwa Kuingia",
+  "Enter_full_phone_number": "Ingiza nambari kamili ya simu",
+  "registration_form": "Jaza fomu hapa chini ili kujisajili kwenye Malipo Mtandao",
+  "Enter_your_NIDA": "Ingiza NIDA yako",
+  "Click_to_get_OTP": "Bofya kupata OTP",
+  "User_Registered": "Mtumiaji Amesajiliwa",
+  "Registration_Failed": "Usajili Umeshindikana"
+}

@@ -1,0 +1,2 @@
+C:/xampp/htdocs/project/nalopaschoolapp/android/app/.cxx/RelWithDebInfo/4r3e701o/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/xampp/htdocs/project/nalopaschoolapp/android/app/.cxx/RelWithDebInfo/4r3e701o/armeabi-v7a/CMakeFiles/rebuild_cache.dir

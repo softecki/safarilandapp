@@ -1,0 +1,1 @@
+C:\xampp\htdocs\project\dodomaapp\build\app\intermediates\cxx\Debug\49214w60\obj\x86_64
