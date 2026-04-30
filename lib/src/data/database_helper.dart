@@ -1,431 +1,36 @@
 import 'dart:convert';
+import 'database_factory.dart';
+import 'database_interface.dart';
 
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
-
-
+/// DatabaseHelper now uses platform-aware database implementation
+/// - Uses Drift for web platform
+/// - Uses SQLite for mobile platforms
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
-  static Database? _database;
+  late final DatabaseInterface _db;
 
-  DatabaseHelper._init();
-
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDB('wicom.db');
-    return _database!;
+  DatabaseHelper._init() {
+    _db = DatabaseFactory.instance;
   }
 
-  Future<Database> _initDB(String filePath) async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, filePath);
-
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+  Future<DatabaseInterface> get database async {
+    await _db.initialize();
+    return _db;
   }
 
-  Future<void> _createDB(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE users (
-    id INTEGER PRIMARY KEY,
-    mechant_code TEXT,
-    name TEXT,
-    phone TEXT,
-    password TEXT,
-    email TEXT,
-    identification_number TEXT,
-    licence_number TEXT,
-    document_refence_id TEXT,
-    status TEXT,
-    agent_id INTEGER,
-    user_id INTEGER,
-    otp TEXT,
-    created_at TEXT,
-    updated_at TEXT
-)
-    ''');
+  // Platform check helpers
+  bool get isWeb => DatabaseFactory.isWeb;
+  bool get isMobile => DatabaseFactory.isMobile;
 
-    await db.execute('''
-  CREATE TABLE app_transaction (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT NOT NULL,
-    receiver_account TEXT NULL,
-    sender_account TEXT NULL,
-    amount TEXT NOT NULL,
-    status TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-''');
-
-    await db.execute('''
-  CREATE TABLE balance (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT NOT NULL,
-    amount TEXT NULL,
-    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-''');
-
-    await db.execute('''
-  CREATE TABLE customer (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    display_name TEXT NULL,
-    external_id TEXT NULL,
-    account_no TEXT NULL,
-    mobile_no TEXT NULL,
-    otp TEXT NULL
-  )
-''');
-
-    await db.execute('''
-  CREATE TABLE loan (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    total_repayment_derived TEXT NULL,
-    total_expected_repayment_derived TEXT NULL,
-    principal_repaid_derived TEXT NULL,
-    principal_amount TEXT NULL,
-    client_id TEXT NULL
-  )
-''');
-
-    await db.execute('''
-  CREATE TABLE mechant_charge_configurations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    mechant_id TEXT NULL,
-    charge_id TEXT NULL,
-    status TEXT NULL,
-    created_at TEXT,
-    updated_at TEXT
-  )
-''');
-
-    await db.execute('''
- CREATE TABLE account_setup (
-    id INTEGER PRIMARY KEY,
-    mechant_id INTEGER,
-    payment_type TEXT,
-    institution_name TEXT,
-    receiving_number TEXT,
-    status TEXT,
-    verified TEXT,
-    created_at TEXT,
-    updated_at TEXT)
-''');
-
-
-    await db.execute('''
-      CREATE TABLE students (
-        id INTEGER PRIMARY KEY,
-        admission_no TEXT,
-        roll_no TEXT,
-        first_name TEXT,
-        last_name TEXT,
-        mobile TEXT,
-        email TEXT,
-        dob TEXT,
-        admission_date TEXT,
-        student_category_id INTEGER,
-        religion_id INTEGER,
-        blood_group_id INTEGER,
-        gender_id INTEGER,
-        category_id INTEGER,
-        image_id INTEGER,
-        parent_guardian_id INTEGER,
-        user_id INTEGER,
-        upload_documents TEXT,
-        status INTEGER,
-        previous_school INTEGER,
-        previous_school_info TEXT,
-        previous_school_image_id INTEGER,
-        place_of_birth TEXT,
-        nationality TEXT,
-        cpr_no TEXT,
-        spoken_lang_at_home TEXT,
-        residance_address TEXT,
-        control_number TEXT,
-        created_at TEXT,
-        updated_at TEXT,
-        full_name TEXT,
-        class_name TEXT,
-        section_name TEXT
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE fees_assignments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        fees_assign_id INTEGER NOT NULL,
-        fees_master_id INTEGER NOT NULL,
-        student_id INTEGER NOT NULL,
-        control_number TEXT NOT NULL,
-        fees_amount TEXT DEFAULT '0',
-        paid_amount TEXT DEFAULT '0',
-        remained_amount TEXT DEFAULT '0',
-        quater_amount TEXT DEFAULT NULL,
-        quater_one INTEGER DEFAULT NULL,
-        quater_two INTEGER DEFAULT NULL,
-        quater_three INTEGER DEFAULT NULL,
-        quater_four INTEGER DEFAULT NULL,
-        comment TEXT DEFAULT NULL,
-        outstandingbalance TEXT DEFAULT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE fees_assign_children (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        fees_assign_id INTEGER NOT NULL,
-        fees_master_id INTEGER NOT NULL,
-        student_id INTEGER NOT NULL,
-        control_number TEXT NOT NULL,
-        fees_amount TEXT DEFAULT '0',
-        paid_amount TEXT DEFAULT '0',
-        remained_amount TEXT DEFAULT '0',
-        quater_amount TEXT DEFAULT NULL,
-        quater_one INTEGER DEFAULT NULL,
-        quater_two INTEGER DEFAULT NULL,
-        quater_three INTEGER DEFAULT NULL,
-        quater_four INTEGER DEFAULT NULL,
-        comment TEXT DEFAULT NULL,
-        outstandingbalance TEXT DEFAULT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE exam_types (
-        id INTEGER PRIMARY KEY,
-        name TEXT,
-        type TEXT,
-        status INTEGER,
-        created_at TEXT,
-        updated_at TEXT
-      )
-    ''');
-
-    await db.execute('''
-          CREATE TABLE classes (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            status INTEGER NOT NULL,
-            orders INTEGER NOT NULL,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            class_tran TEXT NOT NULL
-          )
-        ''');
-
-
-
-    await db.execute('''
-  CREATE TABLE transactions (
-    id INTEGER PRIMARY KEY,
-    msisdn TEXT,
-    amount REAL,
-    reference TEXT,
-    type TEXT,
-    status TEXT,
-    mechant_id INTEGER,
-    settlement_status TEXT,
-    charge TEXT,
-    receiving_account_id TEXT,
-    total_amount TEXT,
-    settlement_id TEXT,
-    settlement_date TEXT,
-    transaction_id TEXT,
-    created_at TEXT,
-    updated_at TEXT
-)
-''');
-
-    await db.execute('''
-  CREATE TABLE bank_accounts (
-    id INTEGER PRIMARY KEY,
-    bank_name TEXT NOT NULL,
-    account_name TEXT NOT NULL,
-    account_number TEXT NOT NULL,
-    account_type TEXT,
-    status TEXT DEFAULT '1',
-    created_at TEXT,
-    updated_at TEXT
-)
-''');
-
-    await db.execute('''
-  CREATE TABLE subject_assign_childrens (
-    id INTEGER PRIMARY KEY,
-    subject_assign_id TEXT NOT NULL,
-    subject_id TEXT NOT NULL,
-    staff_id TEXT NOT NULL,
-    status TEXT,
-    created_at TEXT,
-    updated_at TEXT
-)
-''');
-
-    await db.execute('''
-  CREATE TABLE subject_assigns (
-    id INTEGER PRIMARY KEY,
-    session_id TEXT NOT NULL,
-    classes_id TEXT NOT NULL,
-    section_id TEXT NOT NULL,
-    status TEXT,
-    created_at TEXT,
-    updated_at TEXT
-)
-''');
-
-    await db.execute('''
- CREATE TABLE user_credentials (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE,
-    phone TEXT NOT NULL,
-    status TEXT NOT NULL,
-    email_verified_at DATETIME,
-    password TEXT NULL,
-    remember_token TEXT,
-    otp TEXT,
-    otp_verified TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-)
-''');
-
-
-
-    await db.execute('''
-  CREATE TABLE staff (
-    id INTEGER PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    staff_id TEXT NOT NULL,
-    role_id TEXT NOT NULL,
-    designation_id TEXT NOT NULL,
-    department_id TEXT NOT NULL,
-    first_name TEXT ,
-    last_name TEXT ,
-    email TEXT ,
-    gender_id TEXT ,
-    status TEXT,
-    created_at TEXT,
-    updated_at TEXT
-)
-''');
-
-    await db.execute('''
-  CREATE TABLE marks_grade (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  percent_from REAL NOT NULL,
-  percent_upto REAL NOT NULL,
-  point INTEGER NOT NULL,
-  remarks TEXT,
-  session_id INTEGER NOT NULL,
-  status INTEGER DEFAULT 1,
-  created_at TEXT,
-  updated_at TEXT
-)
-''');
-
-
-    await db.execute('''
-  CREATE TABLE parent_details (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    father_name TEXT,
-    father_mobile TEXT,
-    father_profession TEXT,
-    father_image TEXT,
-    father_nationality TEXT,
-    mother_name TEXT,
-    mother_mobile TEXT,
-    mother_profession TEXT,
-    mother_image TEXT,
-    guardian_name TEXT,
-    guardian_email TEXT,
-    guardian_mobile TEXT,
-    guardian_image TEXT,
-    guardian_profession TEXT,
-    guardian_relation TEXT,
-    guardian_address TEXT,
-    status INTEGER DEFAULT 1,
-    created_at TEXT,
-    updated_at TEXT
-)
-''');
-
-    await db.execute('''
-    CREATE TABLE notice_boards (
-      id INTEGER PRIMARY KEY,
-      title TEXT,
-      date TEXT,
-      publish_date TEXT,
-      description TEXT,
-      attachment TEXT,
-      is_visible_web INTEGER,
-      status INTEGER,
-      visible_to TEXT,
-      created_at TEXT,
-      updated_at TEXT
-    )
-  ''');
-
-    await db.execute('''
-    CREATE TABLE students_list (
-      id INTEGER PRIMARY KEY,
-      admission_no TEXT,
-      roll_no INTEGER,
-      first_name TEXT,
-      last_name TEXT,
-      mobile TEXT,
-      email TEXT,
-      dob TEXT,
-      admission_date TEXT,
-      student_category_id INTEGER,
-      religion_id INTEGER,
-      blood_group_id INTEGER,
-      gender_id INTEGER,
-      category_id INTEGER,
-      image_id INTEGER,
-      parent_guardian_id INTEGER,
-      user_id INTEGER,
-      upload_documents TEXT,
-      status INTEGER,
-      previous_school INTEGER,
-      previous_school_info TEXT,
-      previous_school_image_id INTEGER,
-      place_of_birth TEXT,
-      nationality TEXT,
-      cpr_no TEXT,
-      spoken_lang_at_home TEXT,
-      residance_address TEXT,
-      control_number TEXT,
-      available TEXT,
-      created_at TEXT,
-      updated_at TEXT
-    )
-  ''');
-
-    await db.execute('''
-  CREATE TABLE status (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    created_at TEXT,
-    updated_at TEXT
-  )
-''');
-
-
-  }
+  // Helper method to get ConflictAlgorithm.replace
+  ConflictAlgorithm get _replace => ConflictAlgorithm.replace;
 
   Future<void> insertStudentList(Map<String, dynamic> student) async {
-    final db = await instance.database;    await db.insert(
+    final db = await instance.database;
+    await db.insert(
       'students_list',
       student,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: _replace,
     );
   }
 
@@ -452,10 +57,9 @@ class DatabaseHelper {
         'created_at': notice['created_at'],
         'updated_at': notice['updated_at'],
       },
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: _replace,
     );
   }
-
 
   Future<void> insertStaff(Map<String, dynamic> staff) async {
     final db = await DatabaseHelper.instance.database;
@@ -463,7 +67,7 @@ class DatabaseHelper {
     await db.insert(
       'staff',
       staff,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: _replace,
     );
   }
 
@@ -473,10 +77,9 @@ class DatabaseHelper {
     await db.insert(
       'subject_assigns',
       subject_assigns,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: _replace,
     );
   }
-
 
   Future<void> insertGrades(Map<String, dynamic> grades) async {
     final db = await DatabaseHelper.instance.database;
@@ -484,7 +87,7 @@ class DatabaseHelper {
     await db.insert(
       'marks_grade',
       grades,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: _replace,
     );
   }
 
@@ -494,7 +97,7 @@ class DatabaseHelper {
     await db.insert(
       'subject_assign_childrens',
       subject_assign_childrens,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: _replace,
     );
   }
 
@@ -504,24 +107,52 @@ class DatabaseHelper {
     await db.insert(
       'bank_accounts',
       bank_accounts,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: _replace,
     );
   }
-
 
   Future<void> insertFeeTransactions(Map<String, dynamic> transactions) async {
     final db = await DatabaseHelper.instance.database;
 
+    // Define valid columns for the transactions table
+    final validColumns = {
+      'id',
+      'msisdn',
+      'amount',
+      'reference',
+      'type',
+      'status',
+      'mechant_id',
+      'settlement_status',
+      'charge',
+      'receiving_account_id',
+      'total_amount',
+      'settlement_id',
+      'settlement_date',
+      'transaction_id',
+      'created_at',
+      'updated_at',
+      'description',
+    };
+
+    // Filter transaction map to only include valid columns
+    final filteredTransaction = <String, dynamic>{};
+    transactions.forEach((key, value) {
+      if (validColumns.contains(key)) {
+        filteredTransaction[key] = value;
+      }
+    });
+
     await db.insert(
       'transactions',
-      transactions,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      filteredTransaction,
+      conflictAlgorithm: _replace,
     );
   }
 
   Future<int> clearTransactions() async {
     final db = await instance.database;
-    db.delete('loan');
+    await db.delete('loan');
     return await db.delete('transactions');
   }
 
@@ -531,7 +162,7 @@ class DatabaseHelper {
     await db.insert(
       'fees_masters',
       fee,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: _replace,
     );
   }
 
@@ -541,7 +172,7 @@ class DatabaseHelper {
     await db.insert(
       'fees_type',
       fee,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: _replace,
     );
   }
 
@@ -554,8 +185,8 @@ class DatabaseHelper {
       'student_id': data['student_id'],
       'title': data['title'],
       'mark': data['mark'],
-      'created_at': data['created_at']??'',
-      'updated_at': data['updated_at']??'',
+      'created_at': data['created_at'] ?? '',
+      'updated_at': data['updated_at'] ?? '',
     };
 
     // Only include 'id' if it's not null
@@ -566,21 +197,19 @@ class DatabaseHelper {
     return await db.insert(
       'marks_register_childrens',
       insertData,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: _replace,
     );
   }
 
   Future<int> insertMarksRegisterChildrenFromLogin(Map<String, dynamic> data) async {
     final db = await DatabaseHelper.instance.database;
 
-
     return await db.insert(
       'marks_register_childrens',
       data,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: _replace,
     );
   }
-
 
   Future<int> insertExam({
     required String sectionId,
@@ -604,9 +233,9 @@ class DatabaseHelper {
         'subjectId': subjectId,
         'classId': classId,
         'marks': marksJson,
-        'status': status// Fixed field name and format
+        'status': status
       },
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: _replace,
     );
   }
 
@@ -620,7 +249,6 @@ class DatabaseHelper {
       whereArgs: [examId],
     );
   }
-
 
   Future<bool> checkExamExists({
     required int sectionId,
@@ -653,9 +281,8 @@ class DatabaseHelper {
 
   Future<int> insertSection(Map<String, dynamic> section) async {
     final db = await DatabaseHelper.instance.database;
-    return await db.insert('sections', section, conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert('sections', section, conflictAlgorithm: _replace);
   }
-
 
   Future<List<String>> getAllSections() async {
     final db = await instance.database;
@@ -666,7 +293,7 @@ class DatabaseHelper {
 
   Future<int> insertSubject(Map<String, dynamic> subject) async {
     final db = await DatabaseHelper.instance.database;
-    return await db.insert('subjects', subject, conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert('subjects', subject, conflictAlgorithm: _replace);
   }
 
   Future<List<String>> getAllSubjects() async {
@@ -680,7 +307,6 @@ class DatabaseHelper {
     final db = await instance.database;
     final List<Map<String, dynamic>> results = await db.query(
       'classes',
-      columns: ['id'],
       where: 'name = ?',
       whereArgs: [className],
     );
@@ -695,7 +321,6 @@ class DatabaseHelper {
     final db = await instance.database;
     final List<Map<String, dynamic>> results = await db.query(
       'sections',
-      columns: ['id'],
       where: 'name = ?',
       whereArgs: [sectionName],
     );
@@ -710,7 +335,6 @@ class DatabaseHelper {
     final db = await instance.database;
     final List<Map<String, dynamic>> results = await db.query(
       'subjects',
-      columns: ['name'],
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -725,27 +349,22 @@ class DatabaseHelper {
     final db = await instance.database;
     final double parsedMarks = double.tryParse(marks) ?? 0.0;
 
-    final List<Map<String, dynamic>> results = await db.query(
-      'marks_grade',
-      columns: ['name'],
-      where: '? BETWEEN percent_from AND percent_upto',
-      whereArgs: [parsedMarks],
-      orderBy: 'percent_from DESC', // Just in case overlapping ranges
-      limit: 1,
+    final List<Map<String, dynamic>> results = await db.rawQuery(
+      'SELECT name FROM marks_grade WHERE ? BETWEEN percent_from AND percent_upto ORDER BY percent_from DESC LIMIT 1',
+      [parsedMarks],
     );
 
     if (results.isNotEmpty) {
       return results.first['name'] as String;
     }
 
-    return 'No Grade'; // You can return an empty string or a default value
+    return 'No Grade';
   }
 
   Future<String> getClassNameById(String id) async {
     final db = await instance.database;
     final List<Map<String, dynamic>> results = await db.query(
       'classes',
-      columns: ['name'],
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -760,7 +379,6 @@ class DatabaseHelper {
     final db = await instance.database;
     final List<Map<String, dynamic>> results = await db.query(
       'exam_types',
-      columns: ['id'],
       where: 'name = ?',
       whereArgs: [sectionName],
     );
@@ -775,7 +393,6 @@ class DatabaseHelper {
     final db = await instance.database;
     final List<Map<String, dynamic>> results = await db.query(
       'subjects',
-      columns: ['id'],
       where: 'name = ?',
       whereArgs: [sectionName],
     );
@@ -786,14 +403,10 @@ class DatabaseHelper {
     return null;
   }
 
-
-
   Future<int> insertClasses(Map<String, dynamic> data) async {
     final db = await instance.database;
-    return await db.insert('classes', data, conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert('classes', data, conflictAlgorithm: _replace);
   }
-
-
 
   Future<List<String>> getAllClasses() async {
     final db = await instance.database;
@@ -803,12 +416,9 @@ class DatabaseHelper {
   }
 
   Future<int> insertExamTypes(Map<String, dynamic> examTypes) async {
-
     final db = await DatabaseHelper.instance.database;
-    return await db.insert('exam_types', examTypes, conflictAlgorithm: ConflictAlgorithm.replace);
-
+    return await db.insert('exam_types', examTypes, conflictAlgorithm: _replace);
   }
-
 
   Future<List<String>> getExamTypes() async {
     final db = await instance.database;
@@ -819,8 +429,7 @@ class DatabaseHelper {
 
   Future<int> insertUser(Map<String, dynamic> user) async {
     final db = await instance.database;
-    return await db.insert('users', user, conflictAlgorithm: ConflictAlgorithm.replace);
-
+    return await db.insert('users', user, conflictAlgorithm: _replace);
   }
 
   Future<int> logOutUser() async {
@@ -828,7 +437,6 @@ class DatabaseHelper {
     await db.delete('transactions');
     await db.delete('loan');
     return await db.delete('users');
-
   }
 
   Future<List<Map<String, dynamic>>> getUsers() async {
@@ -862,7 +470,6 @@ class DatabaseHelper {
     return total != null ? total.toString() : '0';
   }
 
-
   Future<String> getName(String phone) async {
     final db = await instance.database;
 
@@ -882,20 +489,19 @@ class DatabaseHelper {
       if (nameParts.length >= 2) {
         return '${nameParts[0]} ${nameParts[1]}';
       } else {
-        return nameParts[0]; // Return just one name if only one exists
+        return nameParts[0];
       }
     } else {
       return '';
     }
   }
 
-
   Future<List<Map<String, dynamic>>> getTransaction() async {
     final db = await instance.database;
-    return await db.query(
-      'transactions',
-      orderBy: 'id DESC', // Change 'date' to your actual column name
+    final results = await db.rawQuery(
+      'SELECT * FROM transactions ORDER BY id DESC',
     );
+    return results;
   }
 
   Future<List<Map<String, dynamic>>> getCharge() async {
@@ -913,14 +519,14 @@ class DatabaseHelper {
     List<Map<String, dynamic>> students = await getStudents();
     List<Map<String, dynamic>> result = [];
     if (students.isNotEmpty) {
-       result = await db.rawQuery(
-          '''
+      result = await db.rawQuery(
+        '''
     SELECT transactions.*,students.full_name,bank_accounts.account_number FROM transactions
     INNER JOIN students ON students.id = transactions.student_id
     INNER JOIN bank_accounts ON bank_accounts.id = transactions.account_id
     WHERE transactions.student_id = ?
     ''',
-          [students.first['id']]
+        [students.first['id']]
       );
     }
     return result;
@@ -929,13 +535,13 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getSchoolFees(int id) async {
     final db = await instance.database;
     List<Map<String, dynamic>> result = await db.rawQuery(
-        '''
+      '''
     SELECT *,fees_type.name as fee_name FROM fees_assignments
     INNER JOIN fees_masters ON fees_masters.id = fees_assignments.fees_master_id
     INNER JOIN fees_type ON fees_type.id = fees_masters.fees_type_id
     WHERE fees_assignments.student_id = ?
     ''',
-        [id]
+      [id]
     );
 
     return result;
@@ -946,7 +552,7 @@ class DatabaseHelper {
     List<Map<String, dynamic>> users = await getUsers();
 
     if (students.isNotEmpty) {
-      String remainedAmount = await getTotalFees(students.first['id'].toString()); // Await the async function
+      String remainedAmount = await getTotalFees(students.first['id'].toString());
 
       return {
         'id': students.first['id'],
@@ -954,20 +560,20 @@ class DatabaseHelper {
         'email': students.first['email'],
         'class_name': students.first['class_name'],
         'section_name': students.first['section_name'],
-        'remained_amount':remainedAmount
+        'remained_amount': remainedAmount
       };
-    }else if (users.isNotEmpty) {
+    } else if (users.isNotEmpty) {
       return {
         'id': users.first['id'],
         'full_name': users.first['name'],
         'email': users.first['email'],
         'class_name': '',
         'section_name': '',
-        'remained_amount':'0'
+        'remained_amount': '0'
       };
     }
 
-    return null; // Return null if no users exist
+    return null;
   }
 
   Future<List<Map<String, dynamic>>> getStudentsWithDetails() async {
@@ -977,12 +583,12 @@ class DatabaseHelper {
 
     if (students.isNotEmpty) {
       for (var student in students) {
-        String remainedAmount = await getTotalFees(student['id'].toString()); // You may want to customize this per student later
+        String remainedAmount = await getTotalFees(student['id'].toString());
         result.add({
           'id': student['id'].toString(),
           'full_name': student['full_name'],
           'first_name': student['first_name'],
-          'email': student['email' ],
+          'email': student['email'],
           'class_name': student['class_name'],
           'section_name': student['section_name'],
           'remained_amount': remainedAmount.toString(),
@@ -1018,12 +624,12 @@ class DatabaseHelper {
       };
     }
 
-    return null; // Return null if no users exist
+    return null;
   }
+
   Future<Map<String, dynamic>?> getUserByEmail(String email) async {
     final db = await instance.database;
-    final result =
-    await db.query('users', where: 'email = ?', whereArgs: [email]);
+    final result = await db.query('users', where: 'email = ?', whereArgs: [email]);
 
     return result.isNotEmpty ? result.first : null;
   }
@@ -1032,46 +638,76 @@ class DatabaseHelper {
     try {
       final db = await instance.database;
 
-      // Insert into customer table
+      // Ensure loan_amount and remain_loan_amount are included
+      final customerData = {
+        ...user,
+        'loan_amount': user['loan_amount']?.toString(),
+        'remain_loan_amount': user['remain_loan_amount']?.toString(),
+      };
+
       return await db.insert(
         'customer',
-        user,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        customerData,
+        conflictAlgorithm: _replace,
       );
     } catch (e) {
       print('Error inserting customer: $e');
       return -1;
     }
   }
-
 
   Future<int> insertLoan(Map<String, dynamic> user) async {
     try {
       final db = await instance.database;
-      // Get the columns of the customer table
 
-      // Insert into loan table
       return await db.insert(
         'loan',
         user,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        conflictAlgorithm: _replace,
       );
     } catch (e) {
-      print('Error inserting customer: $e');
+      print('Error inserting loan: $e');
       return -1;
     }
   }
-
-
 
   Future<int> insertTransaction(Map<String, dynamic> transaction) async {
     try {
       final db = await instance.database;
 
+      // Define valid columns for the transactions table
+      final validColumns = {
+        'id',
+        'msisdn',
+        'amount',
+        'reference',
+        'type',
+        'status',
+        'mechant_id',
+        'settlement_status',
+        'charge',
+        'receiving_account_id',
+        'total_amount',
+        'settlement_id',
+        'settlement_date',
+        'transaction_id',
+        'created_at',
+        'updated_at',
+        'description',
+      };
+
+      // Filter transaction map to only include valid columns
+      final filteredTransaction = <String, dynamic>{};
+      transaction.forEach((key, value) {
+        if (validColumns.contains(key)) {
+          filteredTransaction[key] = value;
+        }
+      });
+
       return await db.insert(
         'transactions',
-        transaction,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        filteredTransaction,
+        conflictAlgorithm: _replace,
       );
     } catch (e) {
       print('Error inserting transaction: $e');
@@ -1082,13 +718,84 @@ class DatabaseHelper {
   Future<int> insertUsersCredentials(Map<String, dynamic> transaction) async {
     try {
       final db = await instance.database;
+
+      // Define valid columns for the user_credentials table
+      final validColumns = {
+        'id',
+        'name',
+        'email',
+        'phone',
+        'status',
+        'email_verified_at',
+        'password',
+        'password_hash',
+        'username',
+        'remember_token',
+        'otp',
+        'otp_verified',
+        'created_at',
+        'updated_at',
+      };
+
+      // Filter transaction map to only include valid columns
+      final filteredCredentials = <String, dynamic>{};
+      transaction.forEach((key, value) {
+        if (validColumns.contains(key) && value != null) {
+          filteredCredentials[key] = value;
+        }
+      });
+
+      // Check if record exists (by email or username) to preserve existing required fields
+      Map<String, dynamic>? existingRecord;
+      final email = filteredCredentials['email']?.toString().trim();
+      final username = filteredCredentials['username']?.toString().trim();
+      
+      if (email != null && email.isNotEmpty) {
+        final results = await db.query(
+          'user_credentials',
+          where: 'email = ?',
+          whereArgs: [email],
+        );
+        if (results.isNotEmpty) {
+          existingRecord = results.first;
+        }
+      } else if (username != null && username.isNotEmpty) {
+        final results = await db.query(
+          'user_credentials',
+          where: 'username = ?',
+          whereArgs: [username],
+        );
+        if (results.isNotEmpty) {
+          existingRecord = results.first;
+        }
+      }
+
+      // Merge with existing record to preserve required NOT NULL fields
+      if (existingRecord != null) {
+        filteredCredentials['name'] ??= existingRecord['name'];
+        filteredCredentials['email'] ??= existingRecord['email'];
+        filteredCredentials['phone'] ??= existingRecord['phone'];
+        filteredCredentials['status'] ??= existingRecord['status'];
+        // Preserve id if not provided
+        filteredCredentials['id'] ??= existingRecord['id'];
+      } else {
+        // For new records, provide defaults for required NOT NULL fields
+        final phoneValue = filteredCredentials['phone']?.toString().trim();
+        filteredCredentials['name'] ??= username ?? phoneValue ?? 'User';
+        filteredCredentials['email'] ??= email ?? (username != null && username.isNotEmpty 
+            ? '$username@example.com' 
+            : 'user@example.com');
+        filteredCredentials['phone'] ??= phoneValue ?? username ?? '';
+        filteredCredentials['status'] ??= '1';
+      }
+
       return await db.insert(
         'user_credentials',
-        transaction,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        filteredCredentials,
+        conflictAlgorithm: _replace,
       );
     } catch (e) {
-      print('Error inserting transaction: $e');
+      print('Error inserting user credentials: $e');
       return -1;
     }
   }
@@ -1100,14 +807,13 @@ class DatabaseHelper {
       return await db.insert(
         'mechant_charge_configurations',
         transaction,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        conflictAlgorithm: _replace,
       );
     } catch (e) {
-      print('Error inserting transaction: $e');
+      print('Error inserting charge: $e');
       return -1;
     }
   }
-
 
   Future<int> insertStatus(Map<String, dynamic> transaction) async {
     try {
@@ -1116,66 +822,180 @@ class DatabaseHelper {
       return await db.insert(
         'status',
         transaction,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        conflictAlgorithm: _replace,
       );
     } catch (e) {
-      print('Error inserting transaction: $e');
+      print('Error inserting status: $e');
       return -1;
     }
   }
 
+  Future<int> insertLoanStatus(Map<String, dynamic> loanStatus) async {
+    try {
+      final db = await instance.database;
+
+      return await db.insert(
+        'loan_status',
+        loanStatus,
+        conflictAlgorithm: _replace,
+      );
+    } catch (e) {
+      print('Error inserting loan status: $e');
+      return -1;
+    }
+  }
+
+  Future<int> insertLoanSchedule(Map<String, dynamic> loanSchedule) async {
+    try {
+      print(loanSchedule);
+      final db = await instance.database;
+
+      // Map API field names to database column names
+      final mappedData = <String, dynamic>{};
+      
+      // Copy all fields first
+      loanSchedule.forEach((key, value) {
+        mappedData[key] = value;
+      });
+      
+      // Handle paid_amount/paid field mapping
+      if (mappedData.containsKey('paid') && !mappedData.containsKey('paid_amount')) {
+        mappedData['paid_amount'] = mappedData['paid'];
+        mappedData.remove('paid');
+      } else if (!mappedData.containsKey('paid_amount')) {
+        mappedData['paid_amount'] = 0; // Default value if not present
+      }
+      
+      // Handle remained_amount/remained field mapping
+      if (mappedData.containsKey('remained') && !mappedData.containsKey('remained_amount')) {
+        mappedData['remained_amount'] = mappedData['remained'];
+        mappedData.remove('remained');
+      } else if (!mappedData.containsKey('remained_amount')) {
+        mappedData['remained_amount'] = 0; // Default value if not present
+      }
+      
+      // Map other field names if needed (for loan details API format)
+      // Always remove installment_number if it exists (table doesn't have this column)
+      // Use installment_number value if installment is missing
+      if (mappedData.containsKey('installment_number')) {
+        if (!mappedData.containsKey('installment')) {
+          mappedData['installment'] = mappedData['installment_number'];
+        }
+        // Always remove installment_number to avoid SQL error
+        mappedData.remove('installment_number');
+      }
+      
+      if (mappedData.containsKey('due_date') && !mappedData.containsKey('duedate')) {
+        mappedData['duedate'] = mappedData['due_date'];
+        mappedData.remove('due_date');
+      }
+
+      return await db.insert(
+        'loan_schedule',
+        mappedData,
+        conflictAlgorithm: _replace,
+      );
+    } catch (e) {
+      print('Error inserting loan schedule: $e');
+      return -1;
+    }
+  }
+
+  Future<int> insertSupportTicket(Map<String, dynamic> supportTicket) async {
+    try {
+      print(supportTicket);
+      final db = await instance.database;
+
+      return await db.insert(
+        'support_tickets',
+        {
+          'id': supportTicket['id'],
+          'ticket_id': supportTicket['ticket_id'],
+          'query_type': supportTicket['query_type'],
+          'query': supportTicket['query'],
+          'status': supportTicket['status'],
+          'priority': supportTicket['priority'],
+          'response': supportTicket['response'],
+          'created_at': supportTicket['created_at'],
+          'updated_at': supportTicket['updated_at'],
+        },
+        conflictAlgorithm: _replace,
+      );
+    } catch (e) {
+      print('Error inserting support ticket: $e');
+      return -1;
+    }
+  }
+
+  // Get next payment from loan schedule (where completed_derived is not 1)
+  Future<Map<String, dynamic>?> getNextPayment() async {
+    try {
+      final db = await instance.database;
+      final result = await db.rawQuery('''
+        SELECT total_amount, duedate 
+        FROM loan_schedule 
+        WHERE completed_derived != 1 
+        ORDER BY id ASC 
+        LIMIT 1
+      ''');
+      
+      if (result.isNotEmpty) {
+        return {
+          'total_amount': result.first['total_amount'],
+          'duedate': result.first['duedate'],
+        };
+      }
+      return null;
+    } catch (e) {
+      print('Error getting next payment from SQLite database: $e');
+      return null;
+    }
+  }
 
   Future<int> insertBalance(Map<String, dynamic> balance) async {
     try {
-      // Convert all values to String
       Map<String, String> stringStudent = balance.map((key, value) => MapEntry(key, value?.toString() ?? ''));
 
       final db = await instance.database;
 
-      // Insert using converted map
       return await db.insert(
         'balance',
         stringStudent,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        conflictAlgorithm: _replace,
       );
     } catch (e) {
-      print('Error inserting student: $e');
+      print('Error inserting balance: $e');
       return -1;
     }
   }
 
   Future<int> insertAccount(Map<String, dynamic> account) async {
     try {
-      // Convert all values to String
       Map<String, String> stringStudent = account.map((key, value) => MapEntry(key, value?.toString() ?? ''));
 
       final db = await instance.database;
 
-      // Insert using converted map
       return await db.insert(
         'account_setup',
         stringStudent,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        conflictAlgorithm: _replace,
       );
     } catch (e) {
-      print('Error inserting student: $e');
+      print('Error inserting account: $e');
       return -1;
     }
   }
 
-
   Future<int> insertStudent(Map<String, dynamic> student) async {
     try {
-      // Convert all values to String
       Map<String, String> stringStudent = student.map((key, value) => MapEntry(key, value?.toString() ?? ''));
 
       final db = await instance.database;
 
-      // Insert using converted map
       return await db.insert(
         'students',
         stringStudent,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        conflictAlgorithm: _replace,
       );
     } catch (e) {
       print('Error inserting student: $e');
@@ -1185,7 +1005,7 @@ class DatabaseHelper {
 
   Future<int> insertParent(Map<String, dynamic> parent) async {
     final db = await instance.database;
-    return await db.insert('parent_details', parent, conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert('parent_details', parent, conflictAlgorithm: _replace);
   }
 
   Future<int> insertFeesAssignment(Map<String, dynamic> data) async {
@@ -1197,6 +1017,7 @@ class DatabaseHelper {
     );
     return await db.insert('fees_assignments', data);
   }
+
   Future<int> insertFeesAssignChildren(Map<String, dynamic> data) async {
     final db = await instance.database;
     await db.delete(
@@ -1223,7 +1044,7 @@ class DatabaseHelper {
       return null;
     }
   }
-  // Function to sum amount from fees_assignments table
+
   Future<String> getTotalFees(String studentId) async {
     final db = await instance.database;
 
@@ -1239,6 +1060,7 @@ class DatabaseHelper {
     print(total);
     return total;
   }
+
   Future<Map<String, dynamic>?> getFeesDetails(int id) async {
     final db = await instance.database;
     final result = await db.query('fees_assignments', where: 'id = ?', whereArgs: [id]);
@@ -1250,23 +1072,19 @@ class DatabaseHelper {
     }
   }
 
-  // Function to update user status by ID
   Future<int> updateUserStatus(int userId) async {
     final db = await database;
     return await db.update(
       'users',
-      {'status': 2}, // Update status to 2
+      {'status': 2},
       where: 'id = ?',
       whereArgs: [userId],
     );
   }
 
-
-
-  // Returns true if user_credentials table is not empty
   Future<bool> hasUserCredentials() async {
     final db = await instance.database;
-    final result = await db.query('user_credentials', limit: 1);
+    final result = await db.rawQuery('SELECT * FROM user_credentials LIMIT 1');
     return result.isNotEmpty;
   }
 }

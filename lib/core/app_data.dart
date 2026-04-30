@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wicom/src/model/product.dart';
 import 'package:wicom/src/model/numerical.dart';
 import 'package:wicom/src/model/categorical.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:wicom/src/model/product_category.dart';
 import 'package:wicom/src/model/product_size_type.dart';
 import 'package:wicom/src/model/recommended_product.dart';
@@ -13,8 +12,14 @@ import 'app_color.dart';
 class AppData {
   const AppData._();
 
-  static String url = "https://payment.softecki.com/api";
-  static String School_name = "Malipo Mtandao";
+  /// Laravel API base including `/api` (same host as attendanceportal).
+  static String url = "https://payroll.softecki.com/api";
+
+  /// Shown in UI (rebrand).
+  static String appDisplayName = "Softecki FaceAccess";
+
+  /// Legacy label used in older screens.
+  static String School_name = "Softecki FaceAccess";
   static const String dummyText = 'Lorem Ipsum is simply dummy text of the printing and typesetting'
       ' industry. Lorem Ipsum has been the industry\'s standard dummy text'
       ' ever since the 1500s, when an unknown printer took a galley of type'
@@ -176,7 +181,7 @@ class AppData {
     ),
     ProductCategory(
       type: ProductType.mobile,
-      icon: FontAwesomeIcons.mobileScreenButton,
+      icon: Icons.phone_android,
     ),
     ProductCategory(
       type: ProductType.watch,
@@ -184,7 +189,7 @@ class AppData {
     ),
     ProductCategory(
       type: ProductType.tablet,
-      icon: FontAwesomeIcons.tablet,
+      icon: Icons.tablet,
     ),
     ProductCategory(
       type: ProductType.headphone,
@@ -230,3 +235,4 @@ class AppData {
     ),
   ];
 }
+

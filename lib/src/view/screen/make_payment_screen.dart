@@ -1,24 +1,69 @@
 import 'dart:convert';
+import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-
 import '../../../core/app_color.dart';
 import '../../../core/app_data.dart';
 import '../../../generated/assets.dart';
 import '../../data/database_helper.dart';
+import '../../data/drift_web_database_helper.dart';
 import '../widget/custom_button.dart';
 import '../widget/custom_text_field.dart';
 import '../widget/dropdown.dart';
 import 'home_screen.dart';
 
-class MakePayment extends StatelessWidget {
+class MakePayment extends StatefulWidget {
   final String phone;
   MakePayment(String this.phone, {super.key});
+
+  @override
+  _MakePaymentState createState() => _MakePaymentState();
+}
+
+class _MakePaymentState extends State<MakePayment> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   final TextEditingController selectedServiceController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedLanguage();
+  }
+
+  Future<void> _loadSavedLanguage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedLanguageCode = prefs.getString('selected_language_code');
+      
+      if (savedLanguageCode != null && mounted) {
+        context.setLocale(Locale(savedLanguageCode));
+      } else {
+        // Default to Swahili if no preference is saved
+        if (mounted) {
+          context.setLocale(Locale('sw'));
+        }
+      }
+    } catch (e) {
+      print('Error loading saved language: $e');
+      // Fallback to Swahili on error
+      if (mounted) {
+        context.setLocale(Locale('sw'));
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    phoneController.dispose();
+    amountController.dispose();
+    selectedServiceController.dispose();
+    super.dispose();
+  }
 
   String generateReferenceNumberWithPrefix(String prefix) {
     final now = DateTime.now();
@@ -34,8 +79,8 @@ class MakePayment extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "Enter full phonenumber to proceed",
-            style: TextStyle(color: Colors.white), // White text
+            "Enter_full_phonenumber_to_proceed".tr(),
+            style: const TextStyle(color: Colors.white), // White text
           ),
           backgroundColor: Colors.red, // Red background
           behavior: SnackBarBehavior.floating, // Optional: makes it float
@@ -48,8 +93,8 @@ class MakePayment extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "Enter correct amount above 1000 TZS",
-            style: TextStyle(color: Colors.white), // White text
+            "Enter_correct_amount_above_1000_TZS".tr(),
+            style: const TextStyle(color: Colors.white), // White text
           ),
           backgroundColor: Colors.red, // Red background
           behavior: SnackBarBehavior.floating, // Optional: makes it float
@@ -62,8 +107,8 @@ class MakePayment extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "Select Payment Service",
-            style: TextStyle(color: Colors.white), // White text
+            "Select_Payment_Service".tr(),
+            style: const TextStyle(color: Colors.white), // White text
           ),
           backgroundColor: Colors.red, // Red background
           behavior: SnackBarBehavior.floating, // Optional: makes it float
@@ -80,18 +125,29 @@ class MakePayment extends StatelessWidget {
       ),
     );
     final url = Uri.parse(AppData.url+'/transaction');
+    String referenceNumber = generateReferenceNumberWithPrefix("MTPW");
+    final requestPayload = {
+      'sender_account': phoneController.text,
+      'amount': amountController.text,
+      'phone': widget.phone,
+      'reference':referenceNumber,
+      'service': selectedServiceController.text,
+    };
+    
+    print('=== TRANSACTION REQUEST ===');
+    print('URL: $url');
+    print('Request Payload: ${jsonEncode(requestPayload)}');
+    
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'sender_account': phoneController.text,
-        'amount': amountController.text,
-        'phone':phone,
-        'reference':generateReferenceNumberWithPrefix("MTPW"),
-        'service': selectedServiceController.text,
-      }),
+      body: jsonEncode(requestPayload),
     );
-    print(response.body);
+    
+    print('=== TRANSACTION RESPONSE ===');
+    print('Status Code: ${response.statusCode}');
+    print('Response Body: ${response.body}');
+    print('Response Headers: ${response.headers}');
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);
       final transactionData = responseBody['data']['transaction'];
@@ -107,27 +163,31 @@ class MakePayment extends StatelessWidget {
           await DatabaseHelper.instance.insertBalance(balance);
         }
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Your Request has been received. We are processing",
-            style: TextStyle(color: Colors.white), // White text
-          ),
-          backgroundColor: Colors.green, // Red background
-          behavior: SnackBarBehavior.floating, // Optional: makes it float
-        ),
-      );
 
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => HomeScreen()));
-      // Navigator.pop(context); // Go back to login after success
+      // Start progress dialog and check payment status
+      _showProgressDialog(context, referenceNumber, widget.phone);
     } else {
       Navigator.of(context).pop();
-      final errorMsg = jsonDecode(response.body)['message'] ?? 'Registration Failed';
+      final errorMsg = jsonDecode(response.body)['message'] ?? 'Registration_Failed'.tr();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMsg)),
       );
     }
+  }
+
+  void _showProgressDialog(BuildContext context, String referenceNumber, String phone) {
+    Navigator.of(context).pop(); // Close the loading dialog
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ProgressDialog(
+          referenceNumber: referenceNumber,
+          phone: phone,
+        );
+      },
+    );
   }
 
   @override
@@ -178,9 +238,10 @@ class MakePayment extends StatelessWidget {
               ),
 
 
-              const Text(
-                "Make your sale securely and conveniently with Malipo Mtandao. Simply select a payment service, then enter the customer’s number and the amount.",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.normal),textAlign: TextAlign.center,
+              Text(
+                "Make_your_sale_securely_and_conveniently_with_Malipo_Mtandao_Simply_select_a_payment_service_then_enter_your_number_and_the_amount".tr(),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
+                textAlign: TextAlign.center,
               ),
 
               const SizedBox(height: 15),
@@ -189,7 +250,7 @@ class MakePayment extends StatelessWidget {
               // Sunken Phone Input
               _buildSunkenField(
                 child: CustomTextField(
-                  hintText: "Enter Phone number",
+                  hintText: "Enter_Phone_number".tr(),
                   icon: Icons.phone,
                   controller: phoneController,
                   keyboardType: TextInputType.number,
@@ -201,7 +262,7 @@ class MakePayment extends StatelessWidget {
               // Sunken Amount Input
               _buildSunkenField(
                 child: CustomTextField(
-                  hintText: "Enter Amount",
+                  hintText: "Enter_Amount".tr(),
                   icon: Icons.money_sharp,
                   controller: amountController,
                   keyboardType: TextInputType.number,
@@ -214,7 +275,7 @@ class MakePayment extends StatelessWidget {
               _buildSunkenField(
                 child: CustomButton(
                   onPressed: () => register(context),
-                  text: 'Pay',
+                  text: 'Pay'.tr(),
                 ),
               ),
             ],
@@ -223,60 +284,7 @@ class MakePayment extends StatelessWidget {
       ),
     );
 
-    // return Scaffold(
-    //   appBar: AppBar(
-    //     backgroundColor: AppColor.primaryColor,
-    //     title: Text(
-    //       "Make Sale",
-    //       style: TextStyle(color: Colors.white, fontSize: 18),
-    //     ),
-    //   ),
-    //   body: SingleChildScrollView( // ✅ Allows scrolling to prevent overflow
-    //     child: Padding(
-    //       padding: const EdgeInsets.all(20.0),
-    //       child: Column(
-    //         crossAxisAlignment: CrossAxisAlignment.center, // Aligns content to the left
-    //         children: [
-    //
-    //           Image.asset(
-    //             Assets.imagesTicketMtandao,
-    //             height: 100,
-    //             width: 100,
-    //             fit: BoxFit.cover,
-    //           ),
-    //           const SizedBox(height: 20),
-    //           const Text(
-    //             "Make a sale",
-    //             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-    //           ),
-    //
-    //
-    //           const SizedBox(height: 15),
-    //           CustomTextField(
-    //             hintText: "Enter Phone number",
-    //             icon: Icons.phone,
-    //             controller: phoneController,
-    //             keyboardType: TextInputType.number,
-    //           ),
-    //           const SizedBox(height: 15),
-    //           CustomTextField(
-    //             hintText: "Enter Amount",
-    //             icon: Icons.money_sharp,
-    //             controller: amountController,
-    //             keyboardType: TextInputType.number,
-    //           ),
-    //
-    //           const SizedBox(height: 15),
-    //           CustomButton(
-    //             onPressed: () => register(context),
-    //             text: 'Pay',
-    //           ),
-    //         ],
-    //       ),
-    //     ),
-    //   ),
-    // );
-  }
+     }
 
   Widget _buildSunkenField({required Widget child}) {
     return Container(
@@ -303,4 +311,437 @@ class MakePayment extends StatelessWidget {
     );
   }
 
+}
+
+class ProgressDialog extends StatefulWidget {
+  final String referenceNumber;
+  final String phone;
+  const ProgressDialog({Key? key, required this.referenceNumber, required this.phone}) : super(key: key);
+
+  @override
+  _ProgressDialogState createState() => _ProgressDialogState();
+}
+
+class _ProgressDialogState extends State<ProgressDialog> {
+  String status = 'Processing'.tr() + '...';
+  int elapsedSeconds = 0;
+  Timer? _timer;
+  Timer? _statusTimer;
+  Timer? _settlementTimer;
+  bool _isCheckingSettlement = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startStatusCheck();
+    _startElapsedTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _statusTimer?.cancel();
+    _settlementTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Platform-specific database storage function
+  /// Uses SQLite for mobile (Android/iOS) and Drift for web
+  Future<void> _saveUserDataToDatabase(Map<String, dynamic>? userMap, Map<String, dynamic> data) async {
+    try {
+      // Platform check
+      final isWeb = kIsWeb;
+      
+      if (isWeb) {
+        // Web platform - Use DriftWebDatabaseHelper
+        await _saveToDriftWebDatabase(userMap, data);
+      } else {
+        // Mobile platform - Use SQLite database
+        await _saveToSQLiteDatabase(userMap, data);
+      }
+    } catch (e) {
+      print('Error saving data to database: $e');
+    }
+  }
+
+  /// Save data to Drift web database
+  Future<void> _saveToDriftWebDatabase(Map<String, dynamic>? userMap, Map<String, dynamic> data) async {
+    try {
+      final driftHelper = DriftWebDatabaseHelper();
+      
+      // Save customer data
+      if (userMap != null && userMap.isNotEmpty) {
+        print('Saving customer data...');
+        await driftHelper.saveCustomer(userMap);
+        print('Customer data saved successfully');
+      } else {
+        print('No customer data to save');
+      }
+      
+      // Handle loan data if exists
+      if (data['loan'] != null && data['loan'].isNotEmpty) {
+        final loanData = data['loan'] as List?;
+        if (loanData != null && loanData.isNotEmpty) {
+          await driftHelper.saveLoan(loanData[0]);
+        }
+      }
+
+      // Handle transaction data if exists
+      if (data['transaction'] != null && data['transaction'].isNotEmpty) {
+        final transactionData = data['transaction'] as List?;
+        if (transactionData != null && transactionData.isNotEmpty) {
+          for (var transaction in transactionData) {
+            await driftHelper.saveTransaction(transaction);
+          }
+        }
+      }
+
+      // Handle user credentials if exists
+      if (data['user_credentials'] != null && data['user_credentials'].isNotEmpty) {
+        final userCredentials = data['user_credentials'];
+        if (userCredentials != null && userCredentials.isNotEmpty) {
+          await driftHelper.saveUserCredentials(userCredentials);
+        }
+      }
+
+      // Handle status list if exists
+      if (data['status'] != null && data['status'].isNotEmpty) {
+        final statusList = data['status'] as List?;
+        if (statusList != null && statusList.isNotEmpty) {
+          for (var status in statusList) {
+            await driftHelper.saveStatus(status);
+          }
+        }
+      }
+
+      // Handle loan status data if exists
+      if (data['loan_status'] != null && data['loan_status'].isNotEmpty) {
+        final loanStatusData = data['loan_status'] as List?;
+        if (loanStatusData != null) {
+          for (var loanStatus in loanStatusData) {
+            await driftHelper.saveLoanStatus(loanStatus);
+          }
+        }
+      }
+      
+      // Handle loan schedule data if exists
+      if (data['loan_schedule'] != null && data['loan_schedule'].isNotEmpty) {
+        final loanScheduleData = data['loan_schedule'] as List?;
+        if (loanScheduleData != null) {
+          for (var loanSchedule in loanScheduleData) {
+            await driftHelper.saveLoanSchedule(loanSchedule);
+          }
+        }
+      }
+      
+      print('Data saved to Drift web database successfully');
+    } catch (e) {
+      print('Error saving to Drift web database: $e');
+    }
+  }
+
+  /// Save data to SQLite database (Mobile platform)
+  Future<void> _saveToSQLiteDatabase(Map<String, dynamic>? userMap, Map<String, dynamic> data) async {
+    try {
+      // Save user data
+      if (userMap != null && userMap.isNotEmpty) {
+        print('Saving customer data to SQLite...');
+        await DatabaseHelper.instance.insertCustomer(userMap);
+        print('Customer data saved to SQLite successfully');
+      } else {
+        print('No customer data to save to SQLite');
+      }
+
+      // Handle loan data if exists
+      if (data['loan'] != null && data['loan'].isNotEmpty) {
+        final loanData = data['loan'] as List?;
+        if (loanData != null && loanData.isNotEmpty) {
+          final loan = {
+            'id': loanData[0]['id'],
+            'client_id': loanData[0]['client_id']?.toString() ?? '',
+            'total_expected_repayment_derived':
+                loanData[0]['total_expected_repayment_derived']?.toString() ?? '0',
+            'total_repayment_derived':
+                loanData[0]['total_repayment_derived']?.toString() ?? '0',
+          };
+          await DatabaseHelper.instance.insertLoan(loan);
+        }
+      }
+
+      // Handle transaction data if exists
+      if (data['transaction'] != null && data['transaction'].isNotEmpty) {
+        final transactionData = data['transaction'] as List?;
+        if (transactionData != null) {
+          for (var transaction in transactionData) {
+            await DatabaseHelper.instance.insertTransaction(transaction);
+          }
+        }
+      }
+
+      // Handle user credentials if exists
+      if (data['user_credentials'] != null && data['user_credentials'].isNotEmpty) {
+        final userCredentials = data['user_credentials'];
+        if (userCredentials != null) {
+          await DatabaseHelper.instance.insertUsersCredentials(userCredentials);
+        }
+      }
+
+      // Handle status list if exists
+      if (data['status'] != null && data['status'].isNotEmpty) {
+        final statusList = data['status'] as List?;
+        if (statusList != null) {
+          for (var status in statusList) {
+            await DatabaseHelper.instance.insertStatus(status);
+          }
+        }
+      }
+
+      // Handle loan status data if exists
+      if (data['loan_status'] != null && data['loan_status'].isNotEmpty) {
+        final loanStatusData = data['loan_status'] as List?;
+        if (loanStatusData != null) {
+          for (var loanStatus in loanStatusData) {
+            await DatabaseHelper.instance.insertLoanStatus(loanStatus);
+          }
+        }
+      }
+
+      // Handle loan schedule data if exists
+      if (data['loan_schedule'] != null && data['loan_schedule'].isNotEmpty) {
+        final loanScheduleData = data['loan_schedule'] as List?;
+        if (loanScheduleData != null) {
+          for (var loanSchedule in loanScheduleData) {
+            await DatabaseHelper.instance.insertLoanSchedule(loanSchedule);
+          }
+        }
+      }
+      
+      print('Data saved to SQLite database successfully');
+    } catch (e) {
+      print('Error saving to SQLite database: $e');
+    }
+  }
+
+  void _startElapsedTimer() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        elapsedSeconds++;
+      });
+      
+      // Check for timeout after 3 minutes (180 seconds)
+      if (elapsedSeconds >= 180) {
+        _handleTimeout();
+      }
+    });
+  }
+
+  void _startStatusCheck() {
+    _checkStatus();
+    _statusTimer = Timer.periodic(Duration(seconds: 10), (timer) {
+      _checkStatus();
+    });
+  }
+
+  Future<void> _checkStatus() async {
+    try {
+      final url = Uri.parse(AppData.url + '/checkStatus');
+      final requestPayload = {
+        'reference': widget.referenceNumber,
+        'phone': widget.phone,
+      };
+      
+      print('=== CHECK STATUS REQUEST ===');
+      print('URL: $url');
+      print('Request Payload: ${jsonEncode(requestPayload)}');
+      
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestPayload),
+      );
+      
+      print('=== CHECK STATUS RESPONSE ===');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+      print('Response Headers: ${response.headers}');
+      
+      final responseBody = jsonDecode(response.body);
+      print('Parsed Response Body: $responseBody');
+      if (response.statusCode == 200) {
+        
+        final paymentStatus = responseBody['data']['payment_status'];
+        final transactionId = responseBody['data']['transaction_id'];
+        final loanSchedule = responseBody['data']['loan_schedule'];
+        final loan = responseBody['data']['loan'];
+        final transactions = responseBody['data']['transactions'];
+        
+        setState(() {
+          if (transactionId != null) {
+            status = '${'Status'.tr()}: $paymentStatus\n${'Transaction_ID'.tr()}: $transactionId';
+          } else {
+            status = '${'Status'.tr()}: $paymentStatus';
+          }
+        });
+
+        if (paymentStatus == 'completed') {
+          await _saveUserDataToDatabase(null, responseBody['data']);
+          _handleSuccess();
+          // _startSettlementCheck();
+        }
+      } else {
+        setState(() {
+          status = 'Error_checking_status'.tr();
+        });
+      }
+    } catch (e) {
+      setState(() {
+        status = '${'Error'.tr()}: $e';
+      });
+    }
+  }
+
+  void _startSettlementCheck() {
+    _isCheckingSettlement = true;
+    _statusTimer?.cancel(); // Stop payment status checking
+    _settlementTimer = Timer.periodic(Duration(seconds: 10), (timer) {
+      _checkSettlementStatus();
+    });
+    _checkSettlementStatus(); // Check immediately
+  }
+
+  Future<void> _checkSettlementStatus() async {
+    try {
+      final url = Uri.parse(AppData.url + '/settlementStatus');
+      final requestPayload = {
+        'reference': widget.referenceNumber,
+        'phone': widget.phone,
+      };
+      
+      print('=== CHECK SETTLEMENT STATUS REQUEST ===');
+      print('URL: $url');
+      print('Request Payload: ${jsonEncode(requestPayload)}');
+      
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestPayload),
+      );
+
+      print('=== CHECK SETTLEMENT STATUS RESPONSE ===');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+      print('Response Headers: ${response.headers}');
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        print('Parsed Settlement Status Response: $responseBody');
+        final settlementStatus = responseBody['data']['settlement_status'];
+        
+        setState(() {
+          status = '${'Payment_completed_Checking_settlement'.tr()}...\n${'Settlement'.tr()}: $settlementStatus';
+        });
+
+        if (settlementStatus == 'completed') {
+          // Save updated data to database when settlement is completed
+          await _saveUserDataToDatabase(null, responseBody['data']);
+          _settlementTimer?.cancel();
+          _handleSuccess();
+        }
+      } else {
+        setState(() {
+          status = 'Error_checking_settlement_status'.tr();
+        });
+      }
+    } catch (e) {
+      setState(() {
+        status = '${'Settlement_check_error'.tr()}: $e';
+      });
+    }
+  }
+
+  void _handleSuccess() {
+    _timer?.cancel();
+    _statusTimer?.cancel();
+    _settlementTimer?.cancel();
+    
+    Navigator.of(context).pop();
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "Payment_completed_successfully".tr(),
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    Navigator.pushReplacement(
+      context, 
+      MaterialPageRoute(builder: (context) => HomeScreen())
+    );
+  }
+
+  void _handleTimeout() {
+    _timer?.cancel();
+    _statusTimer?.cancel();
+    _settlementTimer?.cancel();
+    
+    Navigator.of(context).pop();
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _isCheckingSettlement 
+            ? "Settlement_timeout_Please_check_your_transaction_status_later".tr()
+            : "Payment_timeout_Please_check_your_transaction_status_later".tr(),
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.orange,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    Navigator.pushReplacement(
+      context, 
+      MaterialPageRoute(builder: (context) => HomeScreen())
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircularProgressIndicator(color: AppColor.primaryColor),
+          SizedBox(height: 20),
+          Text(
+            status,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 10),
+          Text(
+            '${'Reference'.tr()}: ${widget.referenceNumber}',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '${'Elapsed'.tr()}: ${elapsedSeconds}s',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Please_wait_while_we_process_your_payment'.tr(),
+            style: const TextStyle(fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
 }

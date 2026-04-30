@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:wicom/src/model/product_category.dart';
 
 class ListItemSelector extends StatefulWidget {
@@ -34,7 +33,7 @@ class _ListItemSelectorState extends State<ListItemSelector> {
         ),
         child: IconButton(
           splashRadius: 0.1,
-          icon: FaIcon(
+          icon: Icon(
             item.icon,
             color: item.isSelected == false
                 ? const Color(0xFFA6A3A0)

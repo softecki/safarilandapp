@@ -1,13 +1,16 @@
 {
-    "name": "dodomaapp",
-    "short_name": "dodomaapp",
+    "name": "Softecki FaceAccess",
+    "short_name": "FaceAccess",
+    "version": "1.4.0",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "description": "Softecki FaceAccess mobile and web app for secure attendance, gate access, and workforce operations.",
+    "orientation": "any",
     "prefer_related_applications": false,
+    "scope": "/",
+    "categories": ["finance", "business"],
     "icons": [
         {
             "src": "icons/Icon-192.png",
@@ -33,3 +36,4 @@
         }
     ]
 }
+

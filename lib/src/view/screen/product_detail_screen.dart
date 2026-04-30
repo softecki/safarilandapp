@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:wicom/core/app_color.dart';
 import 'package:wicom/src/model/product.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:wicom/src/view/widget/carousel_slider.dart';
 import 'package:wicom/src/controller/product_controller.dart';
 
@@ -48,8 +47,8 @@ class ProductDetailScreen extends StatelessWidget {
         RatingBar.builder(
           initialRating: product.rating,
           direction: Axis.horizontal,
-          itemBuilder: (_, __) => const FaIcon(
-            FontAwesomeIcons.solidStar,
+          itemBuilder: (_, __) => const Icon(
+            Icons.star,
             color: Colors.amber,
           ),
           onRatingUpdate: (_) {},

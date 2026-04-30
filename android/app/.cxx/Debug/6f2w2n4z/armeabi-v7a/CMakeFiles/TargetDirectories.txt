@@ -1,0 +1,2 @@
+C:/xampp/htdocs/project/attendanceapp/android/app/.cxx/Debug/6f2w2n4z/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/xampp/htdocs/project/attendanceapp/android/app/.cxx/Debug/6f2w2n4z/armeabi-v7a/CMakeFiles/rebuild_cache.dir
