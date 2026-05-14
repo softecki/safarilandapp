@@ -6,11 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:workmanager/workmanager.dart';
 import '../../core/app_data.dart';
-import 'sms_listener_service.dart';
 
 /// Health Check Service
-/// Monitors application health, internet connectivity, and SMS listener service
-/// Sends periodic health checks to backend and listens for commands from backend
+/// Monitors application health and internet connectivity; sends periodic health checks to the backend.
 class HealthCheckService {
   static const String taskName = 'health_check_task';
   static const String _healthCheckEnabledKey = 'health_check_enabled';
@@ -33,18 +31,10 @@ class HealthCheckService {
     _context = context;
   }
 
-  /// Initialize health check service
-  /// Only runs if SMS listener is enabled
+  /// Initialize health check service (when enabled in preferences).
   static Future<bool> initialize({BuildContext? context}) async {
     _context = context;
-    
-    // Check if SMS listener is enabled
-    if (!await SmsListenerService.isEnabled()) {
-      print('Health Check: SMS listener is disabled - health check will not run');
-      return false;
-    }
 
-    // Check if health check is enabled
     if (!await isEnabled()) {
       print('Health Check: Service is disabled');
       return false;
@@ -74,7 +64,7 @@ class HealthCheckService {
 
       // Also start foreground monitoring
       _startPeriodicCheck();
-      
+
       // Start command polling (more frequent for instant execution)
       _startCommandPolling();
 
@@ -91,7 +81,7 @@ class HealthCheckService {
   static void _startPeriodicCheck() {
     _periodicTimer?.cancel();
     _periodicTimer = Timer.periodic(const Duration(minutes: 5), (timer) async {
-      if (await SmsListenerService.isEnabled() && await isEnabled()) {
+      if (await isEnabled()) {
         await performHealthCheck();
       } else {
         timer.cancel();
@@ -104,7 +94,7 @@ class HealthCheckService {
   static void _startCommandPolling() {
     _commandPollingTimer?.cancel();
     _commandPollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-      if (await SmsListenerService.isEnabled() && await isEnabled()) {
+      if (await isEnabled()) {
         try {
           // Check basic connectivity first (quick check)
           final hasBasicConnectivity = await _checkInternetConnectivity();
@@ -218,9 +208,10 @@ class HealthCheckService {
       final connectivityResult = await Connectivity().checkConnectivity();
       final hasBasicConnectivity = connectivityResult != ConnectivityResult.none;
       
-      // Check SMS listener service status
-      final smsListenerRunning = await _checkSmsListenerStatus();
-      
+      // Legacy payload keys kept for backend compatibility (SMS listener removed from app).
+      const smsListenerRunning = false;
+      const smsListenerEnabled = false;
+
       // Get device ID
       final deviceId = await _getDeviceId();
       
@@ -230,7 +221,7 @@ class HealthCheckService {
         'timestamp': DateTime.now().toIso8601String(),
         'internet_available': hasBasicConnectivity,
         'sms_listener_running': smsListenerRunning,
-        'sms_listener_enabled': await SmsListenerService.isEnabled(),
+        'sms_listener_enabled': smsListenerEnabled,
         'app_version': '1.1.0',
         'platform': 'android', // You can detect this dynamically
       };
@@ -242,12 +233,6 @@ class HealthCheckService {
       // If health check failed to send, show dialog
       if (!healthCheckSent) {
         _showInternetDialog();
-      }
-
-      // Check if SMS listener needs to be restarted
-      if (smsListenerRunning == false && await SmsListenerService.isEnabled()) {
-        print('Health Check: SMS listener not running, attempting to restart...');
-        await SmsListenerService.initialize();
       }
 
       // Check for commands from backend (only if health check was successful)
@@ -269,24 +254,6 @@ class HealthCheckService {
       return connectivityResult != ConnectivityResult.none;
     } catch (e) {
       print('Error checking internet connectivity: $e');
-      return false;
-    }
-  }
-
-  /// Check SMS listener service status
-  static Future<bool> _checkSmsListenerStatus() async {
-    try {
-      // Check if SMS listener is enabled
-      if (!await SmsListenerService.isEnabled()) {
-        return false;
-      }
-
-      // Try to check native service status
-      // This is a simplified check - you may need to add native method channel
-      // For now, we assume it's running if enabled
-      return true;
-    } catch (e) {
-      print('Error checking SMS listener status: $e');
       return false;
     }
   }
@@ -401,17 +368,9 @@ class HealthCheckService {
 
       switch (commandType) {
         case 'restart_sms_listener':
-          print('Health Check: Restarting SMS listener...');
-          try {
-            await SmsListenerService.disable();
-            await Future.delayed(const Duration(seconds: 1));
-            await SmsListenerService.enable();
-            commandExecuted = true;
-            responseMessage = 'SMS listener restarted successfully';
-          } catch (e) {
-            print('Health Check: Error restarting SMS listener: $e');
-            responseMessage = 'Failed to restart SMS listener: $e';
-          }
+          print('Health Check: restart_sms_listener ignored (SMS listener removed from app)');
+          commandExecuted = true;
+          responseMessage = 'SMS listener is not available in this app version';
           break;
 
         case 'enable_health_check':
@@ -617,7 +576,7 @@ class HealthCheckService {
   static void _healthCheckCallbackDispatcher() {
     Workmanager().executeTask((task, inputData) async {
       try {
-        if (await SmsListenerService.isEnabled() && await HealthCheckService.isEnabled()) {
+        if (await HealthCheckService.isEnabled()) {
           await HealthCheckService.performHealthCheck();
         }
         return Future.value(true);

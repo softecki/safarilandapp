@@ -439,25 +439,6 @@ class LoanSchedule extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-// Processed SMS table
-class ProcessedSms extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get sender => text()();
-  TextColumn get originalMessage => text().named('original_message')();
-  TextColumn get normalizedMessage => text().named('normalized_message').nullable()();
-  TextColumn get messageHash => text().named('message_hash')(); // For duplicate detection
-  TextColumn get command => text().nullable()(); // PAY or LIPA
-  IntColumn get amount => integer().nullable()();
-  TextColumn get service => text().nullable()(); // VODACOM, YAS, TIGO, AIRTEL, HALOTEL
-  TextColumn get phone => text().nullable()();
-  TextColumn get status => text()(); // SUCCESS, FAILED, PENDING
-  TextColumn get errorMessage => text().named('error_message').nullable()();
-  IntColumn get apiStatusCode => integer().named('api_status_code').nullable()();
-  DateTimeColumn get smsTimestamp => dateTime().named('sms_timestamp')(); // When SMS was received
-  DateTimeColumn get processedAt => dateTime().named('processed_at').withDefault(currentDateAndTime)();
-  // Primary key is automatically set by autoIncrement() on id column
-}
-
 @DriftDatabase(tables: [
   Users,
   AppTransaction,
@@ -484,11 +465,22 @@ class ProcessedSms extends Table {
   Status,
   LoanStatus,
   LoanSchedule,
-  ProcessedSms,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(createDriftConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (Migrator m) async {
+          await m.createAll();
+        },
+        onUpgrade: (Migrator m, int from, int to) async {
+          if (from < 6) {
+            await customStatement('DROP TABLE IF EXISTS processed_sms;');
+          }
+        },
+      );
 }

@@ -4,6 +4,8 @@ import 'package:wicom/core/gate_access_api.dart';
 import 'package:wicom/core/gate_access_session.dart';
 import 'package:wicom/src/view/screen/attendance_login_screen.dart';
 import 'package:wicom/src/view/screen/gate_home_screen.dart';
+import 'package:wicom/src/view/widgets/neumorphic_widgets.dart';
+import 'package:wicom/src/view/widgets/softecki_brand_logo.dart';
 
 class GateLoginScreen extends StatefulWidget {
   const GateLoginScreen({super.key});
@@ -74,72 +76,77 @@ class _GateLoginScreenState extends State<GateLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Softecki FaceAccess - Gate Login')),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 460),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 8),
-                const Icon(
-                  Icons.fingerprint_rounded,
-                  size: 56,
-                  color: Colors.blue,
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Softecki FaceAccess',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Gate access sign in',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Colors.black54),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _gateCode,
-                  decoration: const InputDecoration(
-                    labelText: 'Gate code (8 digits)',
-                    border: OutlineInputBorder(),
+      appBar: AppBar(title: const Text('Softecki FaceAccess — Gate')),
+      body: NeuScreenCanvas(
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      NeuPanel(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: const Center(child: SofteckiBrandLogo(height: 40)),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Softecki FaceAccess',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Gate access sign in',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                      ),
+                      const SizedBox(height: 22),
+                      NeuTextField(
+                        controller: _gateCode,
+                        labelText: 'Gate code (8 digits)',
+                        hintText: '12345678',
+                        prefixIcon: Icons.pin_outlined,
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 16),
+                      NeuTextField(
+                        controller: _password,
+                        labelText: 'Gate password',
+                        hintText: '••••••••',
+                        prefixIcon: Icons.lock_outline,
+                        obscureText: true,
+                      ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 12),
+                        NeuPanel(
+                          padding: const EdgeInsets.all(12),
+                          depth: 2,
+                          child: Text(
+                            _error!,
+                            style: const TextStyle(color: Color(0xFFDC2626), fontSize: 14),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 22),
+                      NeuPrimaryButton(
+                        label: 'Login',
+                        loading: _loading,
+                        onPressed: _loading ? null : _submit,
+                      ),
+                      const SizedBox(height: 14),
+                      NeuSecondaryButton(
+                        label: 'Switch to Employee Login',
+                        icon: Icons.person_outline,
+                        onPressed: _loading ? null : _switchToEmployeeAccess,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _password,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Gate password',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(_error!, style: const TextStyle(color: Colors.red)),
-                ],
-                const SizedBox(height: 20),
-                FilledButton(
-                  onPressed: _loading ? null : _submit,
-                  child: _loading
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Text('Login'),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _loading ? null : _switchToEmployeeAccess,
-                  icon: const Icon(Icons.person_outline),
-                  label: const Text('Switch to Employee Login'),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -147,4 +154,3 @@ class _GateLoginScreenState extends State<GateLoginScreen> {
     );
   }
 }
-

@@ -230,10 +230,10 @@ class _MakePaymentState extends State<MakePayment> {
                   ],
                 ),
                 child: Image.asset(
-                  Assets.imagesMalipoMtandao1,
+                  Assets.imagesLogo,
                   height: 100,
-                  width: 100,
-                  fit: BoxFit.cover,
+                  width: 220,
+                  fit: BoxFit.contain,
                 ),
               ),
 

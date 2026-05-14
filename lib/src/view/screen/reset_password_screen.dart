@@ -197,8 +197,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Image.asset(
-                    Assets.imagesMalipoMtandao1,
-                    fit: BoxFit.cover,
+                    Assets.imagesLogo,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),

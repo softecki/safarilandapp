@@ -7,6 +7,7 @@ import '../../../core/app_data.dart';
 import '../../../generated/assets.dart';
 import '../widget/custom_button.dart';
 import '../widget/custom_text_field.dart';
+import '../widgets/neumorphic_widgets.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
   ForgotPasswordScreen({super.key});
@@ -48,11 +49,12 @@ class ForgotPasswordScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('')),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [  Image.asset(
+      body: NeuScreenCanvas(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [  Image.asset(
             Assets.imagesNalopa,
             height: 100,
             width: 100,
@@ -83,6 +85,7 @@ class ForgotPasswordScreen extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }

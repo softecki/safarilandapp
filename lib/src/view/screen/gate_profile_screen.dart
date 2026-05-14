@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
+import 'package:wicom/core/app_color.dart';
 import 'package:wicom/core/app_mode_session.dart';
 import 'package:wicom/core/gate_access_session.dart';
 import 'package:wicom/src/view/screen/mode_selector_screen.dart';
+import 'package:wicom/src/view/widgets/neumorphic_widgets.dart';
 
 class GateProfileScreen extends StatefulWidget {
   const GateProfileScreen({super.key});
@@ -54,54 +57,64 @@ class _GateProfileScreenState extends State<GateProfileScreen> {
         : 'G';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  CircleAvatar(
-                    radius: 36,
-                    child: Text(
-                      initials,
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                    ),
+      appBar: AppBar(title: const Text('Profile')),
+      body: NeuScreenCanvas(
+        child: _loading
+            ? const Center(child: CircularProgressIndicator(color: AppColor.primaryColor))
+            : SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Neumorphic(
+                          style: NeumorphicStyle(
+                            depth: 6,
+                            boxShape: const NeumorphicBoxShape.circle(),
+                            color: AppColor.neumorphicSurface,
+                          ),
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                            initials,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: AppColor.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _detailCard(
+                        icon: Icons.apartment_outlined,
+                        label: 'Organization',
+                        value: _tenantName?.isNotEmpty == true ? _tenantName! : 'Not available',
+                      ),
+                      const SizedBox(height: 12),
+                      _detailCard(
+                        icon: Icons.business_outlined,
+                        label: 'Tenant slug',
+                        value: _tenantSlug?.isNotEmpty == true ? _tenantSlug! : 'Not available',
+                      ),
+                      const SizedBox(height: 12),
+                      _detailCard(
+                        icon: Icons.security_outlined,
+                        label: 'Gate',
+                        value: _gateName?.isNotEmpty == true ? _gateName! : 'Not available',
+                      ),
+                      const Spacer(),
+                      NeuDangerButton(
+                        label: 'Log out',
+                        icon: Icons.logout_rounded,
+                        onPressed: _logout,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  _detailCard(
-                    icon: Icons.apartment_outlined,
-                    label: 'Organization',
-                    value: _tenantName?.isNotEmpty == true ? _tenantName! : 'Not available',
-                  ),
-                  const SizedBox(height: 12),
-                  _detailCard(
-                    icon: Icons.business_outlined,
-                    label: 'Tenant slug',
-                    value: _tenantSlug?.isNotEmpty == true ? _tenantSlug! : 'Not available',
-                  ),
-                  const SizedBox(height: 12),
-                  _detailCard(
-                    icon: Icons.security_outlined,
-                    label: 'Gate',
-                    value: _gateName?.isNotEmpty == true ? _gateName! : 'Not available',
-                  ),
-                  const Spacer(),
-                  FilledButton.icon(
-                    onPressed: _logout,
-                    icon: const Icon(Icons.logout_rounded),
-                    label: const Text('Log out'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+      ),
     );
   }
 
@@ -110,14 +123,9 @@ class _GateProfileScreenState extends State<GateProfileScreen> {
     required String label,
     required String value,
   }) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
+    return NeuPanel(
       child: ListTile(
-        leading: Icon(icon),
+        leading: Icon(icon, color: AppColor.primaryColor),
         title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(value),
       ),

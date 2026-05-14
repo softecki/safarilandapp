@@ -2,6 +2,8 @@
 
 ## 🎯 Goal: Build a Web App That Works in Browser (Without SMS Reading)
 
+> **Product update:** The Android **SMS listener / SMS payment trigger** stack has been **removed** from this codebase (no `SmsListenerService`, no native SMS receiver). Health checks still run when enabled; ignore older steps below that reference SMS listener files.
+
 ## ✅ What You CAN Do
 
 You can build a web app that:

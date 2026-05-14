@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/core/app_color.dart';
+import 'package:wicom/core/app_data.dart';
 import 'package:wicom/core/app_mode_session.dart';
 import 'package:wicom/core/attendance_api.dart';
 import 'package:wicom/core/attendance_session.dart';
-import 'package:wicom/core/app_data.dart';
 import 'package:wicom/src/view/screen/attendance_home_screen.dart';
 import 'package:wicom/src/view/screen/gate_login_screen.dart';
+import 'package:wicom/src/view/widgets/neumorphic_widgets.dart';
+import 'package:wicom/src/view/widgets/softecki_brand_logo.dart';
 
 /// Phone + password against Laravel `/api/v1/workforce/mobile/login`.
 class AttendanceLoginScreen extends StatefulWidget {
@@ -96,88 +98,95 @@ class _AttendanceLoginScreenState extends State<AttendanceLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 24),
-                  Icon(Icons.fingerprint_rounded, size: 56, color: AppColor.primaryColor),
-                  const SizedBox(height: 16),
-                  Text(
-                    AppData.appDisplayName,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColor.textPrimary,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Sign in with the phone number and password from your portal account.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColor.textSecondary, fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'API: ${AppData.url}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 11, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 32),
-                  TextField(
-                    controller: _phone,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone number',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.phone_outlined),
+      body: NeuScreenCanvas(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 16),
+                    NeuPanel(
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      child: const Center(child: SofteckiBrandLogo(height: 40)),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _password,
-                    obscureText: _obscure,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-                        onPressed: () => setState(() => _obscure = !_obscure),
+                    const SizedBox(height: 20),
+                    Text(
+                      AppData.appDisplayName,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColor.textPrimary,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Sign in with the phone number and password from your portal account.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColor.textSecondary, fontSize: 14),
+                    ),
+                    const SizedBox(height: 12),
+                    NeuPanel(
+                      padding: const EdgeInsets.all(12),
+                      depth: 2,
+                      child: Text(
+                        'API: ${AppData.url}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                       ),
                     ),
-                  ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 16),
-                    Text(_error!, style: const TextStyle(color: Colors.red)),
-                  ],
-                  const SizedBox(height: 24),
-                  FilledButton(
-                    onPressed: _loading ? null : _submit,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColor.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    const SizedBox(height: 28),
+                    NeuTextField(
+                      controller: _phone,
+                      labelText: 'Phone number',
+                      hintText: '07…',
+                      prefixIcon: Icons.phone_outlined,
+                      keyboardType: TextInputType.phone,
                     ),
-                    child: _loading
-                        ? const SizedBox(
-                            height: 22,
-                            width: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text('Sign in'),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: _loading ? null : _switchToGateAccess,
-                    icon: const Icon(Icons.storefront_outlined),
-                    label: const Text('Switch to Gate Access'),
-                  ),
-                ],
+                    const SizedBox(height: 18),
+                    NeuTextField(
+                      controller: _password,
+                      labelText: 'Password',
+                      hintText: '••••••••',
+                      prefixIcon: Icons.lock_outline,
+                      obscureText: _obscure,
+                      suffix: IconButton(
+                        icon: Icon(
+                          _obscure ? Icons.visibility_off : Icons.visibility,
+                          color: AppColor.primaryColor,
+                        ),
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                      ),
+                      keyboardType: TextInputType.visiblePassword,
+                    ),
+                    if (_error != null) ...[
+                      const SizedBox(height: 16),
+                      NeuPanel(
+                        padding: const EdgeInsets.all(12),
+                        depth: 2,
+                        child: Text(
+                          _error!,
+                          style: const TextStyle(color: Color(0xFFDC2626), fontSize: 14),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 28),
+                    NeuPrimaryButton(
+                      label: 'Sign in',
+                      loading: _loading,
+                      onPressed: _loading ? null : _submit,
+                    ),
+                    const SizedBox(height: 14),
+                    NeuSecondaryButton(
+                      label: 'Switch to Gate Access',
+                      icon: Icons.storefront_outlined,
+                      onPressed: _loading ? null : _switchToGateAccess,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -21,7 +21,6 @@ import '../../data/drift_web_database_helper.dart';
 import 'make_payment_screen.dart';
 import 'transactions_list_screen.dart';
 import 'transaction_detail_screen.dart';
-import '../../services/sms_listener_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -96,17 +95,6 @@ class _DashboardContentState extends State<DashboardContent> {
     super.initState();
     _loadSavedLanguage();
     _loadDashboardData();
-    _checkPendingSms();
-  }
-
-  Future<void> _checkPendingSms() async {
-    // Check and process pending SMS when dashboard loads
-    try {
-      await SmsListenerService.checkPendingSms();
-    } catch (e) {
-      // Silently fail - don't block dashboard loading
-      print('Error checking pending SMS: $e');
-    }
   }
 
   Future<void> _loadSavedLanguage() async {

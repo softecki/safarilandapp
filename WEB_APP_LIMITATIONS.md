@@ -1,5 +1,7 @@
 # Web App Limitations - SMS Listener Service
 
+> **Obsolete for current tree:** The **SMS listener** and native SMS components described in this document have been **removed** from the app. This file is kept only as background on why SMS cannot run in browsers.
+
 ## ⚠️ Critical Limitation: SMS Reading in Web Browsers
 
 **Short Answer: NO, the SMS listener service CANNOT work in a web browser.**

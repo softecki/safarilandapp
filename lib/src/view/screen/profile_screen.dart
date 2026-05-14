@@ -9,10 +9,8 @@ import '../../data/drift_database.dart';
 import '../../data/drift_web_database_helper.dart';
 import '../../services/api_service.dart';
 import '../../utils/navigation_helper.dart';
-import '../../services/sms_listener_service.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
-import 'sms_log_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -28,64 +26,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String userName = 'User';
   String userEmail = '';
   String userPhone = '';
-  bool smsListenerEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _loadSavedLanguage();
     _loadUserData();
-    _loadSmsListenerStatus();
-  }
-
-  Future<void> _loadSmsListenerStatus() async {
-    try {
-      final enabled = await SmsListenerService.isEnabled();
-      setState(() {
-        smsListenerEnabled = enabled;
-      });
-    } catch (e) {
-      print('Error loading SMS listener status: $e');
-    }
-  }
-
-  Future<void> _toggleSmsListener(bool value) async {
-    try {
-      final success = await SmsListenerService.setEnabled(value);
-      if (success) {
-        setState(() {
-          smsListenerEnabled = value;
-        });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(value 
-                ? 'SMS Listener enabled' 
-                : 'SMS Listener disabled'),
-              backgroundColor: value ? Colors.green : Colors.orange,
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to update SMS Listener status'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 
   Future<void> _loadSavedLanguage() async {
@@ -286,87 +232,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           //     );
           //   },
           // ),
-          const SizedBox(height: 12),
-          // SMS Listener Toggle - Clickable Card
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SmsLogScreen(),
-                ),
-              );
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColor.primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Iconsax.sms,
-                  color: AppColor.primaryColor,
-                ),
-              ),
-              title: const Text(
-                'SMS Payment Processing',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              subtitle: Text(
-                smsListenerEnabled 
-                    ? 'Tap to view SMS history and status' 
-                    : 'SMS listener is disabled - Tap to view history',
-                style: TextStyle(
-                  color: smsListenerEnabled ? Colors.green : Colors.grey[600],
-                ),
-              ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.chevron_right,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () {
-                        // Stop tap from propagating to parent InkWell
-                      },
-                      child: Switch(
-                value: smsListenerEnabled,
-                        onChanged: (value) {
-                          _toggleSmsListener(value);
-                        },
-                activeColor: AppColor.primaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          _buildOptionCard(
-            icon: Iconsax.sms,
-            title: 'SMS Payment Log',
-            subtitle: 'View processed SMS payment messages',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SmsLogScreen(),
-                ),
-              );
-            },
-          ),
           const SizedBox(height: 12),
           _buildOptionCard(
             icon: Iconsax.info_circle,

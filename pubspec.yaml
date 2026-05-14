@@ -62,15 +62,13 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.0
   iconsax: ^0.0.8
   google_fonts: ^6.2.1
-  # SMS Listener dependencies
-  permission_handler: ^11.3.1
   workmanager: ^0.7.0
-  crypto: ^3.0.5
   # Connectivity checking
   connectivity_plus: ^6.0.5
   mobile_scanner: ^6.0.2
   camera: ^0.11.0+2
   geolocator: ^13.0.2
+  flutter_neumorphic_plus: 3.5.0
 
 dev_dependencies:
   flutter_lints: ^5.0.0
@@ -83,8 +81,10 @@ dev_dependencies:
 
 flutter_launcher_icons:
   android: "launcher_icon"
+  ios: true
   image_path: "assets/images/logo.png"
-  adaptive_icon_background : "#ffffff"
+  adaptive_icon_background: "#121212"
+  adaptive_icon_foreground: "assets/images/logo.png"
 
 
 flutter:

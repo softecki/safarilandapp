@@ -4,7 +4,9 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:wicom/core/app_color.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:wicom/src/services/gate_scan_queue_service.dart';
 import 'package:wicom/src/services/gate_sync_service.dart';
@@ -283,8 +285,9 @@ class _GateScanScreenState extends State<GateScanScreen> {
   @override
   Widget build(BuildContext context) {
     if (kIsWeb) {
-      return const Scaffold(
-        body: Center(
+      return Scaffold(
+        backgroundColor: AppColor.neumorphicBase,
+        body: const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
             child: Text('Gate scanner works on Android/iOS build only.'),
@@ -312,12 +315,16 @@ class _GateScanScreenState extends State<GateScanScreen> {
             left: 16,
             right: 16,
             bottom: 24,
-            child: Card(
-              color: Colors.black.withValues(alpha: 0.65),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child:
-                    Text(_status, style: const TextStyle(color: Colors.white)),
+            child: Neumorphic(
+              style: NeumorphicStyle(
+                depth: 8,
+                color: const Color(0xD91A2228),
+                boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(18)),
+              ),
+              padding: const EdgeInsets.all(14),
+              child: Text(
+                _status,
+                style: const TextStyle(color: Colors.white, height: 1.35),
               ),
             ),
           ),

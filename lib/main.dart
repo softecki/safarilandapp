@@ -1,22 +1,21 @@
 import 'dart:convert';
+import 'dart:ui' show PointerDeviceKind;
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:wicom/core/app_mode_session.dart';
-import 'package:wicom/src/view/screen/attendance_login_screen.dart';
-import 'package:wicom/src/view/screen/attendance_home_screen.dart';
+import 'package:wicom/core/app_neumorphic.dart';
+import 'package:wicom/core/app_theme.dart';
 import 'package:wicom/core/attendance_session.dart';
 import 'package:wicom/core/gate_access_session.dart';
-import 'package:flutter/material.dart';
-import 'dart:ui' show PointerDeviceKind;
-import 'package:wicom/core/app_theme.dart';
+import 'package:wicom/src/view/screen/attendance_home_screen.dart';
+import 'package:wicom/src/view/screen/attendance_login_screen.dart';
 import 'package:wicom/core/font_loader.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'core/app_color.dart';
 import 'core/app_data.dart';
-import 'generated/assets.dart';
-import 'src/services/sms_listener_service.dart';
 import 'src/services/health_check_service.dart';
 import 'src/view/screen/gate_home_screen.dart';
 import 'src/view/screen/gate_login_screen.dart';
@@ -54,26 +53,11 @@ void _initializeInBackground() async {
       print('Font preloading failed: $e');
     });
     
-    // Initialize SMS Listener Service (only if enabled)
     try {
-      // Check if enabled before initializing
-      if (await SmsListenerService.isEnabled()) {
-        await SmsListenerService.initialize();
-        
-        // Initialize Health Check Service (only if SMS listener is enabled)
-        try {
-          await HealthCheckService.initialize();
-          print('Health Check Service initialized');
-        } catch (e) {
-          print('Health Check Service initialization failed: $e');
-        }
-      } else {
-        print('SMS Listener is disabled - skipping initialization and stopping native service');
-        // Explicitly stop the native service if it was started by MainActivity
-        await SmsListenerService.stopNativeServiceIfDisabled();
-      }
+      await HealthCheckService.initialize();
+      print('Health Check Service initialized');
     } catch (e) {
-      print('SMS Listener initialization failed: $e');
+      print('Health Check Service initialization failed: $e');
     }
   } catch (e) {
     print('Background initialization failed: $e');
@@ -88,20 +72,30 @@ class MyApp extends StatelessWidget {
     // Set navigator key for health check service
     HealthCheckService.setNavigatorKey(navigatorKey);
     
-    return MaterialApp(
-      navigatorKey: navigatorKey, // Add navigator key
+    return NeumorphicApp(
+      navigatorKey: navigatorKey,
+      title: AppData.appDisplayName,
+      themeMode: ThemeMode.light,
+      theme: AppNeumorphic.lightTheme,
+      darkTheme: AppNeumorphic.darkTheme,
+      materialTheme: AppTheme.lightAppNeumorphicMaterial,
+      materialDarkTheme: AppTheme.lightAppNeumorphicMaterial,
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
-      scrollBehavior: const MaterialScrollBehavior().copyWith(
-        dragDevices: {
-          PointerDeviceKind.mouse,
-          PointerDeviceKind.touch,
-        },
-      ),
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
-      theme: AppTheme.lightAppTheme,
+      builder: (context, child) {
+        return ScrollConfiguration(
+          behavior: const MaterialScrollBehavior().copyWith(
+            dragDevices: {
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.touch,
+            },
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }
@@ -337,26 +331,38 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFffffff),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.verified_user_rounded,
-              size: 88,
-              color: AppColor.primaryColor,
-            ),
-            const SizedBox(height: 14),
-            Text(
-              AppData.appDisplayName,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.2,
+      backgroundColor: AppColor.neumorphicBase,
+      body: NeumorphicBackground(
+        backendColor: AppColor.neumorphicBase,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Neumorphic(
+                style: NeumorphicStyle(
+                  depth: 8,
+                  boxShape: const NeumorphicBoxShape.circle(),
+                  color: AppColor.neumorphicSurface,
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Icon(
+                  Icons.verified_user_rounded,
+                  size: 64,
+                  color: AppColor.primaryColor,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              Text(
+                AppData.appDisplayName,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                  color: NeumorphicTheme.defaultTextColor(context),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -409,8 +415,11 @@ class _AttendanceEntryScreenState extends State<_AttendanceEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator(color: AppColor.primaryColor)),
+    return Scaffold(
+      backgroundColor: AppColor.neumorphicBase,
+      body: const Center(
+        child: CircularProgressIndicator(color: AppColor.primaryColor),
+      ),
     );
   }
 }

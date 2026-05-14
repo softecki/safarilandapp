@@ -1,0 +1,2 @@
+C:/xampp/htdocs/project/attendanceapp/android/app/.cxx/RelWithDebInfo/2q5f6q3a/x86/CMakeFiles/edit_cache.dir
+C:/xampp/htdocs/project/attendanceapp/android/app/.cxx/RelWithDebInfo/2q5f6q3a/x86/CMakeFiles/rebuild_cache.dir

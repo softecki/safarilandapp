@@ -169,6 +169,39 @@ class AppTheme {
     );
   }
 
+  /// Material theme aligned with neumorphic canvas ([AppColor.neumorphicBase]).
+  static ThemeData get lightAppNeumorphicMaterial {
+    return lightAppTheme.copyWith(
+      scaffoldBackgroundColor: AppColor.neumorphicBase,
+      canvasColor: AppColor.neumorphicBase,
+      appBarTheme: lightAppTheme.appBarTheme.copyWith(
+        backgroundColor: AppColor.neumorphicBase,
+        foregroundColor: AppColor.textPrimary,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: GoogleFonts.inter(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: AppColor.textPrimary,
+        ),
+      ),
+      cardTheme: lightAppTheme.cardTheme.copyWith(
+        color: AppColor.neumorphicSurface,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColor.neumorphicSurface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      ),
+      inputDecorationTheme: lightAppTheme.inputDecorationTheme.copyWith(
+        fillColor: AppColor.neumorphicSurface,
+      ),
+    );
+  }
+
   // Custom text styles for specific use cases
   static TextStyle get buttonText => GoogleFonts.inter(
     fontSize: 16,

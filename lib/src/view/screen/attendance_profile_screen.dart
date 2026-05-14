@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:wicom/core/app_color.dart';
 import 'package:wicom/core/attendance_session.dart';
 import 'package:wicom/src/view/screen/attendance_login_screen.dart';
+import 'package:wicom/src/view/widgets/neumorphic_widgets.dart';
 
 class AttendanceProfileScreen extends StatefulWidget {
   const AttendanceProfileScreen({super.key});
@@ -56,57 +58,66 @@ class _AttendanceProfileScreenState extends State<AttendanceProfileScreen> {
         title: const Text('Profile'),
         backgroundColor: AppColor.primaryColor,
         foregroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColor.primaryColor))
-          : Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  CircleAvatar(
-                    radius: 36,
-                    backgroundColor: AppColor.primaryColor.withOpacity(0.15),
-                    child: Text(
-                      initials,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppColor.primaryColor,
+      body: NeuScreenCanvas(
+        child: _loading
+            ? const Center(child: CircularProgressIndicator(color: AppColor.primaryColor))
+            : SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Neumorphic(
+                          style: NeumorphicStyle(
+                            depth: 6,
+                            boxShape: const NeumorphicBoxShape.circle(),
+                            color: AppColor.neumorphicSurface,
+                          ),
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                            initials,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: AppColor.primaryColor,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 24),
+                      _detailCard(
+                        icon: Icons.person_outline,
+                        label: 'Name',
+                        value: _userName?.isNotEmpty == true ? _userName! : 'Not available',
+                      ),
+                      const SizedBox(height: 12),
+                      _detailCard(
+                        icon: Icons.apartment_outlined,
+                        label: 'Organization',
+                        value: _tenantName?.isNotEmpty == true ? _tenantName! : 'Not available',
+                      ),
+                      const SizedBox(height: 12),
+                      _detailCard(
+                        icon: Icons.badge_outlined,
+                        label: 'Tenant slug',
+                        value: _tenantSlug?.isNotEmpty == true ? _tenantSlug! : 'Not available',
+                      ),
+                      const Spacer(),
+                      NeuDangerButton(
+                        label: 'Log out',
+                        icon: Icons.logout_rounded,
+                        onPressed: _logout,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  _detailCard(
-                    icon: Icons.person_outline,
-                    label: 'Name',
-                    value: _userName?.isNotEmpty == true ? _userName! : 'Not available',
-                  ),
-                  const SizedBox(height: 12),
-                  _detailCard(
-                    icon: Icons.apartment_outlined,
-                    label: 'Organization',
-                    value: _tenantName?.isNotEmpty == true ? _tenantName! : 'Not available',
-                  ),
-                  const SizedBox(height: 12),
-                  _detailCard(
-                    icon: Icons.badge_outlined,
-                    label: 'Tenant slug',
-                    value: _tenantSlug?.isNotEmpty == true ? _tenantSlug! : 'Not available',
-                  ),
-                  const Spacer(),
-                  FilledButton.icon(
-                    onPressed: _logout,
-                    icon: const Icon(Icons.logout_rounded),
-                    label: const Text('Log out'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+      ),
     );
   }
 
@@ -115,12 +126,7 @@ class _AttendanceProfileScreenState extends State<AttendanceProfileScreen> {
     required String label,
     required String value,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.grey.shade200),
-        borderRadius: BorderRadius.circular(14),
-      ),
+    return NeuPanel(
       child: ListTile(
         leading: Icon(icon, color: AppColor.primaryColor),
         title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),

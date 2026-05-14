@@ -4,14 +4,22 @@ class AppColor {
   const AppColor._();
 
   static const darkOrange = Color(0xFFEC6813);
-  //new life color
-  /// Attendance App brand (teal).
-  static const primaryColor = Color(0xFF0D9488);
+  /// Attendance App brand (green).
+  static const primaryColor = Color(0xFF15803D);
+  /// Lighter green for accents on dark neumorphic surfaces.
+  static const primaryLight = Color(0xFF4ADE80);
   static const lightOrange = Color(0xFFf8b89a);
 
   static const darkGrey = Color(0xFFA6A3A0);
   static const lightGrey = Color(0xFFE5E6E8);
-  
+
+  /// Soft green-tinted canvas for [flutter_neumorphic_plus] surfaces.
+  static const neumorphicBase = Color(0xFFE9F3EB);
+  /// Slightly elevated panels / cards on the base.
+  static const neumorphicSurface = Color(0xFFF2FAF4);
+  /// Dark neumorphic canvas (optional dark mode).
+  static const neumorphicBaseDark = Color(0xFF1A2228);
+
   // Text colors
   static const textPrimary = Color(0xFF1A1A1A);
   static const textSecondary = Color(0xFF666666);

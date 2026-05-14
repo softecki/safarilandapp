@@ -20,14 +20,13 @@ The app supports workforce operations such as gate attendance capture, employee 
   - Gate Access -> Employee Login
   - Employee Login -> Gate Access
 - Login icon kept as fingerprint per current product decision.
-- SMS Payment Processing default is set to `false` (disabled by default).
 
 ## Project Structure (high level)
 
 - `lib/main.dart`: app bootstrap, theme, splash/start routing
 - `lib/core/`: constants and shared app configuration
 - `lib/src/view/screen/`: UI screens (login, profile, support, receipts, etc.)
-- `lib/src/services/`: sync, API, SMS listener, and local service integrations
+- `lib/src/services/`: API, health check, and local service integrations
 - `android/`, `ios/`, `web/`: platform-specific runtime configurations
 
 ## Prerequisites
