@@ -1,3 +1,7 @@
+# Nested or accidental git repositories
+.git
+**/.git/
+
 # Miscellaneous
 *.class
 *.log
@@ -31,7 +35,20 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
+
+# Flutter build outputs (generated — do not commit)
 /build/
+build/
+**/build/
+android/app/build/
+android/build/
+ios/build/
+*.apk
+*.aab
+*.ipa
+android/app/release/
+**/kernel_blob.bin
+**/cache.dill.track.dill
 
 # Symbolication related
 app.*.symbols
