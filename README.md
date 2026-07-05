@@ -1,98 +1,50 @@
-# Softecki FaceAccess Mobile App (`attendanceapp`)
+# WhatsLipa
 
-Flutter mobile application for the Softecki FaceAccess ecosystem.
+**WhatsLipa** = WhatsApp Commerce + Payments + Delivery + Customer Management.
 
-The app supports workforce operations such as gate attendance capture, employee login workflows, profile utilities, and API-connected sync with the `attendanceportal` backend.
+Mobile app (Flutter) for staff to manage the same **SokoFresh / AFM portal** (`afm_portal`) and **LotiGas**-style operations from one place.
 
-## Core Features
+**Developed by Softecki Group Company Limited.**
 
-- Gate access login and scanning workflow
-- Employee attendance login workflow
-- Quick switching between gate and employee login screens
-- Offline-aware local storage and pending sync behavior
-- API integration with attendance portal backend
-- Branded app experience as **Softecki FaceAccess**
+## Architecture
 
-## Recent Product Behavior
+| Layer | Project | Role |
+|-------|---------|------|
+| Mobile app | `afm_masterapp` (this repo) | WhatsLipa UI — login, dashboard, module launcher |
+| API + portal | `afm_portal` | Laravel — `/api/whatslipa/*`, `/sokofresh/*` web UI |
+| Alternate deploy | `lotigas` | Same codebase family as portal (LotiGas branding) |
 
-- App branding updated to **Softecki FaceAccess** across screens and web manifest metadata.
-- Login forms support switching:
-  - Gate Access -> Employee Login
-  - Employee Login -> Gate Access
-- Login icon kept as fingerprint per current product decision.
+Staff sign in with the **same email/phone + password** as the web portal. Modules open the live portal inside a secure **WebView bridge** (short-lived token → web session).
 
-## Project Structure (high level)
+## Setup
 
-- `lib/main.dart`: app bootstrap, theme, splash/start routing
-- `lib/core/`: constants and shared app configuration
-- `lib/src/view/screen/`: UI screens (login, profile, support, receipts, etc.)
-- `lib/src/services/`: API, health check, and local service integrations
-- `android/`, `ios/`, `web/`: platform-specific runtime configurations
+1. Run **afm_portal** locally (`php artisan serve`, migrate, seed `SfRbacSeeder`).
+2. In the app: **Server settings** → set `APP_URL` (e.g. `http://10.0.2.2:8000` on Android emulator).
+3. Sign in with a user that has a **SokoFresh role** (admin, facilitator, delivery, etc.).
 
-## Prerequisites
+## API (afm_portal)
 
-- Flutter SDK (stable channel)
-- Dart SDK (comes with Flutter)
-- Android Studio / VS Code
-- Android SDK / emulator or physical test device
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/whatslipa/login` | Email or phone + password → Sanctum token + menu |
+| GET | `/api/whatslipa/me` | Current user + menu (Bearer token) |
+| GET | `/api/whatslipa/dashboard` | KPIs for native dashboard |
+| POST | `/api/whatslipa/bridge` | Create WebView session URL |
+| GET | `/whatslipa/bridge/{token}` | Exchange token → logged-in redirect |
 
-Check environment:
+Env: `WHATSLIPA_ENABLED`, `WHATSLIPA_BRIDGE_TTL` — see `afm_portal/.env.example`.
 
-```bash
-flutter doctor
-```
+## App modules (from portal permissions)
 
-## Local Setup
+Dashboard (native), Orders, WhatsApp Inbox, Customers, Delivery, Products, Packages, Locations, WhatsApp/SMS marketing, Reports, Facilitator, Operator, Users, Mobile inbox web, Public shop.
 
-1. Install dependencies:
+## Other modes
+
+From login screen / legacy flows: **Gate Access** and **Employee** (attendance) remain available via mode selector for workforce use.
+
+## Build
 
 ```bash
 flutter pub get
-```
-
-2. Run on connected device/emulator:
-
-```bash
 flutter run
 ```
-
-3. Optional release build:
-
-```bash
-flutter build apk --release
-```
-
-## Backend Integration
-
-This app is designed to work with the Laravel backend in `attendanceportal`.
-
-Ensure backend API and auth/scanner endpoints are reachable from the mobile device network. Update base URL/API settings in app configuration before deployment.
-
-## Web Build Metadata
-
-Branding and metadata have been aligned to Softecki FaceAccess in:
-
-- `web/index.html`
-- `web/manifest.json`
-- `web/sw.js`
-
-## Troubleshooting
-
-- If app fails to launch after dependency changes:
-
-```bash
-flutter clean
-flutter pub get
-flutter run
-```
-
-- If Android build tooling behaves inconsistently, re-run:
-
-```bash
-flutter doctor -v
-```
-
-## Notes
-
-- Keep generated build artifacts out of commits unless explicitly required for release packaging.
-- Coordinate API contract changes with `attendanceportal` to avoid sync or status-mapping regressions.

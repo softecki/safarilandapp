@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Softecki FaceAccess mobile and web app for secure attendance, workforce access, and gate operations.">
+  <meta name="keywords" content="Softecki FaceAccess, attendance app, workforce app, gate scan, employee access, payroll attendance">
+  <meta name="robots" content="index,follow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Softecki FaceAccess">
+  <meta property="og:description" content="Secure attendance and workforce access with Softecki FaceAccess.">
+  <meta property="og:site_name" content="Softecki FaceAccess">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Softecki FaceAccess">
+  <meta name="twitter:description" content="Secure attendance and workforce operations on web and mobile.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <!-- Performance optimizations -->
+  <meta name="theme-color" content="#121212">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Softecki FaceAccess">
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="flutter.js" as="script">
+  <link rel="preload" href="main.dart.js" as="script">
+  
+  <!-- Drift Web Database Support -->
+  <script src="sql-wasm.js"></script>
+  <script src="sql-wasm.wasm"></script>
+  
+  <!-- Icons -->
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <!-- Optimized Google Fonts loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font loading optimization for Safari -->
+  <style>
+    /* Font loading optimization for Safari iOS */
+    @font-face {
+      font-family: 'Inter';
+      font-style: normal;
+      font-weight: 300 700;
+      font-display: swap;
+      src: url('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    
+    /* Fallback fonts for Safari */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    /* Prevent font flash */
+    .font-loading {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    }
+  </style>
+
+  <title>Softecki FaceAccess</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Loading screen styles -->
+  <style>
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    .loading-text {
+      margin-top: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 16px;
+      color: #333;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+  </style>
+
+  <script>
+    // The value below is injected by flutter build, do not touch.
+    var serviceWorkerVersion = 'faceaccess-v1.0.0';
+  </script>
+  <!-- This script adds the flutter initialization JS code -->
+  <script src="flutter.js" defer></script>
+</head>
+<body>
+  <!-- Loading screen -->
+  <div id="loading-screen">
+    <img src="favicon.png" alt="Softecki" class="loading-logo" width="200" height="48" style="max-width:72vw;height:auto;object-fit:contain;margin-bottom:16px;">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading Softecki FaceAccess...</div>
+  </div>
+
+  <script>
+    // Prevent PWA install prompt from showing
+    window.addEventListener('beforeinstallprompt', function(e) {
+      // Prevent the default mini-infobar from appearing
+      e.preventDefault();
+      // Optionally, log that the prompt was prevented
+      console.log('PWA install prompt prevented');
+      // Return false to indicate we don't want to show the prompt
+      return false;
+    }, { passive: false });
+
+    // Hide loading screen when app is ready
+    function hideLoadingScreen() {
+      const loadingScreen = document.getElementById('loading-screen');
+      if (loadingScreen) {
+        loadingScreen.style.opacity = '0';
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 300);
+      }
+    }
+
+    // Optimized app loading
+    window.addEventListener('load', function(ev) {
+      // Download main.dart.js with timeout
+      const timeout = setTimeout(() => {
+        console.warn('App loading timeout - showing app anyway');
+        hideLoadingScreen();
+      }, 10000); // 10 second timeout
+
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+        onEntrypointLoaded: function(engineInitializer) {
+          engineInitializer.initializeEngine().then(function(appRunner) {
+            clearTimeout(timeout);
+            appRunner.runApp();
+            // Hide loading screen after a short delay
+            setTimeout(hideLoadingScreen, 500);
+          }).catch(function(error) {
+            console.error('Failed to initialize app:', error);
+            clearTimeout(timeout);
+            hideLoadingScreen();
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

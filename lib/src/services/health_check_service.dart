@@ -132,7 +132,7 @@ class HealthCheckService {
   static Future<bool> isEnabled() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool(_healthCheckEnabledKey) ?? true; // Default enabled
+      return prefs.getBool(_healthCheckEnabledKey) ?? false;
     } catch (e) {
       return true;
     }
@@ -486,8 +486,9 @@ class HealthCheckService {
     }
   }
 
-  /// Show internet connectivity dialog
+  /// Show internet connectivity dialog (disabled for WhatsLipa — snackbars only).
   static void _showInternetDialog() {
+    return;
     if (_showingDialog) {
       return; // Already showing
     }

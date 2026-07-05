@@ -14,9 +14,9 @@ class AppColor {
   static const lightGrey = Color(0xFFE5E6E8);
 
   /// Soft green-tinted canvas for [flutter_neumorphic_plus] surfaces.
-  static const neumorphicBase = Color(0xFFE9F3EB);
+  static const neumorphicBase = Color(0xFFF0F7F2);
   /// Slightly elevated panels / cards on the base.
-  static const neumorphicSurface = Color(0xFFF2FAF4);
+  static const neumorphicSurface = Color(0xFFFAFDFB);
   /// Dark neumorphic canvas (optional dark mode).
   static const neumorphicBaseDark = Color(0xFF1A2228);
 

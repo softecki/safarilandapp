@@ -1,0 +1,2 @@
+C:/xampp/htdocs/project/afm_masterapp/android/app/.cxx/Debug/576c6f6r/x86/CMakeFiles/edit_cache.dir
+C:/xampp/htdocs/project/afm_masterapp/android/app/.cxx/Debug/576c6f6r/x86/CMakeFiles/rebuild_cache.dir

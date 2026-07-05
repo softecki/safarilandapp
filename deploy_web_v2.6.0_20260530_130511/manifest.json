@@ -1,0 +1,39 @@
+{
+    "name": "Softecki FaceAccess",
+    "short_name": "FaceAccess",
+    "version": "2.6.0",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#121212",
+    "theme_color": "#121212",
+    "description": "Softecki FaceAccess mobile and web app for secure attendance, gate access, and workforce operations.",
+    "orientation": "any",
+    "prefer_related_applications": false,
+    "scope": "/",
+    "categories": ["finance", "business"],
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
+

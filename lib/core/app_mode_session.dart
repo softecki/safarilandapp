@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum AppMode { gateAccess, employee }
+enum AppMode { whatsliapa, gateAccess, employee }
 
 class AppModeSession {
   static const _kMode = 'attendance_app_mode';
@@ -13,6 +13,7 @@ class AppModeSession {
   static Future<AppMode?> getMode() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_kMode);
+    if (raw == AppMode.whatsliapa.name) return AppMode.whatsliapa;
     if (raw == AppMode.gateAccess.name) return AppMode.gateAccess;
     if (raw == AppMode.employee.name) return AppMode.employee;
     return null;

@@ -124,6 +124,16 @@
   </style>
 
   <script>
+    // Google Maps auth failures (Flutter web) — visible in browser DevTools console.
+    window.__whatslipaMapsAuthError = null;
+    window.gm_authFailure = function () {
+      window.__whatslipaMapsAuthError =
+        'Google Maps authentication failed. Enable Maps JavaScript API (not only Android SDK) and add this site to HTTP referrer restrictions.';
+      console.error('[WhatsLipa Maps][ERROR]', window.__whatslipaMapsAuthError);
+      console.error('[WhatsLipa Maps][ERROR] Current origin:', window.location.origin);
+    };
+  </script>
+  <script>
     // The value below is injected by flutter build, do not touch.
     var serviceWorkerVersion = 'faceaccess-v1.0.0';
   </script>

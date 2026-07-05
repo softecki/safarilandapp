@@ -5,9 +5,25 @@ import 'package:wicom/src/view/screen/attendance_login_screen.dart';
 import 'package:wicom/src/view/screen/gate_login_screen.dart';
 import 'package:wicom/src/view/widgets/neumorphic_widgets.dart';
 import 'package:wicom/src/view/widgets/softecki_brand_logo.dart';
+import 'package:wicom/whatslipa/screens/whatslipa_home_screen.dart';
+import 'package:wicom/whatslipa/screens/whatslipa_login_screen.dart';
+import 'package:wicom/core/whatslipa_session.dart';
 
 class ModeSelectorScreen extends StatelessWidget {
   const ModeSelectorScreen({super.key});
+
+  Future<void> _openWhatsLipa(BuildContext context) async {
+    await AppModeSession.setMode(AppMode.whatsliapa);
+    if (!context.mounted) return;
+    final loggedIn = await WhatsLipaSession.isLoggedIn;
+    if (!context.mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => loggedIn ? const WhatsLipaHomeScreen() : const WhatsLipaLoginScreen(),
+      ),
+    );
+  }
 
   Future<void> _openGate(BuildContext context) async {
     await AppModeSession.setMode(AppMode.gateAccess);
@@ -57,6 +73,12 @@ class ModeSelectorScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 28),
                     NeuPrimaryButton(
+                      label: 'WhatsLipa Commerce',
+                      icon: Icons.chat_bubble_outline,
+                      onPressed: () => _openWhatsLipa(context),
+                    ),
+                    const SizedBox(height: 14),
+                    NeuSecondaryButton(
                       label: 'Gate Access',
                       icon: Icons.storefront_outlined,
                       onPressed: () => _openGate(context),
