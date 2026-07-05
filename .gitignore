@@ -45,6 +45,7 @@ android/build/
 ios/build/
 *.apk
 *.aab
+
 *.ipa
 android/app/release/
 **/kernel_blob.bin
