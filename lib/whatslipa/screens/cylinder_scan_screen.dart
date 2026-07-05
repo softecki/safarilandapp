@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:wicom/core/cylinder_api.dart';
+import 'package:wicom/whatslipa/widgets/whatslipa_qr_scan_panel.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_ui.dart';
 
 class CylinderScanScreen extends StatefulWidget {
@@ -13,11 +13,9 @@ class CylinderScanScreen extends StatefulWidget {
 class _CylinderScanScreenState extends State<CylinderScanScreen> {
   static const _accent = Color(0xFFD4AF37);
 
-  final _manualController = TextEditingController();
   String _eventType = 'deliver';
   bool _loading = false;
   String? _message;
-  bool _useCamera = true;
   Map<String, dynamic>? _lastResult;
 
   static const _events = [
@@ -30,12 +28,6 @@ class _CylinderScanScreenState extends State<CylinderScanScreen> {
     'maintenance_flag',
     'maintenance_complete',
   ];
-
-  @override
-  void dispose() {
-    _manualController.dispose();
-    super.dispose();
-  }
 
   Future<void> _submitScan(String payload) async {
     if (payload.trim().isEmpty) return;
@@ -85,61 +77,18 @@ class _CylinderScanScreenState extends State<CylinderScanScreen> {
                       fillColor: const Color(0xFFF4F8F5),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                     ),
-                    items: _events.map((e) => DropdownMenuItem(value: e, child: Text(e.replaceAll('_', ' ')))).toList(),
+                    items: _events
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e.replaceAll('_', ' '))))
+                        .toList(),
                     onChanged: _loading ? null : (v) => setState(() => _eventType = v ?? 'deliver'),
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _loading ? null : () => setState(() => _useCamera = true),
-                          icon: const Icon(Icons.photo_camera_outlined),
-                          label: const Text('Camera'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _loading ? null : () => setState(() => _useCamera = false),
-                          icon: const Icon(Icons.keyboard_outlined),
-                          label: const Text('Manual'),
-                        ),
-                      ),
-                    ],
+                  WhatsLipaQrScanPanel(
+                    accentColor: _accent,
+                    loading: _loading,
+                    onScan: _submitScan,
+                    submitLabel: 'Record scan',
                   ),
-                  const SizedBox(height: 14),
-                  if (_useCamera)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: SizedBox(
-                        height: 260,
-                        child: MobileScanner(
-                          onDetect: (capture) {
-                            for (final b in capture.barcodes) {
-                              final raw = b.rawValue;
-                              if (raw != null && raw.isNotEmpty && !_loading) {
-                                _submitScan(raw);
-                                break;
-                              }
-                            }
-                          },
-                        ),
-                      ),
-                    )
-                  else ...[
-                    WhatsLipaInputField(
-                      controller: _manualController,
-                      hint: 'QR payload / UUID / Serial',
-                      prefixIcon: Icons.qr_code_2_rounded,
-                    ),
-                    const SizedBox(height: 14),
-                    WhatsLipaPrimaryButton(
-                      label: _loading ? 'Processing…' : 'Record scan',
-                      loading: _loading,
-                      onPressed: _loading ? null : () => _submitScan(_manualController.text),
-                    ),
-                  ],
                   if (_message != null) ...[
                     const SizedBox(height: 16),
                     Text(

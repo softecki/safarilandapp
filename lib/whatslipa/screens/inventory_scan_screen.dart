@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:wicom/core/cylinder_api.dart';
 import 'package:wicom/core/whatslipa_session.dart';
 import 'package:wicom/whatslipa/screens/cylinder_scan_screen.dart';
+import 'package:wicom/whatslipa/widgets/whatslipa_qr_scan_panel.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_ui.dart';
 
 class InventoryScanScreen extends StatefulWidget {
@@ -22,20 +22,12 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
   Map<String, dynamic>? _summary;
   List<dynamic> _stock = [];
   String _mode = 'stock_in';
-  final _manualController = TextEditingController();
-  bool _useCamera = true;
   Map<String, dynamic>? _lastResult;
 
   @override
   void initState() {
     super.initState();
     _loadContext();
-  }
-
-  @override
-  void dispose() {
-    _manualController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadContext() async {
@@ -166,7 +158,7 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
                     Text('My stock (${_stock.length})', style: WhatsLipaUi.sectionTitle),
                     const SizedBox(height: 10),
                     if (_stock.isEmpty)
-                      WhatsLipaEmptyState(
+                      const WhatsLipaEmptyState(
                         icon: Icons.inventory_2_outlined,
                         title: 'No stock yet',
                         message: 'Scanned cylinders assigned to you will appear here.',
@@ -196,60 +188,13 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text('Scan to ${_modeLabel(_mode).toLowerCase()}', style: WhatsLipaUi.sectionTitle),
-                          const SizedBox(height: 14),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: _loadingScan ? null : () => setState(() => _useCamera = true),
-                                  icon: const Icon(Icons.photo_camera_outlined),
-                                  label: const Text('Camera'),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: _loadingScan ? null : () => setState(() => _useCamera = false),
-                                  icon: const Icon(Icons.keyboard_outlined),
-                                  label: const Text('Manual'),
-                                ),
-                              ),
-                            ],
+                          WhatsLipaQrScanPanel(
+                            accentColor: _accent,
+                            loading: _loadingScan,
+                            onScan: _submitScan,
+                            submitLabel: 'Record ${_modeLabel(_mode)}',
+                            title: 'Scan to ${_modeLabel(_mode).toLowerCase()}',
                           ),
-                          const SizedBox(height: 14),
-                          if (_useCamera)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: SizedBox(
-                                height: 260,
-                                child: MobileScanner(
-                                  onDetect: (capture) {
-                                    if (_loadingScan) return;
-                                    for (final b in capture.barcodes) {
-                                      final raw = b.rawValue;
-                                      if (raw != null && raw.isNotEmpty) {
-                                        _submitScan(raw);
-                                        break;
-                                      }
-                                    }
-                                  },
-                                ),
-                              ),
-                            )
-                          else ...[
-                            WhatsLipaInputField(
-                              controller: _manualController,
-                              hint: 'QR payload / UUID / Serial',
-                              prefixIcon: Icons.qr_code_2_rounded,
-                            ),
-                            const SizedBox(height: 14),
-                            WhatsLipaPrimaryButton(
-                              label: _loadingScan ? 'Processing…' : 'Record ${_modeLabel(_mode)}',
-                              loading: _loadingScan,
-                              onPressed: _loadingScan ? null : () => _submitScan(_manualController.text),
-                            ),
-                          ],
                           if (_message != null) ...[
                             const SizedBox(height: 16),
                             Text(

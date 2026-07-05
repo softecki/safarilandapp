@@ -1,6 +1,0 @@
-Wicom Payment App Web Deployment
-================================
-Version: 2.4.0
-Deployed: Wed May 20 09:59:42 EAST 2026
-Build: 20260520_095937
-Flutter Version: Flutter 3.29.0 • channel stable • https://github.com/flutter/flutter.git
