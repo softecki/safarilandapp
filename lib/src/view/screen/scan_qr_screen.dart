@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -7,7 +6,6 @@ import 'package:wicom/core/app_color.dart';
 import 'package:wicom/core/attendance_api.dart';
 import 'package:wicom/core/attendance_session.dart';
 import 'package:wicom/src/view/screen/employee_selfie_capture_screen.dart';
-import 'package:wicom/src/view/widgets/neumorphic_widgets.dart';
 import 'dart:math';
 
 class ScanQrScreen extends StatefulWidget {
@@ -30,11 +28,14 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb) {
-      _controller = MobileScannerController(
-        detectionSpeed: DetectionSpeed.noDuplicates,
-      );
-    }
+    _controller = MobileScannerController(
+      detectionSpeed: DetectionSpeed.noDuplicates,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        await _controller?.start();
+      } catch (_) {}
+    });
   }
 
   @override
@@ -183,29 +184,6 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Scan QR'),
-          backgroundColor: AppColor.primaryColor,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          surfaceTintColor: Colors.transparent,
-        ),
-        body: NeuScreenCanvas(
-          child: const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text(
-                'QR scanning is available on the Android or iOS build of Softecki FaceAccess. Web preview does not include the camera scanner.',
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scan Gate QR'),
@@ -225,6 +203,19 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
               final raw = barcodes.first.rawValue;
               if (raw == null || raw.isEmpty) return;
               _handleCode(raw);
+            },
+            errorBuilder: (context, error, child) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'Camera unavailable: ${error.errorDetails?.message ?? error}. '
+                    'Allow camera access in browser settings and use HTTPS.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              );
             },
           ),
           Positioned(

@@ -11,21 +11,25 @@ class WhatsLipaTheme {
   static Color get primary => WhatsLipaBrand.primary;
   static Color get secondary => WhatsLipaBrand.secondary;
 
-  static AppBarTheme appBarTheme() => AppBarTheme(
-        backgroundColor: primary,
-        foregroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-        ),
-        elevation: 0,
-        scrolledUnderElevation: 0,
-      );
+  static AppBarTheme appBarTheme() {
+    final onPrimary = WhatsLipaBrand.onPrimary;
+    return AppBarTheme(
+      backgroundColor: primary,
+      foregroundColor: onPrimary,
+      iconTheme: IconThemeData(color: onPrimary),
+      titleTextStyle: TextStyle(
+        color: onPrimary,
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+      ),
+      elevation: 0,
+      scrolledUnderElevation: 0,
+    );
+  }
 
   static ThemeData materialTheme() {
     final p = primary;
+    final onP = WhatsLipaBrand.onPrimary;
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: AppColor.neumorphicBase,
@@ -39,7 +43,7 @@ class WhatsLipaTheme {
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
           foregroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) return Colors.white;
+            if (states.contains(WidgetState.selected)) return onP;
             return p;
           }),
           backgroundColor: WidgetStateProperty.resolveWith((states) {
@@ -48,11 +52,11 @@ class WhatsLipaTheme {
           }),
         ),
       ),
-      floatingActionButtonTheme: FloatingActionButtonThemeData(backgroundColor: p, foregroundColor: Colors.white),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(backgroundColor: p, foregroundColor: onP),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: p,
-          foregroundColor: Colors.white,
+          foregroundColor: onP,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         ),

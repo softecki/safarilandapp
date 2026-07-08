@@ -230,7 +230,10 @@ class WhatsLipaConfig {
   static String get whatsliapaApiPrefix => whatsliapaApiPrefixFor(portalWebUrl);
 
   static String get appName => WhatsLipaBrand.name;
-  static const String tagline = 'WhatsApp Commerce · Payments · Delivery';
+
+  static String get tagline => WhatsLipaBrand.isLotiGas
+      ? 'Cylinder tracking · Inventory · Delivery'
+      : 'WhatsApp Commerce · Payments · Delivery';
 
   static const String developedBy = 'Softecki Group Company Limited';
 }

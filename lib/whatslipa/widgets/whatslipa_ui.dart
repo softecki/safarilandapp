@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:wicom/core/app_color.dart';
 import 'package:wicom/core/whatslipa_brand.dart';
-
-/// Polished, brand-aware UI building blocks for WhatsLipa screens.
 class WhatsLipaUi {
   WhatsLipaUi._();
 
@@ -111,7 +109,28 @@ class WhatsLipaBrandLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final asset = WhatsLipaBrand.logoAsset;
+    if (asset != null) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(size * 0.14),
+          boxShadow: [
+            BoxShadow(
+              color: WhatsLipaBrand.secondary.withValues(alpha: 0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Image.asset(asset, fit: BoxFit.cover),
+      );
+    }
+
     final p = WhatsLipaUi.primary;
+    final onP = WhatsLipaBrand.onPrimary;
     return Container(
       width: size,
       height: size,
@@ -122,7 +141,7 @@ class WhatsLipaBrandLogo extends StatelessWidget {
           BoxShadow(color: p.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 10)),
         ],
       ),
-      child: Icon(icon, color: Colors.white, size: size * 0.44),
+      child: Icon(icon, color: onP, size: size * 0.44),
     );
   }
 }
@@ -146,6 +165,7 @@ class WhatsLipaPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null && !loading;
+    final onBtn = WhatsLipaBrand.onPrimary;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -162,18 +182,18 @@ class WhatsLipaPrimaryButton extends StatelessWidget {
           ),
           child: Center(
             child: loading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 24,
                     height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                    child: CircularProgressIndicator(strokeWidth: 2.5, color: onBtn),
                   )
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (icon != null) ...[Icon(icon, color: Colors.white, size: 22), const SizedBox(width: 10)],
+                      if (icon != null) ...[Icon(icon, color: onBtn, size: 22), const SizedBox(width: 10)],
                       Text(
                         label,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
+                        style: TextStyle(color: onBtn, fontWeight: FontWeight.w700, fontSize: 16),
                       ),
                     ],
                   ),
@@ -221,6 +241,7 @@ class WhatsLipaGradientHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onHeader = WhatsLipaBrand.onPrimary;
     return Container(
       width: double.infinity,
       padding: padding,
@@ -238,7 +259,13 @@ class WhatsLipaGradientHeader extends StatelessWidget {
           ),
         ],
       ),
-      child: child,
+      child: DefaultTextStyle(
+        style: TextStyle(color: onHeader),
+        child: IconTheme(
+          data: IconThemeData(color: onHeader),
+          child: child,
+        ),
+      ),
     );
   }
 }
@@ -252,15 +279,18 @@ class WhatsLipaHeaderIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onHeader = WhatsLipaBrand.onPrimary;
     return Material(
-      color: Colors.white.withValues(alpha: 0.18),
+      color: onHeader == Colors.white
+          ? Colors.white.withValues(alpha: 0.18)
+          : Colors.black.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Icon(icon, color: Colors.white, size: 22),
+          child: Icon(icon, color: onHeader, size: 22),
         ),
       ),
     );
@@ -370,6 +400,7 @@ class WhatsLipaStyledAppBar extends StatelessWidget implements PreferredSizeWidg
   @override
   Widget build(BuildContext context) {
     final accent = accentColor ?? WhatsLipaUi.primary;
+    final onPrimary = WhatsLipaBrand.onPrimary;
     return AppBar(
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -378,15 +409,17 @@ class WhatsLipaStyledAppBar extends StatelessWidget implements PreferredSizeWidg
           gradient: LinearGradient(
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
-            colors: [accent, Color.lerp(accent, WhatsLipaUi.secondary, 0.45)!],
+            colors: WhatsLipaBrand.isLotiGas
+                ? [accent, accent]
+                : [accent, Color.lerp(accent, WhatsLipaUi.secondary, 0.45)!],
           ),
         ),
       ),
-      foregroundColor: Colors.white,
-      iconTheme: const IconThemeData(color: Colors.white),
+      foregroundColor: onPrimary,
+      iconTheme: IconThemeData(color: onPrimary),
       title: titleWidget ??
           (title.isNotEmpty
-              ? Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18))
+              ? Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: onPrimary))
               : null),
       leading: leading,
       actions: actions,

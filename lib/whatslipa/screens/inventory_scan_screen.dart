@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/core/cylinder_api.dart';
+import 'package:wicom/core/whatslipa_brand.dart';
 import 'package:wicom/core/whatslipa_session.dart';
 import 'package:wicom/whatslipa/screens/cylinder_scan_screen.dart';
+import 'package:wicom/whatslipa/widgets/cylinder_lifecycle_panel.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_qr_scan_panel.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_ui.dart';
 
@@ -13,8 +15,6 @@ class InventoryScanScreen extends StatefulWidget {
 }
 
 class _InventoryScanScreenState extends State<InventoryScanScreen> {
-  static const _accent = Color(0xFFCA8A04);
-
   bool _loadingContext = true;
   bool _loadingScan = false;
   String? _error;
@@ -23,6 +23,17 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
   List<dynamic> _stock = [];
   String _mode = 'stock_in';
   Map<String, dynamic>? _lastResult;
+  Map<String, dynamic>? _lifecycle;
+
+  Color get _accent => WhatsLipaBrand.primary;
+
+  static const _scanModes = [
+    ('stock_in', 'Stock In', Icons.add_box_outlined),
+    ('stock_out', 'Stock Out', Icons.remove_circle_outline),
+    ('deliver', 'Delivered', Icons.local_shipping_outlined),
+    ('return_empty', 'Returned', Icons.recycling_outlined),
+    ('review', 'Review', Icons.inventory_2_outlined),
+  ];
 
   @override
   void initState() {
@@ -59,6 +70,19 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
     }
   }
 
+  void _applyScanResult(Map<String, dynamic> result) {
+    _lastResult = result;
+    final lifecycleRaw = result['lifecycle'];
+    if (lifecycleRaw is Map) {
+      _lifecycle = Map<String, dynamic>.from(lifecycleRaw);
+      final next = CylinderLifecycleStages.suggestedEventType(_lifecycle);
+      if (next != null && _mode != 'review') _mode = next;
+    }
+    _message = result['ok'] == true
+        ? '${_modeLabel(_mode)} recorded: ${result['cylinder']?['serial_number'] ?? ''}'
+        : (result['message']?.toString() ?? 'Scan failed');
+  }
+
   Future<void> _submitScan(String payload) async {
     if (payload.trim().isEmpty || _mode == 'review') return;
     setState(() {
@@ -72,12 +96,7 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
         clientNonce: DateTime.now().millisecondsSinceEpoch.toString(),
       );
       if (!mounted) return;
-      setState(() {
-        _lastResult = result;
-        _message = result['ok'] == true
-            ? '${_modeLabel(_mode)} recorded: ${result['cylinder']?['serial_number'] ?? ''}'
-            : (result['message']?.toString() ?? 'Scan failed');
-      });
+      setState(() => _applyScanResult(result));
       await _loadContext();
     } catch (e) {
       if (!mounted) return;
@@ -90,6 +109,8 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
   String _modeLabel(String mode) => switch (mode) {
         'stock_in' => 'Stock in',
         'stock_out' => 'Stock out',
+        'deliver' => 'Delivered',
+        'return_empty' => 'Empty returned',
         _ => mode,
       };
 
@@ -142,16 +163,26 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
                   ),
                   if (_summary != null) _SummaryCard(summary: _summary!, accent: _accent),
                   const SizedBox(height: 12),
-                  SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment(value: 'stock_in', label: Text('Stock In'), icon: Icon(Icons.add_box_outlined)),
-                      ButtonSegment(value: 'stock_out', label: Text('Stock Out'), icon: Icon(Icons.remove_circle_outline)),
-                      ButtonSegment(value: 'review', label: Text('Review'), icon: Icon(Icons.inventory_2_outlined)),
-                    ],
-                    selected: {_mode},
-                    onSelectionChanged: _loadingScan
-                        ? null
-                        : (values) => setState(() => _mode = values.first),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _scanModes.map((mode) {
+                      final selected = _mode == mode.$1;
+                      return FilterChip(
+                        selected: selected,
+                        label: Text(mode.$2),
+                        avatar: Icon(mode.$3, size: 18, color: selected ? WhatsLipaBrand.onPrimary : _accent),
+                        selectedColor: _accent,
+                        checkmarkColor: WhatsLipaBrand.onPrimary,
+                        labelStyle: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: selected ? WhatsLipaBrand.onPrimary : Colors.black87,
+                        ),
+                        onSelected: _loadingScan
+                            ? null
+                            : (_) => setState(() => _mode = mode.$1),
+                      );
+                    }).toList(),
                   ),
                   const SizedBox(height: 16),
                   if (_mode == 'review') ...[
@@ -167,19 +198,44 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
                       ..._stock.map((item) {
                         final row = item is Map ? Map<String, dynamic>.from(item) : <String, dynamic>{};
                         final cylinder = row['cylinder'] is Map ? row['cylinder'] as Map : row;
+                        final lifecycle = cylinder['lifecycle'] is Map
+                            ? Map<String, dynamic>.from(cylinder['lifecycle'] as Map)
+                            : null;
                         return Container(
                           margin: const EdgeInsets.only(bottom: 10),
                           decoration: WhatsLipaUi.glassCard(borderTint: _accent),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: _accent.withValues(alpha: 0.12),
-                              child: Icon(Icons.propane_tank_outlined, color: _accent),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: _accent.withValues(alpha: 0.12),
+                                      child: Icon(Icons.propane_tank_outlined, color: _accent),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            cylinder['serial_number']?.toString() ?? 'Cylinder',
+                                            style: const TextStyle(fontWeight: FontWeight.w700),
+                                          ),
+                                          Text(cylinder['current_status']?.toString() ?? ''),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (lifecycle != null) ...[
+                                  const SizedBox(height: 10),
+                                  CylinderLifecyclePanel(lifecycle: lifecycle, compact: true),
+                                ],
+                              ],
                             ),
-                            title: Text(
-                              cylinder['serial_number']?.toString() ?? 'Cylinder',
-                              style: const TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                            subtitle: Text(cylinder['current_status']?.toString() ?? ''),
                           ),
                         );
                       }),
@@ -188,6 +244,10 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          if (_lifecycle != null) ...[
+                            CylinderLifecyclePanel(lifecycle: _lifecycle),
+                            const SizedBox(height: 16),
+                          ],
                           WhatsLipaQrScanPanel(
                             accentColor: _accent,
                             loading: _loadingScan,
@@ -221,9 +281,15 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
                                     style: const TextStyle(fontWeight: FontWeight.w800),
                                   ),
                                   Text('Status: ${_lastResult!['cylinder']['current_status']}'),
+                                  if (_lastResult!['cylinder']['lifecycle_stage'] != null)
+                                    Text('Stage: ${_lastResult!['cylinder']['lifecycle_stage']}'),
                                 ],
                               ),
                             ),
+                            if (_lifecycle != null) ...[
+                              const SizedBox(height: 12),
+                              CylinderLifecyclePanel(lifecycle: _lifecycle, title: 'Updated journey'),
+                            ],
                           ],
                         ],
                       ),

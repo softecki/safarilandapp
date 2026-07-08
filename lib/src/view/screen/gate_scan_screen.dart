@@ -2,11 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:wicom/core/app_color.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:wicom/src/services/gate_scan_queue_service.dart';
 import 'package:wicom/src/services/gate_sync_service.dart';
@@ -29,10 +26,13 @@ class _GateScanScreenState extends State<GateScanScreen> {
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb) {
-      _controller =
-          MobileScannerController(detectionSpeed: DetectionSpeed.noDuplicates);
-    }
+    _controller =
+        MobileScannerController(detectionSpeed: DetectionSpeed.noDuplicates);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        await _controller?.start();
+      } catch (_) {}
+    });
   }
 
   @override
@@ -284,18 +284,6 @@ class _GateScanScreenState extends State<GateScanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb) {
-      return Scaffold(
-        backgroundColor: AppColor.neumorphicBase,
-        body: const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text('Gate scanner works on Android/iOS build only.'),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(title: const Text('Scan Employee Card')),
       body: Stack(
@@ -309,6 +297,19 @@ class _GateScanScreenState extends State<GateScanScreen> {
               final raw = barcodes.first.rawValue;
               if (raw == null || raw.isEmpty) return;
               _handleCode(raw);
+            },
+            errorBuilder: (context, error, child) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'Camera unavailable: ${error.errorDetails?.message ?? error}. '
+                    'Allow camera access in browser settings and use HTTPS.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              );
             },
           ),
           Positioned(

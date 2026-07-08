@@ -50,7 +50,12 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
     try {
       _user = await WhatsLipaSession.user;
       final brand = await WhatsLipaSession.brand;
-      WhatsLipaBrand.apply(brand);
+      final tenantSlug = await WhatsLipaSession.tenantSlug;
+      WhatsLipaBrand.apply(
+        brand,
+        portalUrl: WhatsLipaConfig.portalWebUrl,
+        tenantSlug: tenantSlug,
+      );
 
       List<Map<String, dynamic>> modules = await WhatsLipaSession.appModules;
       try {
@@ -208,8 +213,8 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
                         Expanded(
                           child: Text(
                             WhatsLipaBrand.name,
-                            style: const TextStyle(
-                              color: Colors.white70,
+                            style: TextStyle(
+                              color: WhatsLipaBrand.onPrimary.withValues(alpha: 0.85),
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 0.3,
@@ -254,9 +259,13 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Karibu,',
-                                style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+                                style: TextStyle(
+                                  color: WhatsLipaBrand.onPrimary.withValues(alpha: 0.85),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                               Text(
                                 name,

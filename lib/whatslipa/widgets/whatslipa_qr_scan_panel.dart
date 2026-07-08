@@ -8,27 +8,14 @@ import 'package:wicom/whatslipa/widgets/whatslipa_ui.dart';
 class WhatsLipaQrScanSupport {
   WhatsLipaQrScanSupport._();
 
-  static const double desktopWebBreakpoint = 768;
-
   static bool get isWeb => kIsWeb;
 
-  static bool isDesktopWeb(BuildContext context) {
-    if (!kIsWeb) return false;
-    return MediaQuery.sizeOf(context).width >= desktopWebBreakpoint;
-  }
-
-  /// Desktop web defaults to manual; phone web and native default to camera.
-  static bool defaultUseCamera(BuildContext context) {
-    if (!kIsWeb) return true;
-    return !isDesktopWeb(context);
-  }
+  /// Camera scanning is the default on web and native.
+  static bool defaultUseCamera(BuildContext context) => true;
 
   static String webBannerMessage(BuildContext context) {
     if (!kIsWeb) return '';
-    if (isDesktopWeb(context)) {
-      return 'Web on desktop: paste or type the code below, or switch to Camera if you have a webcam.';
-    }
-    return 'Allow camera access when your browser asks. The site must use HTTPS (not plain HTTP).';
+    return 'Allow camera access when your browser asks. Camera scanning requires HTTPS (secure connection).';
   }
 
   static String friendlyCameraError(Object? error) {
@@ -82,23 +69,20 @@ class WhatsLipaQrScanPanel extends StatefulWidget {
 class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
   final _manualController = TextEditingController();
   MobileScannerController? _scannerController;
-  late bool _useCamera;
-  bool _initializedMode = false;
+  bool _useCamera = true;
+  bool _startingCamera = false;
   String? _cameraError;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_initializedMode) {
-      _useCamera = WhatsLipaQrScanSupport.defaultUseCamera(context);
-      _initializedMode = true;
-    }
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startScanner());
   }
 
   @override
   void dispose() {
     _manualController.dispose();
-    _scannerController?.dispose();
+    _disposeController();
     super.dispose();
   }
 
@@ -109,21 +93,52 @@ class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
     );
   }
 
-  void _disposeController() {
-    _scannerController?.dispose();
+  Future<void> _disposeController() async {
+    final controller = _scannerController;
     _scannerController = null;
+    if (controller == null) return;
+    try {
+      await controller.stop();
+    } catch (_) {}
+    await controller.dispose();
   }
 
-  void _setUseCamera(bool value) {
+  Future<void> _startScanner() async {
+    if (!_useCamera || !mounted) return;
     setState(() {
-      _useCamera = value;
+      _startingCamera = true;
       _cameraError = null;
-      if (value) {
-        _ensureController();
-      } else {
-        _disposeController();
-      }
     });
+    _ensureController();
+    try {
+      await _scannerController?.start();
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _cameraError = WhatsLipaQrScanSupport.friendlyCameraError(e);
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _startingCamera = false);
+    }
+  }
+
+  Future<void> _setUseCamera(bool value) async {
+    if (_useCamera == value) return;
+    if (!value) {
+      await _disposeController();
+      if (!mounted) return;
+      setState(() {
+        _useCamera = false;
+        _cameraError = null;
+      });
+      return;
+    }
+    setState(() {
+      _useCamera = true;
+      _cameraError = null;
+    });
+    await _startScanner();
   }
 
   void _handleDetect(BarcodeCapture capture) {
@@ -139,10 +154,6 @@ class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
 
   @override
   Widget build(BuildContext context) {
-    if (_useCamera) {
-      _ensureController();
-    }
-
     final webBanner = WhatsLipaQrScanSupport.webBannerMessage(context);
 
     return Column(
@@ -164,13 +175,7 @@ class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  WhatsLipaQrScanSupport.isDesktopWeb(context)
-                      ? Icons.laptop_mac_rounded
-                      : Icons.info_outline_rounded,
-                  size: 20,
-                  color: widget.accentColor,
-                ),
+                Icon(Icons.info_outline_rounded, size: 20, color: widget.accentColor),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -190,7 +195,7 @@ class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
           children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: widget.loading ? null : () => _setUseCamera(true),
+                onPressed: widget.loading || _startingCamera ? null : () => _setUseCamera(true),
                 style: _useCamera
                     ? OutlinedButton.styleFrom(
                         backgroundColor: widget.accentColor.withValues(alpha: 0.1),
@@ -225,7 +230,7 @@ class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
               color: Colors.black,
               child: SizedBox(
                 height: 260,
-                child: _scannerController == null
+                child: _startingCamera || _scannerController == null
                     ? const Center(child: CircularProgressIndicator(color: Colors.white))
                     : MobileScanner(
                         controller: _scannerController,

@@ -102,8 +102,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
     try {
       setState(() => _status = 'Loading…');
-      await WhatsLipaBrand.loadFromSession();
       await WhatsLipaConfig.loadSavedUrl();
+      await WhatsLipaBrand.loadFromSession();
 
       final locked = await WhatsLipaConfig.isUserPortalLocked();
       if (!locked) {

@@ -30,7 +30,9 @@ class _WhatsLipaLoginScreenState extends State<WhatsLipaLoginScreen> {
   @override
   void initState() {
     super.initState();
-    WhatsLipaBrand.loadFromSession();
+    WhatsLipaBrand.loadFromSession().then((_) {
+      if (mounted) setState(() {});
+    });
     _refreshLoginUrls();
   }
 
@@ -85,7 +87,6 @@ class _WhatsLipaLoginScreenState extends State<WhatsLipaLoginScreen> {
       await WhatsLipaConfig.saveGoogleMapsApiKeyFromServer(mapsKey);
       final portalUrl = data['portal_base_url']?.toString() ?? WhatsLipaConfig.portalWebUrl;
       final brand = data['brand'] is Map ? Map<String, dynamic>.from(data['brand'] as Map) : null;
-      WhatsLipaBrand.apply(brand);
 
       final tenant = data['tenant'];
       String? tenantSlug;
@@ -97,6 +98,8 @@ class _WhatsLipaLoginScreenState extends State<WhatsLipaLoginScreen> {
         final id = tenant['id'];
         tenantId = id is int ? id : int.tryParse(id?.toString() ?? '');
       }
+
+      WhatsLipaBrand.apply(brand, portalUrl: portalUrl, tenantSlug: tenantSlug);
 
       final organizations = _asDynamicList(data['organizations']);
       final requiresOrgChoice = data['requires_organization_choice'] == true;
@@ -260,7 +263,12 @@ class _WhatsLipaLoginScreenState extends State<WhatsLipaLoginScreen> {
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
             children: [
               const SizedBox(height: 16),
-              Center(child: WhatsLipaBrandLogo(size: 96, icon: Icons.chat_bubble_rounded)),
+              Center(
+                child: WhatsLipaBrandLogo(
+                  size: 96,
+                  icon: WhatsLipaBrand.isLotiGas ? Icons.propane_tank_outlined : Icons.chat_bubble_rounded,
+                ),
+              ),
               const SizedBox(height: 24),
               Text(
                 WhatsLipaConfig.appName,
