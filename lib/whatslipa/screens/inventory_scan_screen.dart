@@ -7,7 +7,10 @@ import 'package:wicom/whatslipa/screens/cylinder_scan_screen.dart';
 import 'package:wicom/whatslipa/widgets/cylinder_lifecycle_panel.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_branded_loader.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_qr_scan_panel.dart';
+import 'package:wicom/whatslipa/widgets/whatslipa_scan_result_dialog.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_ui.dart';
+
+enum _QrPayloadType { cylinder, valveSeal }
 
 class InventoryScanScreen extends StatefulWidget {
   const InventoryScanScreen({super.key});
@@ -26,6 +29,8 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
   String _mode = 'stock_in';
   Map<String, dynamic>? _lastResult;
   Map<String, dynamic>? _lifecycle;
+  String? _pendingCylinderPayload;
+  String? _pendingCylinderLabel;
 
   Color get _accent => WhatsLipaBrand.primary;
 
@@ -51,7 +56,8 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
     try {
       final slug = await WhatsLipaSession.tenantSlug;
       if (slug == null || slug.isEmpty) {
-        throw Exception('No organization selected. Sign out and sign in again.');
+        throw Exception(
+            'No organization selected. Sign out and sign in again.');
       }
 
       final contextRes = await CylinderApi.scanContext();
@@ -85,24 +91,113 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
         : (result['message']?.toString() ?? 'Scan failed');
   }
 
+  Future<void> _showScanPopup({
+    required String message,
+    required bool success,
+    String? detail,
+  }) {
+    return showWhatsLipaScanResultDialog(
+      context: context,
+      message: message,
+      success: success,
+      detail: detail,
+      accentColor: _accent,
+    );
+  }
+
   Future<void> _submitScan(String payload) async {
     if (payload.trim().isEmpty || _mode == 'review') return;
+    final trimmed = payload.trim();
+    final payloadType = _detectPayloadType(trimmed);
+
+    if (_mode == 'stock_in') {
+      if (_pendingCylinderPayload == null) {
+        if (payloadType == _QrPayloadType.valveSeal) {
+          await _showScanPopup(
+            success: false,
+            message: 'Scan cylinder QR first.',
+            detail: 'Inventory in requires cylinder QR then valve seal QR.',
+          );
+          return;
+        }
+        setState(() {
+          _pendingCylinderPayload = trimmed;
+          _pendingCylinderLabel = _extractCylinderLabel(trimmed);
+          _message =
+              'Cylinder captured. Now scan valve seal QR to complete inventory in.';
+        });
+        await _showScanPopup(
+          success: true,
+          message: 'Cylinder captured successfully.',
+          detail: 'Now scan the valve seal QR for inventory-in.',
+        );
+        return;
+      }
+
+      if (payloadType == _QrPayloadType.cylinder) {
+        setState(() {
+          _pendingCylinderPayload = trimmed;
+          _pendingCylinderLabel = _extractCylinderLabel(trimmed);
+          _message =
+              'Cylinder updated. Now scan valve seal QR to complete inventory in.';
+        });
+        await _showScanPopup(
+          success: true,
+          message: 'Cylinder updated.',
+          detail: 'Now scan the valve seal QR.',
+        );
+        return;
+      }
+    } else if (_mode != 'return_empty' &&
+        payloadType == _QrPayloadType.cylinder) {
+      await _showScanPopup(
+        success: false,
+        message: 'Scan valve seal QR for this action.',
+        detail:
+            'For ${_modeLabel(_mode).toLowerCase()}, use valve seal QR only.',
+      );
+      return;
+    }
+
     setState(() {
       _loadingScan = true;
       _message = null;
     });
     try {
       final result = await CylinderApi.scan(
-        qrPayload: payload.trim(),
+        qrPayload:
+            _mode == 'stock_in' ? _pendingCylinderPayload ?? trimmed : trimmed,
+        secondaryQrPayload: _mode == 'stock_in' ? trimmed : null,
         eventType: _mode,
         clientNonce: DateTime.now().millisecondsSinceEpoch.toString(),
       );
       if (!mounted) return;
       setState(() => _applyScanResult(result));
+      if (_mode == 'stock_in') {
+        setState(() {
+          _pendingCylinderPayload = null;
+          _pendingCylinderLabel = null;
+        });
+      }
+      final ok = result['ok'] == true;
+      final serial = result['cylinder']?['serial_number']?.toString();
+      final status = result['cylinder']?['current_status']?.toString();
+      final sealCode = result['seal_code']?.toString();
+      await _showScanPopup(
+        success: ok,
+        message: _message ?? (ok ? 'Scan recorded' : 'Scan failed'),
+        detail: [
+          if (serial != null && serial.isNotEmpty) 'Serial: $serial',
+          if (status != null && status.isNotEmpty) 'Status: $status',
+          if (sealCode != null && sealCode.isNotEmpty) 'Seal: $sealCode',
+          'Action: ${_modeLabel(_mode)}',
+        ].join('\n'),
+      );
       await _loadContext();
     } catch (e) {
       if (!mounted) return;
       setState(() => _message = e.toString());
+      await _showScanPopup(success: false, message: e.toString());
     } finally {
       if (mounted) setState(() => _loadingScan = false);
     }
@@ -116,6 +211,25 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
         _ => mode,
       };
 
+  _QrPayloadType _detectPayloadType(String payload) {
+    final value = payload.trim();
+    if (RegExp(r'/qr/seal/', caseSensitive: false).hasMatch(value) ||
+        RegExp(r'^VS-[A-Z0-9\-]+$', caseSensitive: false).hasMatch(value)) {
+      return _QrPayloadType.valveSeal;
+    }
+    return _QrPayloadType.cylinder;
+  }
+
+  String _extractCylinderLabel(String payload) {
+    final value = payload.trim();
+    final serialMatch = RegExp(r'/qr/cylinder/([^/?#]+)', caseSensitive: false)
+        .firstMatch(value);
+    if (serialMatch != null && serialMatch.groupCount > 0) {
+      return serialMatch.group(1) ?? 'Cylinder';
+    }
+    return value.length > 28 ? '${value.substring(0, 28)}…' : value;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -128,7 +242,8 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
             tooltip: 'Advanced cylinder scan',
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute<void>(builder: (_) => const CylinderScanScreen()),
+              MaterialPageRoute<void>(
+                  builder: (_) => const CylinderScanScreen()),
             ),
           ),
           IconButton(
@@ -153,23 +268,28 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
                     WhatsLipaGlassCard(
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(14),
-                      child: Text(_error!, style: TextStyle(color: Colors.red.shade800)),
+                      child: Text(_error!,
+                          style: TextStyle(color: Colors.red.shade800)),
                     ),
                   FutureBuilder<String?>(
                     future: WhatsLipaSession.tenantName,
                     builder: (context, snap) {
                       final org = snap.data;
-                      if (org == null || org.isEmpty) return const SizedBox.shrink();
+                      if (org == null || org.isEmpty)
+                        return const SizedBox.shrink();
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Text(
                           org,
-                          style: TextStyle(fontWeight: FontWeight.w700, color: _accent.withValues(alpha: 0.9)),
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: _accent.withValues(alpha: 0.9)),
                         ),
                       );
                     },
                   ),
-                  if (_summary != null) _SummaryCard(summary: _summary!, accent: _accent),
+                  if (_summary != null)
+                    _SummaryCard(summary: _summary!, accent: _accent),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
@@ -179,39 +299,56 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
                       return FilterChip(
                         selected: selected,
                         label: Text(mode.$2),
-                        avatar: Icon(mode.$3, size: 18, color: selected ? WhatsLipaBrand.onPrimary : _accent),
+                        avatar: Icon(mode.$3,
+                            size: 18,
+                            color:
+                                selected ? WhatsLipaBrand.onPrimary : _accent),
                         selectedColor: _accent,
                         checkmarkColor: WhatsLipaBrand.onPrimary,
                         labelStyle: TextStyle(
                           fontWeight: FontWeight.w700,
-                          color: selected ? WhatsLipaBrand.onPrimary : Colors.black87,
+                          color: selected
+                              ? WhatsLipaBrand.onPrimary
+                              : Colors.black87,
                         ),
                         onSelected: _loadingScan
                             ? null
-                            : (_) => setState(() => _mode = mode.$1),
+                            : (_) => setState(() {
+                                  _mode = mode.$1;
+                                  _pendingCylinderPayload = null;
+                                  _pendingCylinderLabel = null;
+                                }),
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
                   if (_mode == 'review') ...[
-                    Text('My stock (${_stock.length})', style: WhatsLipaUi.sectionTitle),
+                    Text('My stock (${_stock.length})',
+                        style: WhatsLipaUi.sectionTitle),
                     const SizedBox(height: 10),
                     if (_stock.isEmpty)
                       const WhatsLipaEmptyState(
                         icon: Icons.inventory_2_outlined,
                         title: 'No stock yet',
-                        message: 'Scanned cylinders assigned to you will appear here.',
+                        message:
+                            'Scanned cylinders assigned to you will appear here.',
                       )
                     else
                       ..._stock.map((item) {
-                        final row = item is Map ? Map<String, dynamic>.from(item) : <String, dynamic>{};
-                        final cylinder = row['cylinder'] is Map ? row['cylinder'] as Map : row;
+                        final row = item is Map
+                            ? Map<String, dynamic>.from(item)
+                            : <String, dynamic>{};
+                        final cylinder = row['cylinder'] is Map
+                            ? row['cylinder'] as Map
+                            : row;
                         final lifecycle = cylinder['lifecycle'] is Map
-                            ? Map<String, dynamic>.from(cylinder['lifecycle'] as Map)
+                            ? Map<String, dynamic>.from(
+                                cylinder['lifecycle'] as Map)
                             : null;
                         return Container(
                           margin: const EdgeInsets.only(bottom: 10),
-                          decoration: WhatsLipaUi.glassCard(borderTint: _accent),
+                          decoration:
+                              WhatsLipaUi.glassCard(borderTint: _accent),
                           child: Padding(
                             padding: const EdgeInsets.all(12),
                             child: Column(
@@ -220,19 +357,27 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
                                 Row(
                                   children: [
                                     CircleAvatar(
-                                      backgroundColor: _accent.withValues(alpha: 0.12),
-                                      child: Icon(Icons.propane_tank_outlined, color: _accent),
+                                      backgroundColor:
+                                          _accent.withValues(alpha: 0.12),
+                                      child: Icon(Icons.propane_tank_outlined,
+                                          color: _accent),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            cylinder['serial_number']?.toString() ?? 'Cylinder',
-                                            style: const TextStyle(fontWeight: FontWeight.w700),
+                                            cylinder['serial_number']
+                                                    ?.toString() ??
+                                                'Cylinder',
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.w700),
                                           ),
-                                          Text(cylinder['current_status']?.toString() ?? ''),
+                                          Text(cylinder['current_status']
+                                                  ?.toString() ??
+                                              ''),
                                         ],
                                       ),
                                     ),
@@ -240,7 +385,8 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
                                 ),
                                 if (lifecycle != null) ...[
                                   const SizedBox(height: 10),
-                                  CylinderLifecyclePanel(lifecycle: lifecycle, compact: true),
+                                  CylinderLifecyclePanel(
+                                      lifecycle: lifecycle, compact: true),
                                 ],
                               ],
                             ),
@@ -260,16 +406,55 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
                             accentColor: _accent,
                             loading: _loadingScan,
                             onScan: _submitScan,
-                            submitLabel: 'Record ${_modeLabel(_mode)}',
-                            title: 'Scan to ${_modeLabel(_mode).toLowerCase()}',
+                            submitLabel: _mode == 'stock_in' &&
+                                    _pendingCylinderPayload == null
+                                ? 'Scan cylinder first'
+                                : 'Record ${_modeLabel(_mode)}',
+                            title: _mode == 'stock_in'
+                                ? (_pendingCylinderPayload == null
+                                    ? 'Scan cylinder QR to start inventory in'
+                                    : 'Now scan valve seal QR')
+                                : (_mode == 'return_empty'
+                                    ? 'Scan cylinder QR to ${_modeLabel(_mode).toLowerCase()}'
+                                    : 'Scan valve seal QR to ${_modeLabel(_mode).toLowerCase()}'),
                           ),
+                          if (_mode == 'stock_in' &&
+                              _pendingCylinderPayload != null) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: _accent.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: _accent.withValues(alpha: 0.16)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.check_circle_outline,
+                                      color: _accent),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      'Cylinder selected: ${_pendingCylinderLabel ?? 'Captured'}\nScan valve seal QR to finish.',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          height: 1.35),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           if (_message != null) ...[
                             const SizedBox(height: 16),
                             Text(
                               _message!,
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                color: _message!.contains('recorded') ? Colors.green.shade800 : Colors.red.shade800,
+                                color: _message!.contains('recorded')
+                                    ? Colors.green.shade800
+                                    : Colors.red.shade800,
                               ),
                             ),
                           ],
@@ -286,17 +471,24 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
                                 children: [
                                   Text(
                                     'Serial: ${_lastResult!['cylinder']['serial_number']}',
-                                    style: const TextStyle(fontWeight: FontWeight.w800),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w800),
                                   ),
-                                  Text('Status: ${_lastResult!['cylinder']['current_status']}'),
-                                  if (_lastResult!['cylinder']['lifecycle_stage'] != null)
-                                    Text('Stage: ${_lastResult!['cylinder']['lifecycle_stage']}'),
+                                  Text(
+                                      'Status: ${_lastResult!['cylinder']['current_status']}'),
+                                  if (_lastResult!['cylinder']
+                                          ['lifecycle_stage'] !=
+                                      null)
+                                    Text(
+                                        'Stage: ${_lastResult!['cylinder']['lifecycle_stage']}'),
                                 ],
                               ),
                             ),
                             if (_lifecycle != null) ...[
                               const SizedBox(height: 12),
-                              CylinderLifecyclePanel(lifecycle: _lifecycle, title: 'Updated journey'),
+                              CylinderLifecyclePanel(
+                                  lifecycle: _lifecycle,
+                                  title: 'Updated journey'),
                             ],
                           ],
                         ],
@@ -411,7 +603,8 @@ class _SummaryCard extends StatelessWidget {
 
     final rows = raw.entries
         .map((e) => _StatusEntry(
-              label: _statusLabels[e.key.toString()] ?? _label(e.key.toString()),
+              label:
+                  _statusLabels[e.key.toString()] ?? _label(e.key.toString()),
               value: _formatValue(e.value),
             ))
         .toList()
@@ -429,7 +622,10 @@ class _SummaryCard extends StatelessWidget {
 
   String _formatValue(dynamic value) {
     if (value == null) return '—';
-    if (value is num) return value == value.roundToDouble() ? '${value.toInt()}' : value.toString();
+    if (value is num)
+      return value == value.roundToDouble()
+          ? '${value.toInt()}'
+          : value.toString();
     return value.toString();
   }
 }

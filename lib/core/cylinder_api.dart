@@ -44,13 +44,15 @@ class CylinderApi {
   }
 
   static Future<Map<String, dynamic>> scanContext() async {
-    final res = await http.get(_uri('/scan-context'), headers: await _headers());
+    final res =
+        await http.get(_uri('/scan-context'), headers: await _headers());
     return jsonDecode(res.body) as Map<String, dynamic>;
   }
 
   static Future<Map<String, dynamic>> scan({
     required String qrPayload,
     required String eventType,
+    String? secondaryQrPayload,
     int? orderId,
     int? customerId,
     double? latitude,
@@ -62,6 +64,8 @@ class CylinderApi {
       headers: await _headers(),
       body: jsonEncode({
         'qr_payload': qrPayload,
+        if (secondaryQrPayload != null && secondaryQrPayload.isNotEmpty)
+          'secondary_qr_payload': secondaryQrPayload,
         'event_type': eventType,
         if (orderId != null) 'order_id': orderId,
         if (customerId != null) 'customer_id': customerId,

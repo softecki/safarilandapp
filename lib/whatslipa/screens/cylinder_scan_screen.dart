@@ -3,6 +3,7 @@ import 'package:wicom/core/cylinder_api.dart';
 import 'package:wicom/core/whatslipa_brand.dart';
 import 'package:wicom/whatslipa/widgets/cylinder_lifecycle_panel.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_qr_scan_panel.dart';
+import 'package:wicom/whatslipa/widgets/whatslipa_scan_result_dialog.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_ui.dart';
 
 class CylinderScanScreen extends StatefulWidget {
@@ -55,6 +56,20 @@ class _CylinderScanScreenState extends State<CylinderScanScreen> {
         : (result['message']?.toString() ?? 'Scan failed');
   }
 
+  Future<void> _showScanPopup({
+    required String message,
+    required bool success,
+    String? detail,
+  }) {
+    return showWhatsLipaScanResultDialog(
+      context: context,
+      message: message,
+      success: success,
+      detail: detail,
+      accentColor: _accent,
+    );
+  }
+
   Future<void> _submitScan(String payload) async {
     if (payload.trim().isEmpty) return;
     setState(() {
@@ -69,9 +84,22 @@ class _CylinderScanScreenState extends State<CylinderScanScreen> {
       );
       if (!mounted) return;
       setState(() => _applyScanResult(result));
+      final ok = result['ok'] == true;
+      final serial = result['cylinder']?['serial_number']?.toString();
+      final status = result['cylinder']?['current_status']?.toString();
+      await _showScanPopup(
+        success: ok,
+        message: _message ?? (ok ? 'Scan recorded' : 'Scan failed'),
+        detail: [
+          if (serial != null && serial.isNotEmpty) 'Serial: $serial',
+          if (status != null && status.isNotEmpty) 'Status: $status',
+          'Stage: ${_stageLabel(_eventType)}',
+        ].join('\n'),
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _message = e.toString());
+      await _showScanPopup(success: false, message: e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
     }

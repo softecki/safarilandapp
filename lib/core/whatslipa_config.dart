@@ -185,6 +185,16 @@ class WhatsLipaConfig {
     portalWebUrl = defaultConfigServerUrl;
   }
 
+  /// Clears cached portal/session configuration so next login starts fresh.
+  static Future<void> clearCachedState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_prefKeyUserPortalLocked);
+    await prefs.remove(_prefKeyUserPortal);
+    await prefs.remove(_prefKeyDiscoveredUrls);
+    await prefs.remove(_kSessionPortalBase);
+    portalWebUrl = defaultConfigServerUrl;
+  }
+
   /// Login targets: only saved portal if locked; otherwise env list from config server.
   static Future<List<String>> loginEndpointCandidates() async {
     await loadSavedUrl();

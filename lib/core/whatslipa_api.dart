@@ -758,6 +758,8 @@ class WhatsLipaApi {
       } catch (_) {}
     }
     await WhatsLipaSession.clear();
+    await WhatsLipaConfig.clearCachedState();
+    lastLoginAttempts = [];
   }
 
   static Future<Map<String, dynamic>> _get(
