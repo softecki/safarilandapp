@@ -1,10 +1,8 @@
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/material.dart';
-import 'package:wicom/core/whatslipa_brand.dart';
-import 'package:wicom/whatslipa/widgets/whatslipa_ui.dart';
+import 'package:wicom/whatslipa/widgets/whatslipa_branded_loader.dart';
 
-/// Full-screen loading overlay with status message (portal connect, login, fetch).
-/// All overlay mutations are deferred until after the current frame (safe from initState).
+/// Full-screen loading overlay with brand-aware UI (no URLs shown).
 class WhatsLipaLoading {
   WhatsLipaLoading._();
 
@@ -23,7 +21,7 @@ class WhatsLipaLoading {
   }
 
   static void show(BuildContext context, {String message = 'Please wait…'}) {
-    _message.value = message;
+    _message.value = WhatsLipaLoaderMessages.sanitize(message);
     _afterFrame(() {
       if (!context.mounted) return;
       if (_entry != null) {
@@ -35,38 +33,14 @@ class WhatsLipaLoading {
 
       _entry = OverlayEntry(
         builder: (ctx) => Material(
-          color: Colors.black.withValues(alpha: 0.5),
+          color: Colors.black.withValues(alpha: 0.45),
           child: Center(
             child: ValueListenableBuilder<String>(
               valueListenable: _message,
-              builder: (_, msg, __) => Container(
-                width: 280,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-                decoration: WhatsLipaUi.glassCard(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 42,
-                      height: 42,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        color: WhatsLipaBrand.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      msg,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1A1A1A),
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
+              builder: (_, msg, __) => WhatsLipaBrandedLoaderPanel(
+                message: msg,
+                showLogo: true,
+                showBrandName: false,
               ),
             ),
           ),
@@ -77,12 +51,13 @@ class WhatsLipaLoading {
   }
 
   static void update(String message) {
+    final sanitized = WhatsLipaLoaderMessages.sanitize(message);
     _afterFrame(() {
-      if (_message.value == message && _entry != null) {
+      if (_message.value == sanitized && _entry != null) {
         _entry!.markNeedsBuild();
         return;
       }
-      _message.value = message;
+      _message.value = sanitized;
       _entry?.markNeedsBuild();
     });
   }

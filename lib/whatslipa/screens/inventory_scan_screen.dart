@@ -4,6 +4,7 @@ import 'package:wicom/core/whatslipa_brand.dart';
 import 'package:wicom/core/whatslipa_session.dart';
 import 'package:wicom/whatslipa/screens/cylinder_scan_screen.dart';
 import 'package:wicom/whatslipa/widgets/cylinder_lifecycle_panel.dart';
+import 'package:wicom/whatslipa/widgets/whatslipa_branded_loader.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_qr_scan_panel.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_ui.dart';
 
@@ -137,7 +138,13 @@ class _InventoryScanScreenState extends State<InventoryScanScreen> {
       ),
       body: WhatsLipaScreenBackground(
         child: _loadingContext
-            ? Center(child: CircularProgressIndicator(color: _accent))
+            ? const Center(
+                child: WhatsLipaBrandedLoaderPanel(
+                  message: 'Loading inventory…',
+                  compact: true,
+                  showLogo: true,
+                ),
+              )
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [

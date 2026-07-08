@@ -15,6 +15,7 @@ import 'package:wicom/whatslipa/screens/whatslipa_orders_screen.dart';
 import 'package:wicom/whatslipa/screens/whatslipa_products_screen.dart';
 import 'package:wicom/whatslipa/screens/whatslipa_reports_screen.dart';
 import 'package:wicom/whatslipa/screens/whatslipa_whatsapp_screen.dart';
+import 'package:wicom/whatslipa/widgets/whatslipa_branded_loader.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_loading.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_organization_switcher.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_ui.dart';
@@ -358,7 +359,13 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
             ),
             Expanded(
               child: _loading
-                  ? Center(child: CircularProgressIndicator(color: brandPrimary))
+                  ? const Center(
+                      child: WhatsLipaBrandedLoaderPanel(
+                        message: 'Loading…',
+                        compact: true,
+                        showLogo: true,
+                      ),
+                    )
                   : RefreshIndicator(
                       color: brandPrimary,
                       onRefresh: _load,

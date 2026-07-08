@@ -126,14 +126,6 @@ class WhatsLipaApi {
     return WhatsLipaConfig.whatsliapaApiPrefix;
   }
 
-  static String _hostLabel(String baseUrl) {
-    try {
-      return Uri.parse(baseUrl).host;
-    } catch (_) {
-      return baseUrl;
-    }
-  }
-
   static Map<String, String> _jsonHeaders([String? token]) => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -170,14 +162,13 @@ class WhatsLipaApi {
 
     for (var i = 0; i < candidates.length; i++) {
       final baseUrl = candidates[i];
-      final label = _hostLabel(baseUrl);
       final apiPrefix = WhatsLipaConfig.whatsliapaApiPrefixFor(baseUrl);
       final loginUrl = '$apiPrefix/login';
 
       if (candidates.length > 1) {
-        onProgress?.call('Trying $label (${i + 1}/${candidates.length})\n$loginUrl');
+        onProgress?.call('Trying server ${i + 1} of ${candidates.length}…');
       } else {
-        onProgress?.call('Connecting to $label\n$loginUrl');
+        onProgress?.call('Connecting…');
       }
 
       void recordAttempt({int? statusCode, String? error}) {
@@ -193,7 +184,7 @@ class WhatsLipaApi {
       }
 
       try {
-        onProgress?.call('POST $loginUrl');
+        onProgress?.call('Signing in…');
         final res = await http
             .post(
               Uri.parse(loginUrl),

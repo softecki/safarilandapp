@@ -1,7 +1,7 @@
 {
     "name": "Softecki FaceAccess",
     "short_name": "FaceAccess",
-    "version": "3.1.0",
+    "version": "3.2.0",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#121212",

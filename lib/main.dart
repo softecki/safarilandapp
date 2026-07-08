@@ -11,10 +11,8 @@ import 'package:wicom/core/whatslipa_session.dart';
 import 'package:wicom/whatslipa/screens/whatslipa_home_screen.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_theme.dart';
 import 'package:wicom/whatslipa/screens/whatslipa_login_screen.dart';
-import 'package:wicom/core/app_color.dart';
+import 'package:wicom/whatslipa/widgets/whatslipa_branded_loader.dart';
 import 'package:wicom/src/services/health_check_service.dart';
-import 'package:wicom/whatslipa/widgets/whatslipa_ui.dart';
-import 'package:wicom/src/view/widgets/neumorphic_widgets.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -92,6 +90,10 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   String _status = 'Starting…';
 
+  static const _statusLoading = 'Loading…';
+  static const _statusConfig = 'Loading configuration…';
+  static const _statusPortal = 'Restoring session…';
+
   @override
   void initState() {
     super.initState();
@@ -102,17 +104,17 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     try {
-      setState(() => _status = 'Loading…');
+      setState(() => _status = _statusLoading);
       await WhatsLipaConfig.loadSavedUrl();
       await WhatsLipaBrand.loadFromSession();
       if (mounted) setState(() {});
 
       final locked = await WhatsLipaConfig.isUserPortalLocked();
       if (!locked) {
-        setState(() => _status = 'Loading portals from server…');
+        setState(() => _status = _statusConfig);
         await WhatsLipaConfig.fetchAppConfigFromConfigServer();
       } else {
-        setState(() => _status = 'Restoring your portal…');
+        setState(() => _status = _statusPortal);
         await WhatsLipaConfig.fetchMapsKeyOnly();
       }
 
@@ -140,93 +142,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLotiGas = WhatsLipaBrand.isLotiGas;
-    final brandColor = WhatsLipaBrand.primary;
-    final onBrand = WhatsLipaBrand.onPrimary;
-
-    return Scaffold(
-      backgroundColor: isLotiGas ? WhatsLipaBrand.lotiGasYellow : AppColor.neumorphicBase,
-      body: isLotiGas
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    WhatsLipaBrandLogo(size: 160),
-                    const SizedBox(height: 20),
-                    Text(
-                      WhatsLipaBrand.name,
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: onBrand,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      WhatsLipaConfig.tagline,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: onBrand.withValues(alpha: 0.75),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    Text(
-                      _status,
-                      style: TextStyle(color: onBrand.withValues(alpha: 0.7), fontSize: 14),
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: 32,
-                      height: 32,
-                      child: CircularProgressIndicator(strokeWidth: 3, color: onBrand),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : NeuScreenCanvas(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Neumorphic(
-                      style: NeumorphicStyle(
-                        depth: 8,
-                        boxShape: const NeumorphicBoxShape.circle(),
-                        color: brandColor,
-                      ),
-                      padding: const EdgeInsets.all(22),
-                      child: Icon(Icons.chat_bubble_rounded, color: onBrand, size: 52),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      WhatsLipaBrand.name,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        color: brandColor,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _status,
-                      style: const TextStyle(color: AppColor.textSecondary, fontSize: 14),
-                    ),
-                    const SizedBox(height: 28),
-                    SizedBox(
-                      width: 32,
-                      height: 32,
-                      child: CircularProgressIndicator(strokeWidth: 3, color: brandColor),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+    return WhatsLipaBrandedLoaderScreen(
+      message: _status,
+      showBrandName: true,
     );
   }
 }

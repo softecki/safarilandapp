@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/core/whatslipa_config.dart';
 import 'package:wicom/core/whatslipa_session.dart';
@@ -12,18 +13,55 @@ class WhatsLipaBrand {
 
   static String? _portalHint;
   static String? _tenantSlugHint;
+  static final List<String> _urlHints = [];
+
+  static Future<void> refreshDetectionHints() async {
+    await WhatsLipaConfig.ensurePortalLoaded();
+    _portalHint ??= WhatsLipaConfig.portalWebUrl;
+
+    final hints = <String>{
+      WhatsLipaConfig.portalWebUrl,
+      if (_portalHint != null && _portalHint!.isNotEmpty) _portalHint!,
+    };
+
+    if (kIsWeb) {
+      hints.add(Uri.base.toString());
+      hints.add('${Uri.base.scheme}://${Uri.base.host}');
+      if (Uri.base.path.isNotEmpty) {
+        hints.add('${Uri.base.scheme}://${Uri.base.host}${Uri.base.path}');
+      }
+    }
+
+    try {
+      final locked = await WhatsLipaConfig.isUserPortalLocked();
+      final candidates = await WhatsLipaConfig.loginEndpointCandidates();
+      if (locked) {
+        if (candidates.isNotEmpty) hints.add(candidates.first);
+      } else if (candidates.length == 1) {
+        hints.add(candidates.first);
+      } else {
+        hints.addAll(candidates.where(_urlLooksLikeLotiGas));
+      }
+    } catch (_) {}
+
+    _urlHints
+        ..clear()
+        ..addAll(hints.where((u) => u.trim().isNotEmpty));
+    _applyLotiGasOverrides();
+  }
 
   static Future<void> syncFromPortal() async {
     await WhatsLipaConfig.ensurePortalLoaded();
     _portalHint = WhatsLipaConfig.portalWebUrl;
-    _applyLotiGasOverrides();
+    await refreshDetectionHints();
   }
 
   static Future<void> loadFromSession() async {
-    await syncFromPortal();
+    await WhatsLipaConfig.ensurePortalLoaded();
+    _portalHint = WhatsLipaConfig.portalWebUrl;
     _cached = await WhatsLipaSession.brand;
     _tenantSlugHint = await WhatsLipaSession.tenantSlug;
-    _applyLotiGasOverrides();
+    await refreshDetectionHints();
   }
 
   static void apply(
@@ -49,21 +87,39 @@ class WhatsLipaBrand {
 
   static bool get isLotiGas => _detectLotiGas();
 
-  static bool _detectLotiGas() {
-    final portal = (_portalHint ?? WhatsLipaConfig.portalWebUrl).toLowerCase().trim();
+  static bool _urlLooksLikeLotiGas(String raw) {
+    final portal = raw.toLowerCase().trim();
     if (portal.isEmpty) return false;
-
+    if (portal.contains('lotigas') || portal.contains('loti-gas') || portal.contains('loti_gas')) {
+      return true;
+    }
     final uri = Uri.tryParse(portal.startsWith('http') ? portal : 'https://$portal');
     final host = uri?.host.toLowerCase() ?? '';
-    if (host.contains('lotigas') || portal.contains('lotigas')) {
-      return true;
+    final path = uri?.path.toLowerCase() ?? '';
+    return host.contains('lotigas') || path.contains('lotigas');
+  }
+
+  static bool _detectLotiGas() {
+    final urls = <String>{
+      if (_portalHint != null) _portalHint!,
+      WhatsLipaConfig.portalWebUrl,
+      ..._urlHints,
+    };
+
+    if (kIsWeb) {
+      urls.add(Uri.base.toString());
+      urls.add('${Uri.base.scheme}://${Uri.base.host}');
+    }
+
+    for (final url in urls) {
+      if (_urlLooksLikeLotiGas(url)) return true;
     }
 
     final slug = (_tenantSlugHint ?? '').toLowerCase();
     if (slug == 'lotigas') return true;
 
-    final name = (_cached?['name'] ?? '').toString().toLowerCase();
-    if (name.contains('loti gas') || name.contains('lotigas')) return true;
+    final name = (_cached?['name'] ?? '').toString().toLowerCase().replaceAll(' ', '');
+    if (name.contains('lotigas')) return true;
 
     return false;
   }

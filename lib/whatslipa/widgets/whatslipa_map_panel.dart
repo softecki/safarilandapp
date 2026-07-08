@@ -4,6 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wicom/core/whatslipa_local_db.dart';
 import 'package:wicom/core/whatslipa_maps_init.dart';
 import 'package:wicom/core/whatslipa_maps_log.dart';
+import 'package:wicom/whatslipa/widgets/whatslipa_branded_loader.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_theme.dart';
 
 /// Google Map with a visible error state when the API key is missing or tiles fail to load.
@@ -74,8 +75,12 @@ class _WhatsLipaMapPanelState extends State<WhatsLipaMapPanel> {
   @override
   Widget build(BuildContext context) {
     if (!_bootstrapDone) {
-      return Center(
-        child: CircularProgressIndicator(color: WhatsLipaTheme.primary),
+      return const Center(
+        child: WhatsLipaBrandedLoaderPanel(
+          message: 'Loading map…',
+          compact: true,
+          showLogo: false,
+        ),
       );
     }
 

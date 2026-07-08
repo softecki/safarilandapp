@@ -9,6 +9,7 @@ import 'package:wicom/core/whatslipa_session.dart';
 import 'package:wicom/whatslipa/screens/whatslipa_home_screen.dart';
 import 'package:wicom/whatslipa/screens/whatslipa_organization_picker_screen.dart';
 import 'package:wicom/whatslipa/screens/whatslipa_server_settings_screen.dart';
+import 'package:wicom/whatslipa/widgets/whatslipa_branded_loader.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_loading.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_ui.dart';
 
@@ -26,18 +27,25 @@ class _WhatsLipaLoginScreenState extends State<WhatsLipaLoginScreen> {
   bool _obscure = true;
   List<String> _loginEndpointUrls = [];
   String? _lastAttemptSummary;
+  late final Future<void> _brandInit;
 
   @override
   void initState() {
     super.initState();
-    WhatsLipaBrand.loadFromSession().then((_) {
-      if (mounted) setState(() {});
-    });
-    _refreshLoginUrls();
+    _brandInit = _prepareBrand();
+  }
+
+  Future<void> _prepareBrand() async {
+    await WhatsLipaBrand.loadFromSession();
+    final candidates = await WhatsLipaConfig.loginEndpointCandidates();
+    if (mounted) {
+      _loginEndpointUrls = candidates
+          .map((b) => '${WhatsLipaConfig.whatsliapaApiPrefixFor(b)}/login')
+          .toList();
+    }
   }
 
   Future<void> _refreshLoginUrls() async {
-    await WhatsLipaConfig.ensurePortalLoaded();
     await WhatsLipaBrand.syncFromPortal();
     final candidates = await WhatsLipaConfig.loginEndpointCandidates();
     if (!mounted) return;
@@ -210,7 +218,10 @@ class _WhatsLipaLoginScreenState extends State<WhatsLipaLoginScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute<void>(builder: (_) => const WhatsLipaServerSettingsScreen()),
-              ).then((_) => _refreshLoginUrls());
+              ).then((_) async {
+                await _refreshLoginUrls();
+                if (mounted) setState(() {});
+              });
             },
             child: const Text('Server settings'),
           ),
@@ -257,78 +268,74 @@ class _WhatsLipaLoginScreenState extends State<WhatsLipaLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _brandInit,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const WhatsLipaBrandedLoaderScreen(
+            message: 'Loading…',
+            showBrandName: true,
+          );
+        }
+        return _buildLoginScaffold();
+      },
+    );
+  }
+
+  Widget _buildLoginScaffold() {
     final isLotiGas = WhatsLipaBrand.isLotiGas;
     final onBrand = WhatsLipaBrand.onPrimary;
+    final titleColor = isLotiGas ? onBrand : WhatsLipaUi.primary;
+    final subtitleColor = isLotiGas ? onBrand.withValues(alpha: 0.75) : WhatsLipaUi.subtitle.color;
+
+    final content = ListView(
+      padding: EdgeInsets.fromLTRB(24, isLotiGas ? 28 : 20, 24, 32),
+      children: [
+        SizedBox(height: isLotiGas ? 12 : 16),
+        Center(
+          child: WhatsLipaBrandLogo(
+            size: isLotiGas ? 150 : 96,
+            icon: isLotiGas ? Icons.propane_tank_outlined : Icons.chat_bubble_rounded,
+          ),
+        ),
+        SizedBox(height: isLotiGas ? 20 : 24),
+        Text(
+          WhatsLipaBrand.name,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: isLotiGas ? 30 : 26,
+            fontWeight: FontWeight.w800,
+            color: titleColor,
+            letterSpacing: isLotiGas ? 0.4 : -0.5,
+            height: 1.15,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          WhatsLipaConfig.tagline,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: subtitleColor,
+            fontSize: 14,
+            height: 1.45,
+          ),
+        ),
+        SizedBox(height: isLotiGas ? 32 : 36),
+        _buildLoginCard(),
+        const SizedBox(height: 12),
+        _buildServerSettingsButton(),
+      ],
+    );
+
+    if (isLotiGas) {
+      return Scaffold(
+        backgroundColor: WhatsLipaBrand.lotiGasYellow,
+        body: SafeArea(child: content),
+      );
+    }
 
     return Scaffold(
-      backgroundColor: isLotiGas ? WhatsLipaBrand.lotiGasYellow : null,
-      body: isLotiGas
-          ? SafeArea(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
-                children: [
-                  const SizedBox(height: 12),
-                  Center(child: WhatsLipaBrandLogo(size: 150)),
-                  const SizedBox(height: 20),
-                  Text(
-                    WhatsLipaBrand.name,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
-                      color: onBrand,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    WhatsLipaConfig.tagline,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: onBrand.withValues(alpha: 0.75),
-                      fontSize: 14,
-                      height: 1.45,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  _buildLoginCard(),
-                  const SizedBox(height: 12),
-                  _buildServerSettingsButton(),
-                ],
-              ),
-            )
-          : WhatsLipaScreenBackground(
-              child: SafeArea(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-                  children: [
-                    const SizedBox(height: 16),
-                    Center(
-                      child: WhatsLipaBrandLogo(
-                        size: 96,
-                        icon: Icons.chat_bubble_rounded,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      WhatsLipaConfig.appName,
-                      textAlign: TextAlign.center,
-                      style: WhatsLipaUi.headline,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      WhatsLipaConfig.tagline,
-                      textAlign: TextAlign.center,
-                      style: WhatsLipaUi.subtitle,
-                    ),
-                    const SizedBox(height: 36),
-                    _buildLoginCard(),
-                    const SizedBox(height: 12),
-                    _buildServerSettingsButton(),
-                  ],
-                ),
-              ),
-            ),
+      body: WhatsLipaScreenBackground(child: SafeArea(child: content)),
     );
   }
 
@@ -382,7 +389,10 @@ class _WhatsLipaLoginScreenState extends State<WhatsLipaLoginScreen> {
       onPressed: () => Navigator.push(
         context,
         MaterialPageRoute<void>(builder: (_) => const WhatsLipaServerSettingsScreen()),
-      ).then((_) => _refreshLoginUrls()),
+      ).then((_) async {
+        await _refreshLoginUrls();
+        if (mounted) setState(() {});
+      }),
       icon: Icon(Icons.settings_outlined, color: labelColor),
       label: Text('Server settings', style: TextStyle(fontSize: 13, color: labelColor)),
     );
