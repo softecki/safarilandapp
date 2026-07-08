@@ -115,17 +115,28 @@ class WhatsLipaBrandLogo extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(size * 0.14),
+          color: WhatsLipaBrand.lotiGasYellow,
+          borderRadius: BorderRadius.circular(size * 0.08),
+          border: Border.all(color: WhatsLipaBrand.lotiGasBlack.withValues(alpha: 0.08)),
           boxShadow: [
             BoxShadow(
-              color: WhatsLipaBrand.secondary.withValues(alpha: 0.2),
+              color: WhatsLipaBrand.lotiGasBlack.withValues(alpha: 0.15),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
           ],
         ),
-        clipBehavior: Clip.antiAlias,
-        child: Image.asset(asset, fit: BoxFit.cover),
+        padding: EdgeInsets.all(size * 0.06),
+        child: Image.asset(
+          asset,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+          errorBuilder: (_, __, ___) => Icon(
+            Icons.propane_tank_outlined,
+            color: WhatsLipaBrand.lotiGasBlack,
+            size: size * 0.5,
+          ),
+        ),
       );
     }
 

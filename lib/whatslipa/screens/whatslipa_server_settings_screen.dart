@@ -1,5 +1,6 @@
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:wicom/core/app_color.dart';
+import 'package:wicom/core/whatslipa_brand.dart';
 import 'package:wicom/core/whatslipa_config.dart';
 import 'package:wicom/src/view/widgets/neumorphic_widgets.dart';
 
@@ -21,6 +22,7 @@ class _WhatsLipaServerSettingsScreenState extends State<WhatsLipaServerSettingsS
 
   Future<void> _save() async {
     await WhatsLipaConfig.lockPortalAfterLogin(_ctrl.text);
+    await WhatsLipaBrand.syncFromPortal();
     if (!mounted) return;
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(

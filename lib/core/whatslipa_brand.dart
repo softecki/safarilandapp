@@ -13,11 +13,16 @@ class WhatsLipaBrand {
   static String? _portalHint;
   static String? _tenantSlugHint;
 
-  static Future<void> loadFromSession() async {
+  static Future<void> syncFromPortal() async {
     await WhatsLipaConfig.ensurePortalLoaded();
+    _portalHint = WhatsLipaConfig.portalWebUrl;
+    _applyLotiGasOverrides();
+  }
+
+  static Future<void> loadFromSession() async {
+    await syncFromPortal();
     _cached = await WhatsLipaSession.brand;
     _tenantSlugHint = await WhatsLipaSession.tenantSlug;
-    _portalHint = WhatsLipaConfig.portalWebUrl;
     _applyLotiGasOverrides();
   }
 
@@ -45,14 +50,21 @@ class WhatsLipaBrand {
   static bool get isLotiGas => _detectLotiGas();
 
   static bool _detectLotiGas() {
-    final portal = (_portalHint ?? WhatsLipaConfig.portalWebUrl).toLowerCase();
-    if (portal.contains('lotigas.softecki.com') || portal.contains('/lotigas')) {
+    final portal = (_portalHint ?? WhatsLipaConfig.portalWebUrl).toLowerCase().trim();
+    if (portal.isEmpty) return false;
+
+    final uri = Uri.tryParse(portal.startsWith('http') ? portal : 'https://$portal');
+    final host = uri?.host.toLowerCase() ?? '';
+    if (host.contains('lotigas') || portal.contains('lotigas')) {
       return true;
     }
+
     final slug = (_tenantSlugHint ?? '').toLowerCase();
     if (slug == 'lotigas') return true;
+
     final name = (_cached?['name'] ?? '').toString().toLowerCase();
     if (name.contains('loti gas') || name.contains('lotigas')) return true;
+
     return false;
   }
 

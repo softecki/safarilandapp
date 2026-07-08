@@ -38,6 +38,7 @@ class _WhatsLipaLoginScreenState extends State<WhatsLipaLoginScreen> {
 
   Future<void> _refreshLoginUrls() async {
     await WhatsLipaConfig.ensurePortalLoaded();
+    await WhatsLipaBrand.syncFromPortal();
     final candidates = await WhatsLipaConfig.loginEndpointCandidates();
     if (!mounted) return;
     setState(() {
@@ -256,87 +257,134 @@ class _WhatsLipaLoginScreenState extends State<WhatsLipaLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLotiGas = WhatsLipaBrand.isLotiGas;
+    final onBrand = WhatsLipaBrand.onPrimary;
+
     return Scaffold(
-      body: WhatsLipaScreenBackground(
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-            children: [
-              const SizedBox(height: 16),
-              Center(
-                child: WhatsLipaBrandLogo(
-                  size: 96,
-                  icon: WhatsLipaBrand.isLotiGas ? Icons.propane_tank_outlined : Icons.chat_bubble_rounded,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                WhatsLipaConfig.appName,
-                textAlign: TextAlign.center,
-                style: WhatsLipaUi.headline,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                WhatsLipaConfig.tagline,
-                textAlign: TextAlign.center,
-                style: WhatsLipaUi.subtitle,
-              ),
-              const SizedBox(height: 36),
-              WhatsLipaGlassCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text('Sign in', style: WhatsLipaUi.sectionTitle),
-                    const SizedBox(height: 6),
-                    Text('Use your staff phone number and password.', style: WhatsLipaUi.subtitle.copyWith(fontSize: 13)),
-                    const SizedBox(height: 22),
-                    WhatsLipaInputField(
-                      controller: _phoneCtrl,
-                      label: 'PHONE NUMBER',
-                      hint: '2557XXXXXXXX',
-                      prefixIcon: Icons.phone_android_rounded,
-                      keyboardType: TextInputType.phone,
+      backgroundColor: isLotiGas ? WhatsLipaBrand.lotiGasYellow : null,
+      body: isLotiGas
+          ? SafeArea(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+                children: [
+                  const SizedBox(height: 12),
+                  Center(child: WhatsLipaBrandLogo(size: 150)),
+                  const SizedBox(height: 20),
+                  Text(
+                    WhatsLipaBrand.name,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      color: onBrand,
+                      letterSpacing: 0.4,
                     ),
-                    const SizedBox(height: 18),
-                    WhatsLipaInputField(
-                      controller: _passCtrl,
-                      label: 'PASSWORD',
-                      obscureText: _obscure,
-                      prefixIcon: Icons.lock_outline_rounded,
-                      suffix: IconButton(
-                        icon: Icon(
-                          _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                          color: WhatsLipaUi.primary,
-                        ),
-                        onPressed: () => setState(() => _obscure = !_obscure),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    WhatsLipaConfig.tagline,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: onBrand.withValues(alpha: 0.75),
+                      fontSize: 14,
+                      height: 1.45,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  _buildLoginCard(),
+                  const SizedBox(height: 12),
+                  _buildServerSettingsButton(),
+                ],
+              ),
+            )
+          : WhatsLipaScreenBackground(
+              child: SafeArea(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+                  children: [
+                    const SizedBox(height: 16),
+                    Center(
+                      child: WhatsLipaBrandLogo(
+                        size: 96,
+                        icon: Icons.chat_bubble_rounded,
                       ),
                     ),
-                    const SizedBox(height: 28),
-                    WhatsLipaPrimaryButton(
-                      label: 'Sign in',
-                      icon: Icons.login_rounded,
-                      loading: _loading,
-                      onPressed: _loading ? null : _login,
+                    const SizedBox(height: 24),
+                    Text(
+                      WhatsLipaConfig.appName,
+                      textAlign: TextAlign.center,
+                      style: WhatsLipaUi.headline,
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      WhatsLipaConfig.tagline,
+                      textAlign: TextAlign.center,
+                      style: WhatsLipaUi.subtitle,
+                    ),
+                    const SizedBox(height: 36),
+                    _buildLoginCard(),
+                    const SizedBox(height: 12),
+                    _buildServerSettingsButton(),
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
-              TextButton.icon(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(builder: (_) => const WhatsLipaServerSettingsScreen()),
-                ).then((_) => _refreshLoginUrls()),
-                icon: Icon(Icons.settings_outlined, color: WhatsLipaUi.primary),
-                label: Text(
-                  'Server settings',
-                  style: TextStyle(fontSize: 13, color: WhatsLipaUi.primary.withValues(alpha: 0.8)),
-                ),
-              ),
-            ],
+            ),
+    );
+  }
+
+  Widget _buildLoginCard() {
+    return WhatsLipaGlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Sign in', style: WhatsLipaUi.sectionTitle),
+          const SizedBox(height: 6),
+          Text('Use your staff phone number and password.', style: WhatsLipaUi.subtitle.copyWith(fontSize: 13)),
+          const SizedBox(height: 22),
+          WhatsLipaInputField(
+            controller: _phoneCtrl,
+            label: 'PHONE NUMBER',
+            hint: '2557XXXXXXXX',
+            prefixIcon: Icons.phone_android_rounded,
+            keyboardType: TextInputType.phone,
           ),
-        ),
+          const SizedBox(height: 18),
+          WhatsLipaInputField(
+            controller: _passCtrl,
+            label: 'PASSWORD',
+            obscureText: _obscure,
+            prefixIcon: Icons.lock_outline_rounded,
+            suffix: IconButton(
+              icon: Icon(
+                _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                color: WhatsLipaUi.primary,
+              ),
+              onPressed: () => setState(() => _obscure = !_obscure),
+            ),
+          ),
+          const SizedBox(height: 28),
+          WhatsLipaPrimaryButton(
+            label: 'Sign in',
+            icon: Icons.login_rounded,
+            loading: _loading,
+            onPressed: _loading ? null : _login,
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildServerSettingsButton() {
+    final labelColor = WhatsLipaBrand.isLotiGas
+        ? WhatsLipaBrand.lotiGasBlack.withValues(alpha: 0.85)
+        : WhatsLipaUi.primary.withValues(alpha: 0.8);
+    return TextButton.icon(
+      onPressed: () => Navigator.push(
+        context,
+        MaterialPageRoute<void>(builder: (_) => const WhatsLipaServerSettingsScreen()),
+      ).then((_) => _refreshLoginUrls()),
+      icon: Icon(Icons.settings_outlined, color: labelColor),
+      label: Text('Server settings', style: TextStyle(fontSize: 13, color: labelColor)),
     );
   }
 }
