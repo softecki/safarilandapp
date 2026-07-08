@@ -196,6 +196,8 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
     final name = _user?['name']?.toString() ?? 'User';
     final role = _user?['roles']?.first?['slug']?.toString() ?? _user?['afm_role']?.toString() ?? '';
     final brandPrimary = WhatsLipaBrand.primary;
+    final headerText = WhatsLipaBrand.onPrimary;
+    final isLotiGas = WhatsLipaBrand.isLotiGas;
 
     return Scaffold(
       backgroundColor: AppColor.neumorphicBase,
@@ -211,14 +213,18 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
                   children: [
                     Row(
                       children: [
+                        if (isLotiGas) ...[
+                          const WhatsLipaBrandLogo(size: 34),
+                          const SizedBox(width: 10),
+                        ],
                         Expanded(
                           child: Text(
                             WhatsLipaBrand.name,
                             style: TextStyle(
-                              color: WhatsLipaBrand.onPrimary.withValues(alpha: 0.85),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.3,
+                              color: headerText,
+                              fontSize: isLotiGas ? 18 : 13,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: isLotiGas ? 0 : 0.3,
                             ),
                           ),
                         ),
@@ -242,14 +248,21 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
                           height: 58,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withValues(alpha: 0.2),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2),
+                            color: isLotiGas
+                                ? WhatsLipaBrand.lotiGasBlack.withValues(alpha: 0.08)
+                                : Colors.white.withValues(alpha: 0.2),
+                            border: Border.all(
+                              color: isLotiGas
+                                  ? WhatsLipaBrand.lotiGasBlack.withValues(alpha: 0.2)
+                                  : Colors.white.withValues(alpha: 0.35),
+                              width: 2,
+                            ),
                           ),
                           alignment: Alignment.center,
                           child: Text(
                             _initials,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: headerText,
                               fontWeight: FontWeight.w800,
                               fontSize: 20,
                             ),
@@ -263,7 +276,7 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
                               Text(
                                 'Karibu,',
                                 style: TextStyle(
-                                  color: WhatsLipaBrand.onPrimary.withValues(alpha: 0.85),
+                                  color: headerText.withValues(alpha: isLotiGas ? 0.85 : 0.85),
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -272,8 +285,8 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
                                 name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: headerText,
                                   fontSize: 22,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: -0.3,
@@ -284,13 +297,18 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
                                   margin: const EdgeInsets.only(top: 6),
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.16),
+                                    color: isLotiGas
+                                        ? WhatsLipaBrand.lotiGasBlack.withValues(alpha: 0.08)
+                                        : Colors.white.withValues(alpha: 0.16),
                                     borderRadius: BorderRadius.circular(20),
+                                    border: isLotiGas
+                                        ? Border.all(color: WhatsLipaBrand.lotiGasBlack.withValues(alpha: 0.15))
+                                        : null,
                                   ),
                                   child: Text(
                                     role.toUpperCase(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: headerText,
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: 0.8,
@@ -305,12 +323,12 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
                     const SizedBox(height: 14),
                     Row(
                       children: [
-                        Icon(Icons.calendar_today_rounded, size: 14, color: Colors.white.withValues(alpha: 0.85)),
+                        Icon(Icons.calendar_today_rounded, size: 14, color: headerText.withValues(alpha: 0.85)),
                         const SizedBox(width: 6),
                         Text(
                           _todayLabel,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.9),
+                            color: headerText.withValues(alpha: 0.9),
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
                           ),
@@ -322,7 +340,7 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
                               '• $_tenantName',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 12),
+                              style: TextStyle(color: headerText.withValues(alpha: 0.75), fontSize: 12),
                             ),
                           ),
                         ],
@@ -345,18 +363,6 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
                   ),
                 ),
               ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(20, _canSwitchOrganization && _organizations.isNotEmpty ? 0 : 8, 20, 4),
-              child: Text(
-                'Your workspace',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: brandPrimary,
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ),
             Expanded(
               child: _loading
                   ? const Center(
@@ -382,7 +388,12 @@ class _WhatsLipaHomeScreenState extends State<WhatsLipaHomeScreen> {
                               ],
                             )
                           : GridView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                              padding: EdgeInsets.fromLTRB(
+                                16,
+                                _canSwitchOrganization && _organizations.isNotEmpty ? 8 : 16,
+                                16,
+                                24,
+                              ),
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
                                 mainAxisSpacing: 14,

@@ -8,6 +8,7 @@ import 'package:wicom/core/whatslipa_brand.dart';
 import 'package:wicom/core/whatslipa_config.dart';
 import 'package:wicom/core/whatslipa_maps_init.dart';
 import 'package:wicom/core/whatslipa_session.dart';
+import 'package:wicom/whatslipa/navigation/whatslipa_route_observer.dart';
 import 'package:wicom/whatslipa/screens/whatslipa_home_screen.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_theme.dart';
 import 'package:wicom/whatslipa/screens/whatslipa_login_screen.dart';
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
 
     return NeumorphicApp(
       navigatorKey: navigatorKey,
+      navigatorObservers: [whatsLipaRouteObserver],
       title: WhatsLipaConfig.appName,
       themeMode: ThemeMode.light,
       theme: AppNeumorphic.lightTheme,

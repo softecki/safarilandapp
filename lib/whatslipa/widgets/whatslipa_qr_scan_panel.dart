@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:wicom/core/app_color.dart';
+import 'package:wicom/whatslipa/camera/whatslipa_camera_access.dart';
+import 'package:wicom/whatslipa/navigation/whatslipa_route_observer.dart';
 import 'package:wicom/whatslipa/widgets/whatslipa_ui.dart';
 
 /// Web vs mobile behaviour for QR scanning in WhatsLipa.
@@ -15,7 +17,7 @@ class WhatsLipaQrScanSupport {
 
   static String webBannerMessage(BuildContext context) {
     if (!kIsWeb) return '';
-    return 'Allow camera access when your browser asks. Camera scanning requires HTTPS (secure connection).';
+    return 'Tap "Allow camera access" when prompted. Camera scanning requires HTTPS (secure connection).';
   }
 
   static String friendlyCameraError(Object? error) {
@@ -24,7 +26,7 @@ class WhatsLipaQrScanSupport {
         msg.contains('denied') ||
         msg.contains('notallowed') ||
         msg.contains('not allowed')) {
-      return 'Camera access was denied. Allow the camera in your browser settings, or use Manual entry.';
+      return 'Camera access was denied. Allow the camera in your device or browser settings, or use Manual entry.';
     }
     if (msg.contains('notfound') ||
         msg.contains('no camera') ||
@@ -39,7 +41,23 @@ class WhatsLipaQrScanSupport {
     if (msg.contains('unsupported') || msg.contains('not supported')) {
       return 'This browser does not support camera scanning here. Use Manual entry.';
     }
-    return 'Camera is unavailable right now. Switch to Manual entry or retry after allowing camera access.';
+    if (msg.contains('in use') ||
+        msg.contains('busy') ||
+        msg.contains('notreadable') ||
+        msg.contains('not readable')) {
+      return 'The camera is in use by another screen. Close other scanners and tap Retry.';
+    }
+    return 'Camera is unavailable right now. Allow camera access, tap Retry, or switch to Manual entry.';
+  }
+
+  static String permissionMessage(WhatsLipaCameraAccessResult result) {
+    return switch (result) {
+      WhatsLipaCameraAccessResult.granted => '',
+      WhatsLipaCameraAccessResult.denied =>
+        'Camera access is required to scan QR codes. Tap Allow camera access to continue.',
+      WhatsLipaCameraAccessResult.permanentlyDenied =>
+        'Camera access is blocked. Open settings to allow the camera, or use Manual entry.',
+    };
   }
 }
 
@@ -66,30 +84,99 @@ class WhatsLipaQrScanPanel extends StatefulWidget {
   State<WhatsLipaQrScanPanel> createState() => _WhatsLipaQrScanPanelState();
 }
 
-class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
+class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel>
+    with WidgetsBindingObserver, RouteAware {
   final _manualController = TextEditingController();
   MobileScannerController? _scannerController;
   bool _useCamera = true;
   bool _startingCamera = false;
+  bool _isActive = true;
+  bool _permissionBlocked = false;
+  bool _permissionPermanentlyDenied = false;
   String? _cameraError;
+  ModalRoute<void>? _route;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _startScanner());
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scheduleScannerStart(requestPermission: true));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is ModalRoute<void> && route != _route) {
+      whatsLipaRouteObserver.unsubscribe(this);
+      _route = route;
+      whatsLipaRouteObserver.subscribe(this, route);
+    }
   }
 
   @override
   void dispose() {
+    whatsLipaRouteObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
     _manualController.dispose();
     _disposeController();
     super.dispose();
+  }
+
+  @override
+  void deactivate() {
+    _isActive = false;
+    _pauseScanner();
+    super.deactivate();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _isActive = true;
+    if (_useCamera) {
+      _scheduleScannerStart(requestPermission: false);
+    }
+  }
+
+  @override
+  void didPushNext() {
+    _isActive = false;
+    _pauseScanner();
+  }
+
+  @override
+  void didPopNext() {
+    _isActive = true;
+    if (_useCamera) {
+      _scheduleScannerStart(requestPermission: false);
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_useCamera) return;
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _pauseScanner();
+      return;
+    }
+    if (state == AppLifecycleState.resumed && _isActive) {
+      _scheduleScannerStart(requestPermission: false);
+    }
+  }
+
+  void _scheduleScannerStart({required bool requestPermission}) {
+    Future<void>.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted || !_isActive || !_useCamera) return;
+      _startScanner(requestPermission: requestPermission);
+    });
   }
 
   void _ensureController() {
     _scannerController ??= MobileScannerController(
       detectionSpeed: DetectionSpeed.noDuplicates,
       facing: CameraFacing.back,
+      autoStart: false,
     );
   }
 
@@ -103,15 +190,76 @@ class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
     await controller.dispose();
   }
 
-  Future<void> _startScanner() async {
-    if (!_useCamera || !mounted) return;
+  Future<void> _pauseScanner() async {
+    try {
+      await _scannerController?.stop();
+    } catch (_) {}
+  }
+
+  Future<bool> _ensureCameraPermission({required bool requestPermission}) async {
+    if (kIsWeb) return true;
+
+    var access = await WhatsLipaCameraAccess.status();
+    if (access == WhatsLipaCameraAccessResult.granted) {
+      if (mounted) {
+        setState(() {
+          _permissionBlocked = false;
+          _permissionPermanentlyDenied = false;
+        });
+      }
+      return true;
+    }
+
+    if (requestPermission && access == WhatsLipaCameraAccessResult.denied) {
+      access = await WhatsLipaCameraAccess.request();
+    }
+
+    if (!mounted) return false;
+
+    if (access == WhatsLipaCameraAccessResult.granted) {
+      setState(() {
+        _permissionBlocked = false;
+        _permissionPermanentlyDenied = false;
+        _cameraError = null;
+      });
+      return true;
+    }
+
+    setState(() {
+      _permissionBlocked = true;
+      _permissionPermanentlyDenied = access == WhatsLipaCameraAccessResult.permanentlyDenied;
+      _cameraError = WhatsLipaQrScanSupport.permissionMessage(access);
+    });
+    return false;
+  }
+
+  Future<void> _startScanner({required bool requestPermission, bool resetController = false}) async {
+    if (!_useCamera || !mounted || !_isActive) return;
+
     setState(() {
       _startingCamera = true;
-      _cameraError = null;
+      if (!requestPermission) _cameraError = null;
     });
+
+    if (resetController) {
+      await _disposeController();
+    }
+
+    final allowed = await _ensureCameraPermission(requestPermission: requestPermission);
+    if (!allowed || !mounted || !_isActive || !_useCamera) {
+      if (mounted) setState(() => _startingCamera = false);
+      return;
+    }
+
     _ensureController();
     try {
       await _scannerController?.start();
+      if (mounted) {
+        setState(() {
+          _cameraError = null;
+          _permissionBlocked = false;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -131,6 +279,8 @@ class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
       setState(() {
         _useCamera = false;
         _cameraError = null;
+        _permissionBlocked = false;
+        _permissionPermanentlyDenied = false;
       });
       return;
     }
@@ -138,7 +288,17 @@ class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
       _useCamera = true;
       _cameraError = null;
     });
-    await _startScanner();
+    await _startScanner(requestPermission: true);
+  }
+
+  Future<void> _retryCamera() => _startScanner(requestPermission: true, resetController: true);
+
+  Future<void> _requestCameraAccess() => _startScanner(requestPermission: true, resetController: true);
+
+  Future<void> _openCameraSettings() async {
+    await WhatsLipaCameraAccess.openSettings();
+    if (!mounted) return;
+    _scheduleScannerStart(requestPermission: false);
   }
 
   void _handleDetect(BarcodeCapture capture) {
@@ -155,6 +315,7 @@ class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
   @override
   Widget build(BuildContext context) {
     final webBanner = WhatsLipaQrScanSupport.webBannerMessage(context);
+    final showCameraActions = _useCamera && (_cameraError != null || _permissionBlocked);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -247,6 +408,9 @@ class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
                           return _CameraErrorView(
                             accent: widget.accentColor,
                             message: message,
+                            onAllowCamera: _requestCameraAccess,
+                            onRetry: _retryCamera,
+                            onOpenSettings: _permissionPermanentlyDenied ? _openCameraSettings : null,
                             onUseManual: () => _setUseCamera(false),
                           );
                         },
@@ -267,7 +431,7 @@ class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
             onPressed: widget.loading ? null : () => widget.onScan(_manualController.text),
           ),
         ],
-        if (_cameraError != null && _useCamera) ...[
+        if (showCameraActions) ...[
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
@@ -291,13 +455,36 @@ class _WhatsLipaQrScanPanelState extends State<WhatsLipaQrScanPanel> {
             ),
           ),
           const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: () => _setUseCamera(false),
-              icon: const Icon(Icons.keyboard_outlined),
-              label: const Text('Switch to Manual entry'),
-            ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FilledButton.icon(
+                onPressed: _startingCamera ? null : _requestCameraAccess,
+                style: FilledButton.styleFrom(
+                  backgroundColor: widget.accentColor,
+                  foregroundColor: AppColor.textPrimary,
+                ),
+                icon: const Icon(Icons.photo_camera_front_outlined),
+                label: Text(kIsWeb ? 'Allow camera access' : 'Allow camera'),
+              ),
+              OutlinedButton.icon(
+                onPressed: _startingCamera ? null : _retryCamera,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Retry'),
+              ),
+              if (_permissionPermanentlyDenied && !kIsWeb)
+                OutlinedButton.icon(
+                  onPressed: _startingCamera ? null : _openCameraSettings,
+                  icon: const Icon(Icons.settings_outlined),
+                  label: const Text('Open settings'),
+                ),
+              TextButton.icon(
+                onPressed: () => _setUseCamera(false),
+                icon: const Icon(Icons.keyboard_outlined),
+                label: const Text('Manual entry'),
+              ),
+            ],
           ),
         ],
       ],
@@ -309,12 +496,18 @@ class _CameraErrorView extends StatelessWidget {
   const _CameraErrorView({
     required this.accent,
     required this.message,
+    required this.onAllowCamera,
+    required this.onRetry,
     required this.onUseManual,
+    this.onOpenSettings,
   });
 
   final Color accent;
   final String message;
+  final VoidCallback onAllowCamera;
+  final VoidCallback onRetry;
   final VoidCallback onUseManual;
+  final VoidCallback? onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -334,8 +527,31 @@ class _CameraErrorView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
-            onPressed: onUseManual,
+            onPressed: onAllowCamera,
             style: FilledButton.styleFrom(backgroundColor: accent, foregroundColor: AppColor.textPrimary),
+            icon: const Icon(Icons.photo_camera_front_outlined),
+            label: Text(kIsWeb ? 'Allow camera access' : 'Allow camera'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: onRetry,
+            style: OutlinedButton.styleFrom(foregroundColor: Colors.white),
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Retry'),
+          ),
+          if (onOpenSettings != null) ...[
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: onOpenSettings,
+              style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
+              icon: const Icon(Icons.settings_outlined),
+              label: const Text('Open settings'),
+            ),
+          ],
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: onUseManual,
+            style: TextButton.styleFrom(foregroundColor: Colors.white70),
             icon: const Icon(Icons.keyboard_outlined),
             label: const Text('Use Manual entry'),
           ),

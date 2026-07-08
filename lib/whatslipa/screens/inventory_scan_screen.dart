@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wicom/core/app_color.dart';
 import 'package:wicom/core/cylinder_api.dart';
 import 'package:wicom/core/whatslipa_brand.dart';
 import 'package:wicom/core/whatslipa_session.dart';
@@ -314,39 +315,237 @@ class _SummaryCard extends StatelessWidget {
   final Map<String, dynamic> summary;
   final Color accent;
 
+  static const _metricOrder = [
+    'total',
+    'filled',
+    'empty',
+    'with_customer',
+    'maintenance',
+    'decommissioned',
+    'recent_scans_24h',
+  ];
+
+  static const _metricLabels = {
+    'total': 'Total cylinders',
+    'filled': 'Filled',
+    'empty': 'Empty',
+    'with_customer': 'With customer',
+    'maintenance': 'In maintenance',
+    'decommissioned': 'Decommissioned',
+    'recent_scans_24h': 'Scans (24h)',
+  };
+
+  static const _statusLabels = {
+    'at_depot': 'At depot',
+    'with_agent': 'With agent',
+    'with_customer': 'With customer',
+    'in_transit': 'In transit',
+    'maintenance': 'Maintenance',
+    'decommissioned': 'Decommissioned',
+    'lost': 'Lost',
+  };
+
   @override
   Widget build(BuildContext context) {
-    final entries = summary.entries.where((e) => e.value != null).toList();
-    if (entries.isEmpty) return const SizedBox.shrink();
+    final metrics = _metricOrder
+        .where((key) => summary[key] != null)
+        .map((key) => MapEntry(key, summary[key]))
+        .toList();
+    final statusRows = _statusRows();
+
+    if (metrics.isEmpty && statusRows.isEmpty) return const SizedBox.shrink();
 
     return WhatsLipaGlassCard(
       margin: const EdgeInsets.only(bottom: 4),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('Inventory summary', style: WhatsLipaUi.sectionTitle),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: entries.map((e) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${_label(e.key)}: ${e.value}',
-                  style: TextStyle(fontWeight: FontWeight.w700, color: accent.withValues(alpha: 0.95)),
-                ),
-              );
-            }).toList(),
-          ),
+          if (metrics.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth >= 520 ? 3 : 2;
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: metrics.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columns,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: columns == 3 ? 1.55 : 1.45,
+                  ),
+                  itemBuilder: (context, index) {
+                    final entry = metrics[index];
+                    return _MetricTile(
+                      label: _metricLabels[entry.key] ?? _label(entry.key),
+                      value: _formatValue(entry.value),
+                      accent: accent,
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+          if (statusRows.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text('By status', style: WhatsLipaUi.badgeLabel),
+            const SizedBox(height: 10),
+            ...statusRows.map(
+              (row) => _StatusRow(
+                label: row.label,
+                value: row.value,
+                accent: accent,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  String _label(String key) => key.replaceAll('_', ' ');
+  List<_StatusEntry> _statusRows() {
+    final raw = summary['by_status'];
+    if (raw is! Map) return const [];
+
+    final rows = raw.entries
+        .map((e) => _StatusEntry(
+              label: _statusLabels[e.key.toString()] ?? _label(e.key.toString()),
+              value: _formatValue(e.value),
+            ))
+        .toList()
+      ..sort((a, b) => a.label.compareTo(b.label));
+
+    return rows;
+  }
+
+  String _label(String key) {
+    return key.replaceAll('_', ' ').split(' ').map((part) {
+      if (part.isEmpty) return part;
+      return '${part[0].toUpperCase()}${part.substring(1)}';
+    }).join(' ');
+  }
+
+  String _formatValue(dynamic value) {
+    if (value == null) return '—';
+    if (value is num) return value == value.roundToDouble() ? '${value.toInt()}' : value.toString();
+    return value.toString();
+  }
+}
+
+class _StatusEntry {
+  const _StatusEntry({required this.label, required this.value});
+
+  final String label;
+  final String value;
+}
+
+class _MetricTile extends StatelessWidget {
+  const _MetricTile({
+    required this.label,
+    required this.value,
+    required this.accent,
+  });
+
+  final String label;
+  final String value;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: accent.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              height: 1.25,
+              color: accent.withValues(alpha: 0.9),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              height: 1,
+              color: accent.withValues(alpha: 0.98),
+              letterSpacing: -0.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusRow extends StatelessWidget {
+  const _StatusRow({
+    required this.label,
+    required this.value,
+    required this.accent,
+  });
+
+  final String label;
+  final String value;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accent.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColor.textPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            constraints: const BoxConstraints(minWidth: 36),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: accent.withValues(alpha: 0.95),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

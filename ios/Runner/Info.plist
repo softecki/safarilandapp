@@ -48,6 +48,6 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Attendance needs your location to attach GPS coordinates to gate scans and employee check-ins.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Attendance needs camera access to scan QR codes for gate and employee attendance.</string>
+	<string>This app needs camera access to scan QR codes for cylinders, inventory, gate attendance, and employee check-ins.</string>
 </dict>
 </plist>

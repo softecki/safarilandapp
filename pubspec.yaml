@@ -75,6 +75,7 @@ dependencies:
   google_maps_flutter_web: ^0.5.14
   web: ^1.1.0
   video_player: ^2.9.2
+  permission_handler: ^12.0.3
 
 dev_dependencies:
   flutter_lints: ^5.0.0

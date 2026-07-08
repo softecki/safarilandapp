@@ -253,18 +253,23 @@ class WhatsLipaGradientHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final onHeader = WhatsLipaBrand.onPrimary;
+    final isLotiGas = WhatsLipaBrand.isLotiGas;
+
     return Container(
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        gradient: WhatsLipaUi.brandGradient(begin: Alignment.topLeft, end: Alignment.bottomRight),
+        color: isLotiGas ? WhatsLipaBrand.lotiGasYellow : null,
+        gradient: isLotiGas
+            ? null
+            : WhatsLipaUi.brandGradient(begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(bottomRadius),
           bottomRight: Radius.circular(bottomRadius),
         ),
         boxShadow: [
           BoxShadow(
-            color: WhatsLipaUi.primary.withValues(alpha: 0.25),
+            color: (isLotiGas ? WhatsLipaBrand.lotiGasBlack : WhatsLipaUi.primary).withValues(alpha: 0.18),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
