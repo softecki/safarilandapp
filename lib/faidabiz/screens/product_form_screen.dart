@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_select.dart';
 
 const kProductUnits = ['pcs', 'kg', 'g', 'l', 'ml', 'box', 'packet', 'dozen', 'pair', 'sack', 'bottle'];
 
@@ -98,11 +99,22 @@ class _FaidaBizProductFormScreenState extends State<FaidaBizProductFormScreen> {
         children: [
           TextField(controller: name, decoration: InputDecoration(labelText: 'form.product'.tr())),
           const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            value: unit,
-            items: kProductUnits.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
-            onChanged: (v) => setState(() => unit = v ?? 'pcs'),
-            decoration: InputDecoration(labelText: 'form.unit'.tr()),
+          FaidaBizSelectField(
+            label: 'form.unit'.tr(),
+            hint: 'form.select_unit'.tr(),
+            valueLabel: unit,
+            leading: const Icon(Icons.straighten_rounded, color: Color(0xFF15803D), size: 22),
+            onTap: () async {
+              final picked = await showFaidaBizOptionPicker<String>(
+                context: context,
+                title: 'form.select_unit'.tr(),
+                selected: unit,
+                options: [
+                  for (final u in kProductUnits) (value: u, label: u, subtitle: null),
+                ],
+              );
+              if (picked != null) setState(() => unit = picked);
+            },
           ),
           const SizedBox(height: 12),
           TextField(controller: stock, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: 'form.stock'.tr())),

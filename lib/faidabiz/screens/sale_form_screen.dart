@@ -4,6 +4,7 @@ import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/product_form_screen.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_select.dart';
 
 class FaidaBizSaleFormScreen extends StatefulWidget {
   const FaidaBizSaleFormScreen({super.key});
@@ -27,11 +28,18 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
     _loadProducts();
   }
 
+  @override
+  void dispose() {
+    qty.dispose();
+    price.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadProducts() async {
     try {
       final res = await FaidaBizApi.get('/products');
       products = (res['data'] as List?) ?? [];
-      if (products.isNotEmpty) {
+      if (products.isNotEmpty && productId == null) {
         final p = products.first as Map<String, dynamic>;
         productId = int.tryParse('${p['id']}');
         price.text = '${p['sell_price'] ?? 0}';
@@ -43,17 +51,25 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
   Map<String, dynamic>? get selected {
     if (productId == null) return null;
     try {
-      return products.cast<Map<String, dynamic>>().firstWhere((e) => e['id'] == productId || '${e['id']}' == '$productId');
+      return products.cast<Map<String, dynamic>>().firstWhere(
+            (e) => e['id'] == productId || '${e['id']}' == '$productId',
+          );
     } catch (_) {
       return null;
     }
   }
 
-  void _onProductChanged(int? id) {
-    productId = id;
-    final p = selected;
-    if (p != null) price.text = '${p['sell_price'] ?? 0}';
-    setState(() {});
+  Future<void> _pickProduct() async {
+    final p = await showFaidaBizProductPicker(
+      context: context,
+      products: products,
+      selectedId: productId,
+    );
+    if (p == null) return;
+    setState(() {
+      productId = int.tryParse('${p['id']}');
+      price.text = '${p['sell_price'] ?? 0}';
+    });
   }
 
   double get total {
@@ -63,7 +79,10 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
   }
 
   Future<void> _save() async {
-    if (productId == null) return;
+    if (productId == null) {
+      setState(() => error = 'form.select_product'.tr());
+      return;
+    }
     setState(() {
       loading = true;
       error = null;
@@ -112,24 +131,21 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
     }
 
     final unit = selected?['unit']?.toString() ?? 'pcs';
+    final valueLabel = selected == null
+        ? null
+        : '${selected!['name']} · $unit · ${FaidaBizTheme.money(selected!['sell_price'])}';
 
     return Scaffold(
       appBar: AppBar(title: Text('home.add_sale'.tr())),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          DropdownButtonFormField<int>(
-            value: productId,
-            items: products.map((p) {
-              final m = p as Map;
-              final id = int.tryParse('${m['id']}');
-              return DropdownMenuItem(
-                value: id,
-                child: Text('${m['name']} (${m['unit']})'),
-              );
-            }).toList(),
-            onChanged: _onProductChanged,
-            decoration: InputDecoration(labelText: 'form.product'.tr()),
+          FaidaBizSelectField(
+            label: 'form.product'.tr(),
+            hint: 'form.select_product'.tr(),
+            valueLabel: valueLabel,
+            leading: const Icon(Icons.inventory_2_outlined, color: FaidaBizTheme.green, size: 22),
+            onTap: _pickProduct,
           ),
           const SizedBox(height: 12),
           TextField(
@@ -146,8 +162,10 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 16),
-          Text('${'form.total'.tr()}: ${FaidaBizTheme.money(total)}',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(
+            '${'form.total'.tr()}: ${FaidaBizTheme.money(total)}',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           if (error != null) ...[
             const SizedBox(height: 8),
             Text(error!, style: const TextStyle(color: Colors.red)),

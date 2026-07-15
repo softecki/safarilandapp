@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
+import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/product_form_screen.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_select.dart';
 
 class FaidaBizPurchaseFormScreen extends StatefulWidget {
   const FaidaBizPurchaseFormScreen({super.key});
@@ -27,11 +29,19 @@ class _FaidaBizPurchaseFormScreenState extends State<FaidaBizPurchaseFormScreen>
     _load();
   }
 
+  @override
+  void dispose() {
+    qty.dispose();
+    cost.dispose();
+    supplier.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
     try {
       final res = await FaidaBizApi.get('/products');
       products = (res['data'] as List?) ?? [];
-      if (products.isNotEmpty) {
+      if (products.isNotEmpty && productId == null) {
         final p = products.first as Map<String, dynamic>;
         productId = int.tryParse('${p['id']}');
         cost.text = '${p['buy_price'] ?? 0}';
@@ -43,14 +53,32 @@ class _FaidaBizPurchaseFormScreenState extends State<FaidaBizPurchaseFormScreen>
   Map<String, dynamic>? get selected {
     if (productId == null) return null;
     try {
-      return products.cast<Map<String, dynamic>>().firstWhere((e) => e['id'] == productId || '${e['id']}' == '$productId');
+      return products.cast<Map<String, dynamic>>().firstWhere(
+            (e) => e['id'] == productId || '${e['id']}' == '$productId',
+          );
     } catch (_) {
       return null;
     }
   }
 
+  Future<void> _pickProduct() async {
+    final p = await showFaidaBizProductPicker(
+      context: context,
+      products: products,
+      selectedId: productId,
+    );
+    if (p == null) return;
+    setState(() {
+      productId = int.tryParse('${p['id']}');
+      cost.text = '${p['buy_price'] ?? 0}';
+    });
+  }
+
   Future<void> _save() async {
-    if (productId == null) return;
+    if (productId == null) {
+      setState(() => error = 'form.select_product'.tr());
+      return;
+    }
     setState(() {
       loading = true;
       error = null;
@@ -100,28 +128,21 @@ class _FaidaBizPurchaseFormScreenState extends State<FaidaBizPurchaseFormScreen>
     }
 
     final unit = selected?['unit']?.toString() ?? 'pcs';
+    final valueLabel = selected == null
+        ? null
+        : '${selected!['name']} · $unit · ${FaidaBizTheme.money(selected!['buy_price'])}';
 
     return Scaffold(
       appBar: AppBar(title: Text('home.add_purchase'.tr())),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          DropdownButtonFormField<int>(
-            value: productId,
-            items: products.map((p) {
-              final m = p as Map;
-              return DropdownMenuItem(
-                value: int.tryParse('${m['id']}'),
-                child: Text('${m['name']} (${m['unit']})'),
-              );
-            }).toList(),
-            onChanged: (v) {
-              productId = v;
-              final p = selected;
-              if (p != null) cost.text = '${p['buy_price'] ?? 0}';
-              setState(() {});
-            },
-            decoration: InputDecoration(labelText: 'form.product'.tr()),
+          FaidaBizSelectField(
+            label: 'form.product'.tr(),
+            hint: 'form.select_product'.tr(),
+            valueLabel: valueLabel,
+            leading: const Icon(Icons.inventory_2_outlined, color: FaidaBizTheme.green, size: 22),
+            onTap: _pickProduct,
           ),
           const SizedBox(height: 12),
           TextField(
@@ -130,7 +151,11 @@ class _FaidaBizPurchaseFormScreenState extends State<FaidaBizPurchaseFormScreen>
             decoration: InputDecoration(labelText: '${'form.qty'.tr()} ($unit)'),
           ),
           const SizedBox(height: 12),
-          TextField(controller: cost, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: 'form.buy_price'.tr())),
+          TextField(
+            controller: cost,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(labelText: 'form.buy_price'.tr()),
+          ),
           const SizedBox(height: 12),
           TextField(controller: supplier, decoration: InputDecoration(labelText: 'form.supplier'.tr())),
           if (error != null) Text(error!, style: const TextStyle(color: Colors.red)),

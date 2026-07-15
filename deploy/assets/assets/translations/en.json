@@ -30,6 +30,7 @@
     "verify": "Verify",
     "resend_otp": "Resend SMS",
     "otp_resent": "A new code was sent.",
+    "otp_sms_failed": "SMS failed. Tap Resend to try again.",
     "otp_incomplete": "Enter all 6 digits.",
     "fill_all": "Fill name, phone and password."
   },
@@ -67,6 +68,9 @@
     "amount": "Amount",
     "edit_product": "Edit product",
     "no_products": "No products yet. Register a product first.",
+    "select_product": "Select product",
+    "search_product": "Search product…",
+    "select_unit": "Select unit",
     "price_history": "Price history",
     "price_history_hint": "Old prices stay on past sales and purchases.",
     "price_updated": "Prices updated. Previous prices saved in history.",

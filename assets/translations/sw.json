@@ -30,6 +30,7 @@
     "verify": "Thibitisha",
     "resend_otp": "Tuma tena SMS",
     "otp_resent": "Namba mpya imetumwa.",
+    "otp_sms_failed": "SMS imeshindikana. Bonyeza Tuma tena.",
     "otp_incomplete": "Ingiza tarakimu zote 6.",
     "fill_all": "Jaza jina, simu na nenosiri."
   },
@@ -67,6 +68,9 @@
     "amount": "Kiasi",
     "edit_product": "Hariri bidhaa",
     "no_products": "Hakuna bidhaa bado. Sajili bidhaa kwanza.",
+    "select_product": "Chagua bidhaa",
+    "search_product": "Tafuta bidhaa…",
+    "select_unit": "Chagua kipimo",
     "price_history": "Historia ya bei",
     "price_history_hint": "Bei za zamani zinabaki kwenye mauzo na manunuzi yaliyopita.",
     "price_updated": "Bei imesasishwa. Bei za zamani zimehifadhiwa.",
