@@ -8,6 +8,7 @@ import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_shell.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/login_screen.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 import 'package:wicom/faidabiz/widgets/landing_backdrop.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -46,6 +47,33 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
       builder: (context, child) {
+        ErrorWidget.builder = (FlutterErrorDetails details) {
+          return Material(
+            color: FaidaBizTheme.canvas,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline, color: FaidaBizTheme.green, size: 40),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'FaidaBiz',
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: FaidaBizTheme.black),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      details.exceptionAsString(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 13, color: Color(0xFF666666)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        };
         return ScrollConfiguration(
           behavior: const MaterialScrollBehavior().copyWith(
             dragDevices: {
@@ -142,10 +170,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         style: TextStyle(color: Colors.white.withOpacity(0.88), fontSize: 16, height: 1.4),
                       ),
                       const SizedBox(height: 28),
-                      const SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                      const FaidaBizLoader(
+                        size: FaidaBizLoaderSize.splash,
+                        color: Colors.white,
                       ),
                     ],
                   ),

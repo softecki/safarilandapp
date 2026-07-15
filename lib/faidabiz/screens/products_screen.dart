@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/product_form_screen.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizProductsScreen extends StatefulWidget {
   const FaidaBizProductsScreen({super.key});
@@ -42,7 +43,7 @@ class _FaidaBizProductsScreenState extends State<FaidaBizProductsScreen> {
         child: const Icon(Icons.add),
       ),
       body: loading
-          ? const Center(child: CircularProgressIndicator())
+          ? FaidaBizLoader.body()
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView.builder(

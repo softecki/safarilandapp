@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizReportsScreen extends StatefulWidget {
   const FaidaBizReportsScreen({super.key});
@@ -37,7 +38,7 @@ class _FaidaBizReportsScreenState extends State<FaidaBizReportsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('nav.reports'.tr())),
       body: loading
-          ? const Center(child: CircularProgressIndicator())
+          ? FaidaBizLoader.body()
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

@@ -4,16 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_shell.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizOtpScreen extends StatefulWidget {
   const FaidaBizOtpScreen({
     super.key,
     required this.phone,
-    this.debugCode,
   });
 
   final String phone;
-  final String? debugCode;
 
   @override
   State<FaidaBizOtpScreen> createState() => _FaidaBizOtpScreenState();
@@ -25,14 +24,6 @@ class _FaidaBizOtpScreenState extends State<FaidaBizOtpScreen> {
   bool loading = false;
   String? error;
   String? hint;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.debugCode != null && widget.debugCode!.length == 6) {
-      hint = 'Debug: ${widget.debugCode}';
-    }
-  }
 
   @override
   void dispose() {
@@ -79,9 +70,10 @@ class _FaidaBizOtpScreenState extends State<FaidaBizOtpScreen> {
     });
     try {
       final res = await FaidaBizApi.resendOtp(phone: widget.phone);
-      final debug = res['debug_code']?.toString();
       setState(() {
-        hint = debug != null ? 'Debug: $debug' : 'auth.otp_resent'.tr();
+        hint = res['sms_sent'] == false
+            ? 'auth.otp_sms_failed'.tr()
+            : 'auth.otp_resent'.tr();
       });
     } catch (e) {
       setState(() => error = e.toString());
@@ -155,9 +147,7 @@ class _FaidaBizOtpScreenState extends State<FaidaBizOtpScreen> {
           const SizedBox(height: 28),
           ElevatedButton(
             onPressed: loading ? null : _verify,
-            child: loading
-                ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : Text('auth.verify'.tr()),
+            child: loading ? FaidaBizLoader.button() : Text('auth.verify'.tr()),
           ),
           TextButton(
             onPressed: loading ? null : _resend,

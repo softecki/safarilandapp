@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/expense_form_screen.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizExpensesScreen extends StatefulWidget {
   const FaidaBizExpensesScreen({super.key});
@@ -44,7 +45,7 @@ class _FaidaBizExpensesScreenState extends State<FaidaBizExpensesScreen> {
         label: Text('home.add_expense'.tr()),
       ),
       body: loading
-          ? const Center(child: CircularProgressIndicator())
+          ? FaidaBizLoader.body()
           : RefreshIndicator(
               onRefresh: _load,
               child: items.isEmpty

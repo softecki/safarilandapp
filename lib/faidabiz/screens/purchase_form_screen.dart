@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/screens/product_form_screen.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizPurchaseFormScreen extends StatefulWidget {
   const FaidaBizPurchaseFormScreen({super.key});
@@ -73,7 +74,7 @@ class _FaidaBizPurchaseFormScreenState extends State<FaidaBizPurchaseFormScreen>
   @override
   Widget build(BuildContext context) {
     if (!productsLoaded) {
-      return Scaffold(appBar: AppBar(title: Text('home.add_purchase'.tr())), body: const Center(child: CircularProgressIndicator()));
+      return Scaffold(appBar: AppBar(title: Text('home.add_purchase'.tr())), body: FaidaBizLoader.body());
     }
     if (products.isEmpty) {
       return Scaffold(
@@ -134,7 +135,10 @@ class _FaidaBizPurchaseFormScreenState extends State<FaidaBizPurchaseFormScreen>
           TextField(controller: supplier, decoration: InputDecoration(labelText: 'form.supplier'.tr())),
           if (error != null) Text(error!, style: const TextStyle(color: Colors.red)),
           const SizedBox(height: 24),
-          ElevatedButton(onPressed: loading ? null : _save, child: Text('form.save'.tr())),
+          ElevatedButton(
+            onPressed: loading ? null : _save,
+            child: loading ? FaidaBizLoader.button() : Text('form.save'.tr()),
+          ),
         ],
       ),
     );

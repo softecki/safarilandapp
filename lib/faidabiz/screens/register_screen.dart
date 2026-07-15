@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/otp_screen.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizRegisterScreen extends StatefulWidget {
   const FaidaBizRegisterScreen({super.key});
@@ -38,7 +39,6 @@ class _FaidaBizRegisterScreenState extends State<FaidaBizRegisterScreen> {
         MaterialPageRoute(
           builder: (_) => FaidaBizOtpScreen(
             phone: res['phone']?.toString() ?? phone.text.trim(),
-            debugCode: res['debug_code']?.toString(),
           ),
         ),
       );
@@ -86,7 +86,7 @@ class _FaidaBizRegisterScreenState extends State<FaidaBizRegisterScreen> {
           ElevatedButton(
             onPressed: loading ? null : _submit,
             child: loading
-                ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? FaidaBizLoader.button()
                 : Text('auth.send_otp'.tr()),
           ),
           const SizedBox(height: 12),

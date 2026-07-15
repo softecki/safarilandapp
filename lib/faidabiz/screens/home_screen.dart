@@ -13,6 +13,7 @@ import 'package:wicom/faidabiz/screens/sale_form_screen.dart';
 import 'package:wicom/faidabiz/screens/sales_screen.dart';
 import 'package:wicom/faidabiz/screens/settings_screen.dart';
 import 'package:wicom/faidabiz/widgets/count_up_money_card.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 /// Home hub with summary cards + feature grid (no bottom navigation).
 class FaidaBizHomeScreen extends StatefulWidget {
@@ -90,7 +91,7 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
         ],
       ),
       body: loading
-          ? const Center(child: CircularProgressIndicator())
+          ? FaidaBizLoader.body()
           : error != null
               ? Center(
                   child: Column(

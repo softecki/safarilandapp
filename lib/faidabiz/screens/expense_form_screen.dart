@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizExpenseFormScreen extends StatefulWidget {
   const FaidaBizExpenseFormScreen({super.key});
@@ -46,7 +47,10 @@ class _FaidaBizExpenseFormScreenState extends State<FaidaBizExpenseFormScreen> {
           TextField(controller: amount, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: 'form.amount'.tr())),
           if (error != null) Text(error!, style: const TextStyle(color: Colors.red)),
           const SizedBox(height: 24),
-          ElevatedButton(onPressed: loading ? null : _save, child: Text('form.save'.tr())),
+          ElevatedButton(
+            onPressed: loading ? null : _save,
+            child: loading ? FaidaBizLoader.button() : Text('form.save'.tr()),
+          ),
         ],
       ),
     );

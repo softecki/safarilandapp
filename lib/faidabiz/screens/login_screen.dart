@@ -5,6 +5,7 @@ import 'package:wicom/faidabiz/faidabiz_shell.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/otp_screen.dart';
 import 'package:wicom/faidabiz/screens/register_screen.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 import 'package:wicom/faidabiz/widgets/landing_backdrop.dart';
 
 class FaidaBizLoginScreen extends StatefulWidget {
@@ -45,7 +46,6 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
           MaterialPageRoute(
             builder: (_) => FaidaBizOtpScreen(
               phone: res['phone']?.toString() ?? phone.text.trim(),
-              debugCode: res['debug_code']?.toString(),
             ),
           ),
         );
@@ -130,7 +130,7 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
                           ElevatedButton(
                             onPressed: loading ? null : _submit,
                             child: loading
-                                ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                ? FaidaBizLoader.button()
                                 : Text('auth.login'.tr()),
                           ),
                           TextButton(

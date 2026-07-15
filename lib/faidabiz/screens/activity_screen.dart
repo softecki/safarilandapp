@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizActivityScreen extends StatefulWidget {
   const FaidaBizActivityScreen({super.key});
@@ -35,7 +36,7 @@ class _FaidaBizActivityScreenState extends State<FaidaBizActivityScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('settings.activity'.tr())),
       body: loading
-          ? const Center(child: CircularProgressIndicator())
+          ? FaidaBizLoader.body()
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: items.length,

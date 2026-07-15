@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 const kProductUnits = ['pcs', 'kg', 'g', 'l', 'ml', 'box', 'packet', 'dozen', 'pair', 'sack', 'bottle'];
 
@@ -122,7 +123,10 @@ class _FaidaBizProductFormScreenState extends State<FaidaBizProductFormScreen> {
             Text(error!, style: const TextStyle(color: Colors.red)),
           ],
           const SizedBox(height: 24),
-          ElevatedButton(onPressed: loading ? null : _save, child: Text('form.save'.tr())),
+          ElevatedButton(
+            onPressed: loading ? null : _save,
+            child: loading ? FaidaBizLoader.button() : Text('form.save'.tr()),
+          ),
           if (isEdit) ...[
             const SizedBox(height: 28),
             Text('form.price_history'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),

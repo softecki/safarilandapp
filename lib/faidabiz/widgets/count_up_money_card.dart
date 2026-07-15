@@ -13,7 +13,7 @@ class CountUpMoneyCard extends StatefulWidget {
   });
 
   final String label;
-  final num value;
+  final Object? value;
   final Color color;
   final IconData? icon;
   final Duration delay;
@@ -45,7 +45,7 @@ class _CountUpMoneyCardState extends State<CountUpMoneyCard> with SingleTickerPr
   @override
   void didUpdateWidget(covariant CountUpMoneyCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value) {
+    if (FaidaBizTheme.asDouble(oldWidget.value) != FaidaBizTheme.asDouble(widget.value)) {
       _controller.forward(from: 0);
     }
   }
@@ -107,7 +107,8 @@ class _CountUpMoneyCardState extends State<CountUpMoneyCard> with SingleTickerPr
               AnimatedBuilder(
                 animation: _tween,
                 builder: (_, __) {
-                  final shown = widget.value.toDouble() * _tween.value;
+                  final target = FaidaBizTheme.asDouble(widget.value);
+                  final shown = target * _tween.value;
                   return Text(
                     FaidaBizTheme.money(shown),
                     style: TextStyle(

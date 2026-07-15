@@ -67,8 +67,20 @@ class FaidaBizTheme {
     }
   }
 
-  static String money(num? v, {String currency = 'TZS'}) {
-    final n = (v ?? 0).toDouble();
+  /// Safely coerce API JSON values (num / String / null) to a finite [double].
+  static double asDouble(Object? v, [double fallback = 0]) {
+    if (v == null) return fallback;
+    if (v is num) {
+      final d = v.toDouble();
+      return d.isFinite ? d : fallback;
+    }
+    final s = v.toString().trim().replaceAll(',', '');
+    if (s.isEmpty) return fallback;
+    return double.tryParse(s) ?? fallback;
+  }
+
+  static String money(Object? v, {String currency = 'TZS'}) {
+    final n = asDouble(v);
     final s = n.toStringAsFixed(0).replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (m) => '${m[1]},',
