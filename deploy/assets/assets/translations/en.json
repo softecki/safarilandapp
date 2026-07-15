@@ -11,7 +11,9 @@
     "expenses": "Expenses",
     "products": "Products",
     "reports": "Reports",
-    "settings": "Settings"
+    "settings": "Settings",
+    "debts": "Debts",
+    "chat": "Chat"
   },
   "auth": {
     "name": "Your name",
@@ -36,8 +38,15 @@
   },
   "home": {
     "question": "How is my business today?",
+    "question_date": "How was my business on {}?",
     "today": "Today's Summary",
+    "summary_for": "Summary for {}",
+    "filter_today": "Today",
+    "filter_yesterday": "Yesterday",
+    "filter_pick": "Date",
+    "pick_date": "Choose date",
     "sales": "Sales Today",
+    "sales_day": "Sales",
     "purchases": "Purchases",
     "expenses": "Expenses",
     "profit": "Profit",
@@ -47,10 +56,68 @@
     "add_purchase": "+ Add Purchase",
     "add_product": "+ Add Product",
     "add_expense": "+ Add Expense",
-    "recent": "Recent activity"
+    "recent": "Recent activity",
+    "recent_empty": "No activity for this day yet.",
+    "view_more_activity": "View more activity"
+  },
+  "debts": {
+    "title": "Debts / Loans",
+    "add": "Add debt",
+    "add_hint": "Record when a customer takes goods on credit — name and loan amount.",
+    "customer_name": "Customer name",
+    "phone_optional": "Phone (optional)",
+    "loan_amount": "Loan amount",
+    "notes_optional": "Note (optional)",
+    "notes_hint": "e.g. 2 bags of rice",
+    "fill_required": "Enter customer name and loan amount.",
+    "outstanding": "Outstanding debts",
+    "open_count": "open debts",
+    "empty": "No debts yet. Tap Add debt when a customer buys on loan.",
+    "owed": "Owed",
+    "paid": "Paid",
+    "remaining": "Remaining",
+    "cleared": "Fully paid",
+    "record_payment": "Record payment",
+    "payment_amount": "Payment amount",
+    "save_payment": "Save payment",
+    "payment_saved": "Payment saved.",
+    "payment_history": "Payment history",
+    "no_payments": "No payments yet.",
+    "show_all": "Show all",
+    "show_open": "Open only"
+  },
+  "chat": {
+    "title": "Support chat",
+    "subtitle": "Message FaidaBiz support",
+    "empty": "No messages yet. Say hello — support will reply here.",
+    "placeholder": "Type a message",
+    "attach_image": "Image",
+    "attach_video": "Video"
+  },
+  "sales": {
+    "empty": "No sales yet. Record a sale when you sell something.",
+    "list_total": "Total sales",
+    "list_count": "{} sales",
+    "detail": "Sale details",
+    "sale_total": "Sale total",
+    "items": "Items sold",
+    "no_items": "No line items.",
+    "profit": "Profit",
+    "stock_now": "In stock now: {} {}",
+    "stock_topup_hint": "Stock is only {} {}. You are selling {}. The missing {} will be added to stock first, then all sold quantity will be deducted (stock ends at 0)."
   },
   "expenses": {
-    "empty": "No expenses yet. Add today's expenses."
+    "empty": "No expenses yet. Add today's expenses.",
+    "list_total": "Total expenses",
+    "list_count": "{} records",
+    "detail": "Expense details",
+    "edit": "Edit expense",
+    "category": "Category (optional)",
+    "notes": "Notes (optional)",
+    "history": "Previous versions",
+    "history_hint": "Each edit keeps the old information with a reason.",
+    "history_empty": "No edits yet.",
+    "reason": "Reason"
   },
   "form": {
     "product": "Product",
@@ -75,6 +142,9 @@
     "price_history_hint": "Old prices stay on past sales and purchases.",
     "price_updated": "Prices updated. Previous prices saved in history.",
     "price_note": "Price change note (optional)",
+    "edit_reason": "Reason for edit",
+    "edit_reason_hint": "Required on every update — explain why you are changing this.",
+    "edit_reason_required": "Enter a reason for this edit (at least 3 characters).",
     "current_price": "current"
   },
   "reports": {
@@ -103,5 +173,22 @@
   },
   "common": {
     "retry": "Retry"
+  },
+  "delete": {
+    "soft_hint": "This does not permanently erase the record. Status becomes deleted, and you must enter a reason and your password.",
+    "reason": "Reason for delete",
+    "password": "Your password",
+    "reason_required": "Enter a delete reason (at least 3 characters).",
+    "password_required": "Enter your password.",
+    "cancel": "Cancel",
+    "confirm": "Delete",
+    "title_product": "Delete product",
+    "title_sale": "Delete sale",
+    "title_expense": "Delete expense",
+    "title_debt": "Delete debt"
+  },
+  "activity": {
+    "today_at": "Today at",
+    "yesterday_at": "Yesterday at"
   }
 }

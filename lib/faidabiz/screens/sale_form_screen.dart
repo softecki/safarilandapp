@@ -78,6 +78,10 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
     return q * p;
   }
 
+  double get _stockQty => FaidaBizTheme.asDouble(selected?['stock_qty']);
+  double get _sellQty => double.tryParse(qty.text.replaceAll(',', '')) ?? 0;
+  double get _stockDeficit => _sellQty > _stockQty ? (_sellQty - _stockQty) : 0;
+
   Future<void> _save() async {
     if (productId == null) {
       setState(() => error = 'form.select_product'.tr());
@@ -134,9 +138,14 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
     final valueLabel = selected == null
         ? null
         : '${selected!['name']} · $unit · ${FaidaBizTheme.money(selected!['sell_price'])}';
+    final deficit = _stockDeficit;
 
     return Scaffold(
-      appBar: AppBar(title: Text('home.add_sale'.tr())),
+      appBar: AppBar(
+        title: Text('home.add_sale'.tr()),
+        backgroundColor: FaidaBizTheme.green,
+        foregroundColor: Colors.white,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -147,6 +156,13 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
             leading: const Icon(Icons.inventory_2_outlined, color: FaidaBizTheme.green, size: 22),
             onTap: _pickProduct,
           ),
+          if (selected != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              'sales.stock_now'.tr(args: ['${FaidaBizTheme.asDouble(selected!['stock_qty'])}', unit]),
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+            ),
+          ],
           const SizedBox(height: 12),
           TextField(
             controller: qty,
@@ -166,6 +182,26 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
             '${'form.total'.tr()}: ${FaidaBizTheme.money(total)}',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
+          if (deficit > 0) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF7ED),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFDBA74)),
+              ),
+              child: Text(
+                'sales.stock_topup_hint'.tr(args: [
+                  '${FaidaBizTheme.asDouble(_stockQty)}',
+                  unit,
+                  '${FaidaBizTheme.asDouble(_sellQty)}',
+                  '${FaidaBizTheme.asDouble(deficit)}',
+                ]),
+                style: const TextStyle(fontSize: 13, height: 1.35, color: Color(0xFF9A3412)),
+              ),
+            ),
+          ],
           if (error != null) ...[
             const SizedBox(height: 8),
             Text(error!, style: const TextStyle(color: Colors.red)),

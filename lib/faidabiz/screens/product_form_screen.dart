@@ -55,6 +55,10 @@ class _FaidaBizProductFormScreenState extends State<FaidaBizProductFormScreen> {
       setState(() => error = 'form.product'.tr());
       return;
     }
+    if (isEdit && note.text.trim().length < 3) {
+      setState(() => error = 'form.edit_reason_required'.tr());
+      return;
+    }
     setState(() {
       loading = true;
       error = null;
@@ -67,7 +71,8 @@ class _FaidaBizProductFormScreenState extends State<FaidaBizProductFormScreen> {
       'buy_price': double.tryParse(buy.text) ?? 0,
       'sell_price': double.tryParse(sell.text) ?? 0,
     };
-    if (isEdit && note.text.trim().isNotEmpty) {
+    if (isEdit) {
+      payload['edit_reason'] = note.text.trim();
       payload['price_note'] = note.text.trim();
     }
     try {
@@ -124,7 +129,14 @@ class _FaidaBizProductFormScreenState extends State<FaidaBizProductFormScreen> {
           TextField(controller: sell, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: 'form.selling'.tr())),
           if (isEdit) ...[
             const SizedBox(height: 12),
-            TextField(controller: note, decoration: InputDecoration(labelText: 'form.price_note'.tr())),
+            TextField(
+              controller: note,
+              maxLines: 2,
+              decoration: InputDecoration(
+                labelText: 'form.edit_reason'.tr(),
+                helperText: 'form.edit_reason_hint'.tr(),
+              ),
+            ),
           ],
           if (info != null) ...[
             const SizedBox(height: 8),

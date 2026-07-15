@@ -88,7 +88,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: #ffffff;
+      background: linear-gradient(145deg, #166534 0%, #15803D 40%, #0B1A12 100%);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -102,7 +102,8 @@
     }
 
     #loading-screen.lotigas .loading-text,
-    #loading-screen.lotigas .loading-subtext {
+    #loading-screen.lotigas .loading-subtext,
+    #loading-screen.lotigas .loading-brand {
       color: #000000;
     }
 
@@ -112,35 +113,47 @@
     }
     
     .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #007bff;
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-top: 3px solid #ffffff;
       border-radius: 50%;
       animation: spin 1s linear infinite;
+      margin-top: 20px;
     }
     
+    .loading-brand {
+      margin: 0;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: clamp(2.4rem, 8vw, 3.4rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: #ffffff;
+      line-height: 1;
+    }
+
     .loading-text {
-      margin-top: 20px;
+      margin-top: 18px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: #333;
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.92);
     }
 
     .loading-subtext {
-      margin-top: 8px;
+      margin-top: 6px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 14px;
-      color: #666;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
     }
 
     .loading-logo {
-      max-width: 180px;
-      width: 42vw;
-      height: auto;
-      object-fit: contain;
-      margin-bottom: 16px;
+      width: 88px;
+      height: 88px;
+      border-radius: 22px;
+      object-fit: cover;
+      margin-bottom: 18px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
     }
     
     @keyframes spin {
@@ -157,6 +170,7 @@
       document.addEventListener('DOMContentLoaded', function () {
         var screen = document.getElementById('loading-screen');
         var logo = document.getElementById('loading-logo');
+        var brand = document.getElementById('loading-brand');
         var title = document.getElementById('loading-title');
         var sub = document.getElementById('loading-subtitle');
         if (!screen) return;
@@ -166,8 +180,10 @@
           if (logo) {
             logo.src = 'lotigas_logo.png';
             logo.alt = 'Loti Gas';
+            logo.style.display = '';
           }
-          if (title) title.textContent = 'Loti Gas';
+          if (brand) brand.textContent = 'Loti Gas';
+          if (title) title.textContent = 'Loading…';
           if (sub) sub.textContent = 'Cylinder tracking · Inventory · Delivery';
         }
       });
@@ -194,10 +210,11 @@
 <body>
   <!-- Loading screen -->
   <div id="loading-screen">
-    <img id="loading-logo" src="favicon.png" alt="FaidaBiz" class="loading-logo" width="180" height="180">
+    <img id="loading-logo" src="faidabiz_logo.png" alt="FaidaBiz" class="loading-logo" width="88" height="88">
+    <h1 id="loading-brand" class="loading-brand">FaidaBiz</h1>
     <div class="loading-spinner"></div>
-    <div id="loading-title" class="loading-text">Loading FaidaBiz...</div>
-    <div id="loading-subtitle" class="loading-subtext">Please wait</div>
+    <div id="loading-title" class="loading-text">Loading…</div>
+    <div id="loading-subtitle" class="loading-subtext">Jua Mauzo Yako, Dhibiti Biashara Yako, Ongeza Faida</div>
   </div>
 
   <script>

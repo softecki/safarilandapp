@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/product_form_screen.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_delete_dialog.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizProductsScreen extends StatefulWidget {
@@ -29,6 +30,21 @@ class _FaidaBizProductsScreenState extends State<FaidaBizProductsScreen> {
       items = (res['data'] as List?) ?? [];
     } catch (_) {}
     if (mounted) setState(() => loading = false);
+  }
+
+  Future<void> _delete(Map<String, dynamic> p) async {
+    final ok = await confirmAndSoftDelete(
+      context: context,
+      title: 'delete.title_product'.tr(),
+      itemLabel: p['name']?.toString(),
+      onConfirm: (reason, password) async {
+        await FaidaBizApi.delete('/products/${p['id']}', {
+          'delete_reason': reason,
+          'password': password,
+        });
+      },
+    );
+    if (ok) _load();
   }
 
   @override
@@ -69,11 +85,8 @@ class _FaidaBizProductsScreenState extends State<FaidaBizProductsScreen> {
                         _load();
                       },
                       trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () async {
-                          await FaidaBizApi.delete('/products/${p['id']}');
-                          _load();
-                        },
+                        icon: Icon(Icons.delete_outline, color: faidaBizDeleteColor),
+                        onPressed: () => _delete(p),
                       ),
                     ),
                   );

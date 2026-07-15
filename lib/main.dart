@@ -16,8 +16,18 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await WhatsLipaConfig.loadSavedUrl();
+  await WhatsLipaConfig.ensurePortalLoaded();
   await FaidaBizApi.loadSession();
   await EasyLocalization.ensureInitialized();
+
+  FaidaBizApi.onUnauthorized = () {
+    final nav = navigatorKey.currentState;
+    if (nav == null) return;
+    nav.pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const FaidaBizLoginScreen()),
+      (_) => false,
+    );
+  };
 
   runApp(
     EasyLocalization(
@@ -117,13 +127,20 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Future<void> _bootstrap() async {
     try {
       await WhatsLipaConfig.loadSavedUrl();
+      await WhatsLipaConfig.ensurePortalLoaded();
       await FaidaBizApi.loadSession();
-      await Future<void>.delayed(const Duration(milliseconds: 1400));
+
+      var ok = FaidaBizApi.isLoggedIn;
+      if (ok) {
+        ok = await FaidaBizApi.validateSession();
+      }
+
+      await Future<void>.delayed(const Duration(milliseconds: 900));
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => FaidaBizApi.isLoggedIn ? const FaidaBizShell() : const FaidaBizLoginScreen(),
+          pageBuilder: (_, __, ___) => ok ? const FaidaBizShell() : const FaidaBizLoginScreen(),
           transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
           transitionDuration: const Duration(milliseconds: 450),
         ),

@@ -16,6 +16,11 @@ class FaidaBizApi {
   static String? token;
   static Map<String, dynamic>? user;
 
+  /// Set from [main] to send the user to login when the Sanctum token is dead.
+  static VoidCallback? onUnauthorized;
+
+  static bool _unauthorizedHandling = false;
+
   static String get _base {
     final portal = WhatsLipaConfig.normalizePortalUrl(WhatsLipaConfig.portalWebUrl);
     return '$portal/api/faidabiz';
@@ -26,7 +31,11 @@ class FaidaBizApi {
     token = prefs.getString(_tokenKey);
     final raw = prefs.getString(_userKey);
     if (raw != null && raw.isNotEmpty) {
-      user = jsonDecode(raw) as Map<String, dynamic>;
+      try {
+        user = jsonDecode(raw) as Map<String, dynamic>;
+      } catch (_) {
+        user = null;
+      }
     }
   }
 
@@ -46,6 +55,50 @@ class FaidaBizApi {
     await prefs.remove(_userKey);
   }
 
+  /// Confirm stored token still works. Clears session on 401 (no navigation).
+  static Future<bool> validateSession() async {
+    if (!isLoggedIn) return false;
+    try {
+      final res = await http
+          .get(Uri.parse('$_base/me'), headers: _headers)
+          .timeout(const Duration(seconds: 20));
+
+      if (res.statusCode == 401) {
+        await clearSession();
+        return false;
+      }
+
+      if (res.statusCode >= 400) {
+        // Keep local session on soft failures (5xx / temporary)
+        return isLoggedIn;
+      }
+
+      Map<String, dynamic> body = {};
+      try {
+        final decoded = jsonDecode(res.body);
+        if (decoded is Map<String, dynamic>) {
+          body = decoded;
+        } else if (decoded is Map) {
+          body = Map<String, dynamic>.from(decoded);
+        }
+      } catch (_) {}
+
+      final u = body['user'];
+      if (u is Map<String, dynamic>) {
+        user = u;
+      } else if (u is Map) {
+        user = Map<String, dynamic>.from(u);
+      }
+      if (user != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_userKey, jsonEncode(user));
+      }
+      return true;
+    } catch (_) {
+      return isLoggedIn;
+    }
+  }
+
   /// Apply saved business language (default Swahili on app).
   static Future<void> applyLocaleFromUser(BuildContext context) async {
     final biz = user?['business'] as Map<String, dynamic>?;
@@ -59,19 +112,46 @@ class FaidaBizApi {
   static Map<String, String> get _headers => {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
+        if (token != null && token!.isNotEmpty) 'Authorization': 'Bearer $token',
       };
+
+  static Future<void> _handleUnauthorized() async {
+    await clearSession();
+    if (_unauthorizedHandling) return;
+    _unauthorizedHandling = true;
+    try {
+      onUnauthorized?.call();
+    } finally {
+      Future<void>.delayed(const Duration(milliseconds: 800), () {
+        _unauthorizedHandling = false;
+      });
+    }
+  }
 
   static Future<Map<String, dynamic>> _handle(http.Response res) async {
     Map<String, dynamic> body = {};
     try {
-      body = jsonDecode(res.body) as Map<String, dynamic>;
+      final decoded = jsonDecode(res.body);
+      if (decoded is Map<String, dynamic>) {
+        body = decoded;
+      } else if (decoded is Map) {
+        body = Map<String, dynamic>.from(decoded);
+      } else {
+        body = {'success': false, 'message': res.body};
+      }
     } catch (_) {
       body = {'success': false, 'message': res.body};
     }
+
     if (res.statusCode == 401) {
-      await clearSession();
+      await _handleUnauthorized();
+      throw FaidaBizApiException(
+        body['message']?.toString() ?? 'Session imeisha. Ingia tena.',
+        statusCode: 401,
+        body: body,
+      );
     }
+
     // 403 with requires_verification is expected — return body to caller
     if (res.statusCode == 403 && body['requires_verification'] == true) {
       return body;
@@ -159,12 +239,23 @@ class FaidaBizApi {
   }
 
   static Future<void> logout() async {
+    final previous = token;
+    await clearSession();
+    if (previous == null || previous.isEmpty) return;
     try {
       await http
-          .post(Uri.parse('$_base/logout'), headers: _headers)
+          .post(
+            Uri.parse('$_base/logout'),
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $previous',
+            },
+          )
           .timeout(const Duration(seconds: 15));
-    } catch (_) {}
-    await clearSession();
+    } catch (_) {
+      // Local session already cleared — ignore server failures / 401
+    }
   }
 
   static Future<Map<String, dynamic>> get(String path, {Map<String, String>? query}) async {
@@ -190,9 +281,48 @@ class FaidaBizApi {
     return _handle(res);
   }
 
-  static Future<Map<String, dynamic>> delete(String path) async {
-    final res =
-        await http.delete(Uri.parse('$_base$path'), headers: _headers).timeout(const Duration(seconds: 30));
+  static Future<Map<String, dynamic>> delete(String path, [Map<String, dynamic>? data]) async {
+    final req = http.Request('DELETE', Uri.parse('$_base$path'));
+    req.headers.addAll(_headers);
+    if (data != null) {
+      req.body = jsonEncode(data);
+    }
+    final streamed = await req.send().timeout(const Duration(seconds: 30));
+    final res = await http.Response.fromStream(streamed);
+    return _handle(res);
+  }
+
+  static Future<Map<String, dynamic>> postMultipart(
+    String path, {
+    required String fileField,
+    String? filePath,
+    List<int>? fileBytes,
+    String? filename,
+    Map<String, String> fields = const {},
+  }) async {
+    final req = http.MultipartRequest('POST', Uri.parse('$_base$path'));
+    req.headers['Accept'] = 'application/json';
+    if (token != null && token!.isNotEmpty) {
+      req.headers['Authorization'] = 'Bearer $token';
+    }
+    fields.forEach((k, v) => req.fields[k] = v);
+    if (fileBytes != null) {
+      req.files.add(http.MultipartFile.fromBytes(
+        fileField,
+        fileBytes,
+        filename: filename ?? 'upload.bin',
+      ));
+    } else if (filePath != null && filePath.isNotEmpty) {
+      req.files.add(await http.MultipartFile.fromPath(
+        fileField,
+        filePath,
+        filename: filename,
+      ));
+    } else {
+      throw FaidaBizApiException('No file to upload');
+    }
+    final streamed = await req.send().timeout(const Duration(seconds: 90));
+    final res = await http.Response.fromStream(streamed);
     return _handle(res);
   }
 }

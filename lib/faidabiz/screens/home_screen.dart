@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/activity_screen.dart';
+import 'package:wicom/faidabiz/screens/debts_screen.dart';
 import 'package:wicom/faidabiz/screens/expense_form_screen.dart';
 import 'package:wicom/faidabiz/screens/expenses_screen.dart';
 import 'package:wicom/faidabiz/screens/product_form_screen.dart';
@@ -12,7 +13,10 @@ import 'package:wicom/faidabiz/screens/reports_screen.dart';
 import 'package:wicom/faidabiz/screens/sale_form_screen.dart';
 import 'package:wicom/faidabiz/screens/sales_screen.dart';
 import 'package:wicom/faidabiz/screens/settings_screen.dart';
+import 'package:wicom/faidabiz/screens/support_chat_screen.dart';
 import 'package:wicom/faidabiz/widgets/count_up_money_card.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_activity_tile.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_date_filter.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 /// Home hub with summary cards + feature grid (no bottom navigation).
@@ -27,11 +31,19 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
   Map<String, dynamic>? data;
   String? error;
   bool loading = true;
+  late DateTime selectedDate;
 
   @override
   void initState() {
     super.initState();
+    final n = DateTime.now();
+    selectedDate = DateTime(n.year, n.month, n.day);
     _load();
+  }
+
+  bool get _isToday {
+    final n = DateTime.now();
+    return selectedDate.year == n.year && selectedDate.month == n.month && selectedDate.day == n.day;
   }
 
   Future<void> _load() async {
@@ -40,7 +52,9 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
       error = null;
     });
     try {
-      final res = await FaidaBizApi.get('/home');
+      final res = await FaidaBizApi.get('/home', query: {
+        'date': faidaBizDateQuery(selectedDate),
+      });
       setState(() => data = res);
     } catch (e) {
       setState(() => error = e.toString());
@@ -54,19 +68,43 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
     _load();
   }
 
+  void _onDateChanged(DateTime d) {
+    setState(() => selectedDate = d);
+    _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     final biz = FaidaBizApi.user?['business'] as Map<String, dynamic>?;
     final summary = data?['summary'] as Map<String, dynamic>? ?? {};
     final recent = (data?['recent'] as List?) ?? [];
+    final question = data?['question']?.toString() ??
+        (_isToday ? 'home.question'.tr() : 'home.question_date'.tr(args: [faidaBizDateQuery(selectedDate)]));
+
+    final summaryLabel = _isToday
+        ? 'home.today'.tr()
+        : 'home.summary_for'.tr(args: [DateFormat('EEE, d MMM yyyy').format(selectedDate)]);
+
+    final unreadChat = (data?['unread_chat'] is num)
+        ? (data!['unread_chat'] as num).toInt()
+        : int.tryParse('${data?['unread_chat'] ?? 0}') ?? 0;
 
     final features = [
       _Feature('nav.sales'.tr(), Icons.point_of_sale, FaidaBizTheme.green, () => _open(const FaidaBizSalesScreen())),
-      _Feature('nav.expenses'.tr(), Icons.payments, Colors.orange.shade800, () => _open(const FaidaBizExpensesScreen())),
+      _Feature(
+        'nav.chat'.tr(),
+        Icons.chat_bubble_outline_rounded,
+        const Color(0xFF128C7E),
+        () => _open(const FaidaBizSupportChatScreen()),
+        badge: unreadChat,
+      ),
+      _Feature('nav.debts'.tr(), Icons.handshake_outlined, Colors.orange.shade800, () => _open(const FaidaBizDebtsScreen())),
+      _Feature('nav.expenses'.tr(), Icons.payments, Colors.deepOrange.shade700, () => _open(const FaidaBizExpensesScreen())),
       _Feature('nav.products'.tr(), Icons.inventory_2, FaidaBizTheme.greenDark, () => _open(const FaidaBizProductsScreen())),
       _Feature('nav.reports'.tr(), Icons.bar_chart, FaidaBizTheme.black, () => _open(const FaidaBizReportsScreen())),
       _Feature('home.add_sale'.tr(), Icons.add_shopping_cart, FaidaBizTheme.green, () => _open(const FaidaBizSaleFormScreen())),
-      _Feature('home.add_expense'.tr(), Icons.add_card, Colors.orange.shade800, () => _open(const FaidaBizExpenseFormScreen())),
+      _Feature('debts.add'.tr(), Icons.person_add_alt_1, Colors.orange.shade800, () => _open(const FaidaBizDebtFormScreen())),
+      _Feature('home.add_expense'.tr(), Icons.add_card, Colors.deepOrange.shade700, () => _open(const FaidaBizExpenseFormScreen())),
       _Feature('home.add_purchase'.tr(), Icons.add_box, FaidaBizTheme.black, () => _open(const FaidaBizPurchaseFormScreen())),
       _Feature('home.add_product'.tr(), Icons.playlist_add, FaidaBizTheme.greenDark, () => _open(const FaidaBizProductFormScreen())),
       _Feature('settings.activity'.tr(), Icons.history, Colors.blueGrey, () => _open(const FaidaBizActivityScreen())),
@@ -90,9 +128,9 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
           ),
         ],
       ),
-      body: loading
+      body: loading && data == null
           ? FaidaBizLoader.body()
-          : error != null
+          : error != null && data == null
               ? Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -107,9 +145,19 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
-                      Text('home.question'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 6),
-                      Text('home.today'.tr(), style: TextStyle(color: Colors.grey.shade700)),
+                      Text(question, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 12),
+                      FaidaBizDateFilter(selected: selectedDate, onChanged: _onDateChanged),
+                      const SizedBox(height: 10),
+                      Text(summaryLabel, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
+                      if (loading) ...[
+                        const SizedBox(height: 12),
+                        const LinearProgressIndicator(
+                          minHeight: 2,
+                          color: FaidaBizTheme.green,
+                          backgroundColor: Color(0xFFE8F5EC),
+                        ),
+                      ],
                       const SizedBox(height: 14),
                       GridView.count(
                         crossAxisCount: 2,
@@ -120,7 +168,7 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                         childAspectRatio: 1.35,
                         children: [
                           CountUpMoneyCard(
-                            label: 'home.sales'.tr(),
+                            label: _isToday ? 'home.sales'.tr() : 'home.sales_day'.tr(),
                             value: summary['sales'] ?? 0,
                             color: FaidaBizTheme.green,
                             icon: Icons.trending_up,
@@ -148,6 +196,33 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                           ),
                         ],
                       ),
+                      if (FaidaBizTheme.asDouble(summary['debts_outstanding']) > 0) ...[
+                        const SizedBox(height: 12),
+                        Material(
+                          color: Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(14),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () => _open(const FaidaBizDebtsScreen()),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.handshake_outlined, color: Colors.orange.shade900),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      '${'debts.outstanding'.tr()}: ${FaidaBizTheme.money(summary['debts_outstanding'])}',
+                                      style: TextStyle(fontWeight: FontWeight.w700, color: Colors.orange.shade900),
+                                    ),
+                                  ),
+                                  Icon(Icons.chevron_right, color: Colors.orange.shade900),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 22),
                       Text('home.features'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 10),
@@ -165,19 +240,63 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                       ),
                       if (recent.isNotEmpty) ...[
                         const SizedBox(height: 24),
-                        Text('home.recent'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        ...recent.take(8).map((r) {
-                          final m = r as Map<String, dynamic>;
-                          return ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(m['title']?.toString() ?? ''),
-                            subtitle: Text(m['occurred_at']?.toString() ?? ''),
-                            trailing: m['amount'] != null
-                                ? Text(FaidaBizTheme.money(m['amount']), style: const TextStyle(fontWeight: FontWeight.w600))
-                                : null,
-                          );
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'home.recent'.tr(),
+                                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                              ),
+                            ),
+                            Text(
+                              '${recent.take(5).length}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        ...recent.take(5).map((r) {
+                          final m = Map<String, dynamic>.from(r as Map);
+                          return FaidaBizActivityTile(item: m, compact: true);
                         }),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _open(FaidaBizActivityScreen(initialDate: selectedDate)),
+                            icon: const Icon(Icons.history_rounded, size: 18),
+                            label: Text('home.view_more_activity'.tr()),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: FaidaBizTheme.green,
+                              side: const BorderSide(color: FaidaBizTheme.green, width: 1.4),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                            ),
+                          ),
+                        ),
+                      ] else ...[
+                        const SizedBox(height: 24),
+                        Text('home.recent'.tr(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                        const SizedBox(height: 10),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Text(
+                            'home.recent_empty'.tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -187,11 +306,12 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
 }
 
 class _Feature {
-  _Feature(this.label, this.icon, this.color, this.onTap);
+  _Feature(this.label, this.icon, this.color, this.onTap, {this.badge = 0});
   final String label;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
+  final int badge;
 }
 
 class _FeatureTile extends StatefulWidget {
@@ -227,22 +347,46 @@ class _FeatureTileState extends State<_FeatureTile> with SingleTickerProviderSta
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: f.color.withOpacity(0.18)),
+              border: Border.all(color: f.color.withValues(alpha: 0.18)),
               boxShadow: [
-                BoxShadow(color: f.color.withOpacity(0.08), blurRadius: 14, offset: const Offset(0, 5)),
+                BoxShadow(color: f.color.withValues(alpha: 0.08), blurRadius: 14, offset: const Offset(0, 5)),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: f.color.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(f.icon, color: f.color),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: f.color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(f.icon, color: f.color),
+                    ),
+                    if (f.badge > 0)
+                      Positioned(
+                        right: -6,
+                        top: -6,
+                        child: Container(
+                          constraints: const BoxConstraints(minWidth: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE53935),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.white, width: 1.5),
+                          ),
+                          child: Text(
+                            f.badge > 99 ? '99+' : '${f.badge}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Text(

@@ -11,7 +11,9 @@
     "expenses": "Matumizi",
     "products": "Bidhaa",
     "reports": "Ripoti",
-    "settings": "Mipangilio"
+    "settings": "Mipangilio",
+    "debts": "Madeni",
+    "chat": "Mazungumzo"
   },
   "auth": {
     "name": "Jina lako",
@@ -36,8 +38,15 @@
   },
   "home": {
     "question": "Leo biashara yangu iko vipi?",
+    "question_date": "Biashara yangu tarehe {} ilikuwa vipi?",
     "today": "Muhtasari wa Leo",
+    "summary_for": "Muhtasari wa {}",
+    "filter_today": "Leo",
+    "filter_yesterday": "Jana",
+    "filter_pick": "Tarehe",
+    "pick_date": "Chagua tarehe",
     "sales": "Mauzo Leo",
+    "sales_day": "Mauzo",
     "purchases": "Manunuzi",
     "expenses": "Matumizi",
     "profit": "Faida",
@@ -47,10 +56,68 @@
     "add_purchase": "+ Ongeza Manunuzi",
     "add_product": "+ Ongeza Bidhaa",
     "add_expense": "+ Ongeza Matumizi",
-    "recent": "Shughuli za hivi karibuni"
+    "recent": "Shughuli za hivi karibuni",
+    "recent_empty": "Hakuna shughuli kwa siku hii bado.",
+    "view_more_activity": "Ona shughuli zaidi"
+  },
+  "debts": {
+    "title": "Madeni / Mikopo",
+    "add": "Ongeza deni",
+    "add_hint": "Andika wakati mteja anachukua bidhaa kwa mkopo — jina na kiasi.",
+    "customer_name": "Jina la mteja",
+    "phone_optional": "Simu (si lazima)",
+    "loan_amount": "Kiasi cha deni",
+    "notes_optional": "Maelezo (si lazima)",
+    "notes_hint": "mf. mifuko 2 ya mchele",
+    "fill_required": "Weka jina la mteja na kiasi cha deni.",
+    "outstanding": "Madeni yasiyolipwa",
+    "open_count": "madeni wazi",
+    "empty": "Hakuna madeni bado. Bonyeza Ongeza deni mteja anapochukua kwa mkopo.",
+    "owed": "Deni",
+    "paid": "Amelipa",
+    "remaining": "Lililobaki",
+    "cleared": "Amelipa yote",
+    "record_payment": "Andika malipo",
+    "payment_amount": "Kiasi cha malipo",
+    "save_payment": "Hifadhi malipo",
+    "payment_saved": "Malipo yamehifadhiwa.",
+    "payment_history": "Historia ya malipo",
+    "no_payments": "Hakuna malipo bado.",
+    "show_all": "Ona zote",
+    "show_open": "Wazi tu"
+  },
+  "chat": {
+    "title": "Mazungumzo ya msaada",
+    "subtitle": "Tuma ujumbe kwa msaada wa FaidaBiz",
+    "empty": "Hakuna ujumbe bado. Salimia — msaada utajibu hapa.",
+    "placeholder": "Andika ujumbe",
+    "attach_image": "Picha",
+    "attach_video": "Video"
+  },
+  "sales": {
+    "empty": "Hakuna mauzo bado. Andika mauzo unapouza.",
+    "list_total": "Jumla ya mauzo",
+    "list_count": "Mauzo {}",
+    "detail": "Maelezo ya mauzo",
+    "sale_total": "Jumla ya mauzo",
+    "items": "Bidhaa zilizouzwa",
+    "no_items": "Hakuna bidhaa kwenye mauzo haya.",
+    "profit": "Faida",
+    "stock_now": "Stock sasa: {} {}",
+    "stock_topup_hint": "Stock ina {} {} tu. Unauza {}. Isiyotosha ({}) itaongezwa kwenye stock kwanza, kisha kiasi chote kitaondolewa (stock itakuwa 0)."
   },
   "expenses": {
-    "empty": "Hakuna matumizi bado. Ongeza matumizi ya leo."
+    "empty": "Hakuna matumizi bado. Ongeza matumizi ya leo.",
+    "list_total": "Jumla ya matumizi",
+    "list_count": "Rekodi {}",
+    "detail": "Maelezo ya matumizi",
+    "edit": "Hariri matumizi",
+    "category": "Aina (si lazima)",
+    "notes": "Maelezo (si lazima)",
+    "history": "Matoleo ya zamani",
+    "history_hint": "Kila hariri huhifadhi taarifa za zamani pamoja na sababu.",
+    "history_empty": "Hakuna hariri bado.",
+    "reason": "Sababu"
   },
   "form": {
     "product": "Bidhaa",
@@ -75,6 +142,9 @@
     "price_history_hint": "Bei za zamani zinabaki kwenye mauzo na manunuzi yaliyopita.",
     "price_updated": "Bei imesasishwa. Bei za zamani zimehifadhiwa.",
     "price_note": "Maelezo ya mabadiliko ya bei (si lazima)",
+    "edit_reason": "Sababu ya kuhariri",
+    "edit_reason_hint": "Inahitajika kila unapobadilisha — eleza sababu.",
+    "edit_reason_required": "Andika sababu ya kuhariri (angalau herufi 3).",
     "current_price": "sasa"
   },
   "reports": {
@@ -103,5 +173,22 @@
   },
   "common": {
     "retry": "Jaribu tena"
+  },
+  "delete": {
+    "soft_hint": "Hii haifuti kabisa. Status itakuwa deleted — weka sababu na nenosiri lako.",
+    "reason": "Sababu ya kufuta",
+    "password": "Nenosiri lako",
+    "reason_required": "Andika sababu (angalau herufi 3).",
+    "password_required": "Weka nenosiri lako.",
+    "cancel": "Ghairi",
+    "confirm": "Futa",
+    "title_product": "Futa bidhaa",
+    "title_sale": "Futa mauzo",
+    "title_expense": "Futa matumizi",
+    "title_debt": "Futa deni"
+  },
+  "activity": {
+    "today_at": "Leo saa",
+    "yesterday_at": "Jana saa"
   }
 }
