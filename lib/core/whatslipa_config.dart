@@ -17,8 +17,8 @@ class WhatsLipaConfig {
   static const _prefKeyUserPortalLocked = 'whatslipa_user_portal_locked';
   static const _prefKeyDiscoveredUrls = 'whatslipa_discovered_portal_urls';
 
-  /// Default host for GET /api/whatslipa/config when the user has no saved portal yet.
-  static const String defaultConfigServerUrl = 'https://freshmarket.softecki.com';
+  /// Default host for FaidaBiz API / portal when no saved portal yet.
+  static const String defaultConfigServerUrl = 'https://faidabusiness.softecki.com';
 
   /// Active portal for API calls (set after login or from settings).
   static String portalWebUrl = defaultConfigServerUrl;
@@ -241,9 +241,7 @@ class WhatsLipaConfig {
 
   static String get appName => WhatsLipaBrand.name;
 
-  static String get tagline => WhatsLipaBrand.isLotiGas
-      ? 'Cylinder tracking · Inventory · Delivery'
-      : 'WhatsApp Commerce · Payments · Delivery';
+  static String get tagline => 'Jua Mauzo Yako, Dhibiti Biashara Yako, Ongeza Faida';
 
   static const String developedBy = 'Softecki Group Company Limited';
 }

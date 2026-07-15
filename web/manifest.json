@@ -1,16 +1,16 @@
 {
-    "name": "Softecki FaceAccess",
-    "short_name": "FaceAccess",
-    "version": "3.5.0",
+    "name": "FaidaBiz",
+    "short_name": "FaidaBiz",
+    "version": "1.2.0",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#121212",
-    "theme_color": "#121212",
-    "description": "Softecki FaceAccess mobile and web app for secure attendance, gate access, and workforce operations.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#15803D",
+    "description": "FaidaBiz — Simple Business Management App. Jua Mauzo Yako, Dhibiti Biashara Yako, Ongeza Faida.",
     "orientation": "any",
     "prefer_related_applications": false,
     "scope": "/",
-    "categories": ["finance", "business"],
+    "categories": ["business", "finance"],
     "icons": [
         {
             "src": "icons/Icon-192.png",
@@ -36,4 +36,3 @@
         }
     ]
 }
-

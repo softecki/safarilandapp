@@ -4,9 +4,9 @@ class AppColor {
   const AppColor._();
 
   static const darkOrange = Color(0xFFEC6813);
-  /// Attendance App brand (green).
+  /// FaidaBiz brand (green).
   static const primaryColor = Color(0xFF15803D);
-  /// Lighter green for accents on dark neumorphic surfaces.
+  /// Darker green for accents.
   static const primaryLight = Color(0xFF4ADE80);
   static const lightOrange = Color(0xFFf8b89a);
 

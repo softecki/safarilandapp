@@ -1,0 +1,78 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:wicom/core/app_color.dart';
+
+class FaidaBizTheme {
+  static const green = Color(0xFF15803D);
+  static const greenDark = Color(0xFF166534);
+  static const black = Color(0xFF111111);
+  static const canvas = Color(0xFFF7FAF8);
+
+  static ThemeData material() {
+    final base = ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: green,
+        primary: green,
+        secondary: greenDark,
+        surface: Colors.white,
+        onPrimary: Colors.white,
+        onSurface: black,
+      ),
+      scaffoldBackgroundColor: canvas,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: green,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: green,
+        foregroundColor: Colors.white,
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        selectedItemColor: green,
+        unselectedItemColor: Color(0xFF666666),
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: green, width: 2),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: green,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(48),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+    );
+
+    try {
+      return base.copyWith(
+        textTheme: GoogleFonts.dmSansTextTheme(base.textTheme).apply(
+          bodyColor: black,
+          displayColor: black,
+        ),
+      );
+    } catch (_) {
+      return base;
+    }
+  }
+
+  static String money(num? v, {String currency = 'TZS'}) {
+    final n = (v ?? 0).toDouble();
+    final s = n.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},',
+        );
+    return '$s $currency';
+  }
+}

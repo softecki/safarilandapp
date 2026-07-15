@@ -1,26 +1,21 @@
 import 'dart:ui' show PointerDeviceKind;
 
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
-import 'package:wicom/core/app_neumorphic.dart';
+import 'package:flutter/material.dart';
 import 'package:wicom/core/font_loader.dart';
-import 'package:wicom/core/whatslipa_brand.dart';
 import 'package:wicom/core/whatslipa_config.dart';
-import 'package:wicom/core/whatslipa_maps_init.dart';
-import 'package:wicom/core/whatslipa_session.dart';
-import 'package:wicom/whatslipa/navigation/whatslipa_route_observer.dart';
-import 'package:wicom/whatslipa/screens/whatslipa_home_screen.dart';
-import 'package:wicom/whatslipa/widgets/whatslipa_theme.dart';
-import 'package:wicom/whatslipa/screens/whatslipa_login_screen.dart';
-import 'package:wicom/whatslipa/widgets/whatslipa_branded_loader.dart';
-import 'package:wicom/src/services/health_check_service.dart';
+import 'package:wicom/faidabiz/faidabiz_api.dart';
+import 'package:wicom/faidabiz/faidabiz_shell.dart';
+import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/screens/login_screen.dart';
+import 'package:wicom/faidabiz/widgets/landing_backdrop.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await WhatsLipaConfig.loadSavedUrl();
-  await WhatsLipaBrand.loadFromSession();
+  await FaidaBizApi.loadSession();
   await EasyLocalization.ensureInitialized();
 
   runApp(
@@ -33,17 +28,7 @@ void main() async {
     ),
   );
 
-  _initializeInBackground();
-}
-
-void _initializeInBackground() async {
-  try {
-    FontLoader.preloadFonts().catchError((_) {});
-    // WhatsLipa does not use the legacy health-check dialog; keep disabled unless explicitly enabled.
-    if (await HealthCheckService.isEnabled()) {
-      await HealthCheckService.initialize();
-    }
-  } catch (_) {}
+  FontLoader.preloadFonts().catchError((_) {});
 }
 
 class MyApp extends StatelessWidget {
@@ -51,17 +36,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    HealthCheckService.setNavigatorKey(navigatorKey);
-
-    return NeumorphicApp(
+    return MaterialApp(
       navigatorKey: navigatorKey,
-      navigatorObservers: [whatsLipaRouteObserver],
-      title: WhatsLipaConfig.appName,
-      themeMode: ThemeMode.light,
-      theme: AppNeumorphic.lightTheme,
-      darkTheme: AppNeumorphic.darkTheme,
-      materialTheme: WhatsLipaTheme.materialTheme(),
-      materialDarkTheme: WhatsLipaTheme.materialTheme(),
+      title: 'FaidaBiz',
+      theme: FaidaBizTheme.material(),
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
@@ -89,12 +67,12 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
-  String _status = 'Starting…';
-
-  static const _statusLoading = 'Loading…';
-  static const _statusConfig = 'Loading configuration…';
-  static const _statusPortal = 'Restoring session…';
+class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))..forward();
+  late final Animation<double> _fade = CurvedAnimation(parent: _c, curve: Curves.easeOut);
+  late final Animation<double> _scale = Tween<double>(begin: 0.92, end: 1).animate(
+    CurvedAnimation(parent: _c, curve: Curves.easeOutBack),
+  );
 
   @override
   void initState() {
@@ -102,51 +80,81 @@ class _SplashScreenState extends State<SplashScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
   }
 
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
   Future<void> _bootstrap() async {
-    if (!mounted) return;
-
     try {
-      setState(() => _status = _statusLoading);
       await WhatsLipaConfig.loadSavedUrl();
-      await WhatsLipaBrand.loadFromSession();
-      if (mounted) setState(() {});
-
-      final locked = await WhatsLipaConfig.isUserPortalLocked();
-      if (!locked) {
-        setState(() => _status = _statusConfig);
-        await WhatsLipaConfig.fetchAppConfigFromConfigServer();
-      } else {
-        setState(() => _status = _statusPortal);
-        await WhatsLipaConfig.fetchMapsKeyOnly();
-      }
-
-      await initWhatsLipaGoogleMaps();
-
+      await FaidaBizApi.loadSession();
+      await Future<void>.delayed(const Duration(milliseconds: 1400));
       if (!mounted) return;
-
-      final loggedIn = await WhatsLipaSession.isLoggedIn;
-      if (!mounted) return;
-
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute<void>(
-          builder: (_) => loggedIn ? const WhatsLipaHomeScreen() : const WhatsLipaLoginScreen(),
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => FaidaBizApi.isLoggedIn ? const FaidaBizShell() : const FaidaBizLoginScreen(),
+          transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
+          transitionDuration: const Duration(milliseconds: 450),
         ),
       );
     } catch (_) {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute<void>(builder: (_) => const WhatsLipaLoginScreen()),
+        MaterialPageRoute<void>(builder: (_) => const FaidaBizLoginScreen()),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return WhatsLipaBrandedLoaderScreen(
-      message: _status,
-      showBrandName: true,
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const FaidaBizLandingBackdrop(),
+          FadeTransition(
+            opacity: _fade,
+            child: ScaleTransition(
+              scale: _scale,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'FaidaBiz',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -1.2,
+                            ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        'brand.tagline'.tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white.withOpacity(0.88), fontSize: 16, height: 1.4),
+                      ),
+                      const SizedBox(height: 28),
+                      const SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
