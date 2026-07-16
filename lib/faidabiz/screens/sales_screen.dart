@@ -127,7 +127,7 @@ class _FaidaBizSalesScreenState extends State<FaidaBizSalesScreen> {
                               final s = items[i] as Map<String, dynamic>;
                               final lineItems = (s['items'] as List?) ?? [];
                               final first = lineItems.isNotEmpty ? Map<String, dynamic>.from(lineItems.first as Map) : null;
-                              final name = first?['product_name']?.toString() ?? 'Mauzo #${s['id']}';
+                              final name = first?['product_name']?.toString() ?? 'sales.fallback_title'.tr(args: ['${s['id']}']);
                               final qty = first?['quantity'];
                               final unit = first?['unit']?.toString() ??
                                   first?['product']?['unit']?.toString() ??

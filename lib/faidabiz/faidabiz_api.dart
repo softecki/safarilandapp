@@ -163,31 +163,6 @@ class FaidaBizApi {
     });
   }
 
-  static Future<Map<String, dynamic>> fetchMigrations() async {
-    Map<String, dynamic> body;
-    try {
-      body = await get('/settings/migrations');
-    } catch (_) {
-      body = await get('/setup/migrations');
-    }
-    final migrations = (body['data'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
-    final queries = (body['queries'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
-    return {'migrations': migrations, 'queries': queries};
-  }
-
-  static Future<Map<String, dynamic>> runMigrationSql({
-    required String file,
-    String kind = 'migration',
-  }) async {
-    Map<String, dynamic> body;
-    try {
-      body = await post('/settings/migrations/run-raw', {'file': file, 'kind': kind});
-    } catch (_) {
-      body = await post('/setup/migrations/run-raw', {'file': file, 'kind': kind});
-    }
-    return body;
-  }
-
   static bool get isLoggedIn => token != null && token!.isNotEmpty;
 
   static Map<String, String> get _headers => {
@@ -227,7 +202,7 @@ class FaidaBizApi {
     if (res.statusCode == 401) {
       await _handleUnauthorized();
       throw FaidaBizApiException(
-        body['message']?.toString() ?? 'Session imeisha. Ingia tena.',
+        body['message']?.toString() ?? 'auth.session_expired'.tr(),
         statusCode: 401,
         body: body,
       );
@@ -239,7 +214,7 @@ class FaidaBizApi {
     }
     if (res.statusCode >= 400) {
       throw FaidaBizApiException(
-        body['message']?.toString() ?? 'Hitilafu (${res.statusCode})',
+        body['message']?.toString() ?? 'common.http_error'.tr(args: ['${res.statusCode}']),
         statusCode: res.statusCode,
         body: body,
       );
@@ -400,7 +375,7 @@ class FaidaBizApi {
         filename: filename,
       ));
     } else {
-      throw FaidaBizApiException('No file to upload');
+      throw FaidaBizApiException('common.no_file_upload'.tr());
     }
     final streamed = await req.send().timeout(const Duration(seconds: 90));
     final res = await http.Response.fromStream(streamed);

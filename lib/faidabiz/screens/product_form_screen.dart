@@ -107,7 +107,7 @@ class _FaidaBizProductFormScreenState extends State<FaidaBizProductFormScreen> {
           FaidaBizSelectField(
             label: 'form.unit'.tr(),
             hint: 'form.select_unit'.tr(),
-            valueLabel: unit,
+            valueLabel: 'units.$unit'.tr(),
             leading: const Icon(Icons.straighten_rounded, color: Color(0xFF15803D), size: 22),
             onTap: () async {
               final picked = await showFaidaBizOptionPicker<String>(
@@ -115,7 +115,7 @@ class _FaidaBizProductFormScreenState extends State<FaidaBizProductFormScreen> {
                 title: 'form.select_unit'.tr(),
                 selected: unit,
                 options: [
-                  for (final u in kProductUnits) (value: u, label: u, subtitle: null),
+                  for (final u in kProductUnits) (value: u, label: 'units.$u'.tr(), subtitle: null),
                 ],
               );
               if (picked != null) setState(() => unit = picked);

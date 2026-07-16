@@ -70,7 +70,7 @@ class _FaidaBizRegisterScreenState extends State<FaidaBizRegisterScreen> {
           TextField(
             controller: phone,
             keyboardType: TextInputType.phone,
-            decoration: InputDecoration(labelText: 'auth.phone'.tr(), hintText: '07XXXXXXXX'),
+            decoration: InputDecoration(labelText: 'auth.phone'.tr(), hintText: 'auth.phone_hint'.tr()),
           ),
           const SizedBox(height: 12),
           TextField(

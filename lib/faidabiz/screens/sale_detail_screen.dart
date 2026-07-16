@@ -81,7 +81,7 @@ class FaidaBizSaleDetailScreen extends StatelessWidget {
                 const SizedBox(height: 14),
                 _row(Icons.calendar_today_outlined, _fmtDate(sale['sold_at']?.toString())),
                 const SizedBox(height: 8),
-                _row(Icons.payments_outlined, (sale['payment_method']?.toString() ?? 'cash').toUpperCase()),
+                _row(Icons.payments_outlined, _paymentLabel(sale['payment_method']?.toString())),
                 if (sale['profit'] != null) ...[
                   const SizedBox(height: 8),
                   _row(Icons.trending_up, '${'sales.profit'.tr()}: ${FaidaBizTheme.money(sale['profit'])}'),
@@ -151,5 +151,12 @@ class FaidaBizSaleDetailScreen extends StatelessWidget {
         Expanded(child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 13))),
       ],
     );
+  }
+
+  String _paymentLabel(String? method) {
+    final m = (method ?? 'cash').toLowerCase();
+    final key = 'payment.$m';
+    final translated = key.tr();
+    return translated == key ? m : translated;
   }
 }

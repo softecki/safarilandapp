@@ -6,7 +6,6 @@ import 'package:wicom/faidabiz/screens/activity_screen.dart';
 import 'package:wicom/faidabiz/screens/login_screen.dart';
 import 'package:wicom/faidabiz/screens/settings_add_business_screen.dart';
 import 'package:wicom/faidabiz/screens/settings_add_staff_screen.dart';
-import 'package:wicom/faidabiz/screens/settings_migrations_screen.dart';
 import 'package:wicom/faidabiz/screens/support_chat_screen.dart';
 
 class FaidaBizSettingsScreen extends StatefulWidget {
@@ -98,6 +97,7 @@ class _FaidaBizSettingsScreenState extends State<FaidaBizSettingsScreen> {
         await FaidaBizApi.saveSession(FaidaBizApi.token!, u);
       }
     } catch (_) {}
+    if (mounted) setState(() {});
   }
 
   Future<void> _switchBusiness(int id) async {
@@ -147,156 +147,575 @@ class _FaidaBizSettingsScreenState extends State<FaidaBizSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final biz = FaidaBizApi.user?['business'] as Map<String, dynamic>?;
+    final user = FaidaBizApi.user;
     final businesses = _businesses.isNotEmpty ? _businesses : _businessesFromUser();
+    final isSw = context.locale.languageCode == 'sw';
 
     return Scaffold(
-      appBar: AppBar(title: Text('nav.settings'.tr())),
+      backgroundColor: const Color(0xFFF3F7F4),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: FaidaBizTheme.green))
           : RefreshIndicator(
               onRefresh: _load,
               color: FaidaBizTheme.green,
-              child: ListView(
-                children: [
-                  ListTile(
-                    title: Text(biz?['name']?.toString() ?? 'FaidaBiz'),
-                    subtitle: Text('${biz?['business_type'] ?? ''} · ${FaidaBizApi.user?['phone'] ?? ''}'),
-                    leading: const CircleAvatar(
-                      backgroundColor: FaidaBizTheme.green,
-                      child: Icon(Icons.store, color: Colors.white),
-                    ),
-                  ),
-                  if (_error != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
-                    ),
-                  const Divider(),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                    child: Text('settings.my_businesses'.tr(), style: Theme.of(context).textTheme.titleSmall),
-                  ),
-                  if (businesses.isEmpty)
-                    ListTile(title: Text('settings.no_businesses'.tr()))
-                  else
-                    ...businesses.map((b) {
-                      final id = (b['id'] as num?)?.toInt() ?? 0;
-                      final active = b['is_active'] == true;
-                      final role = b['role']?.toString() ?? '';
-                      return ListTile(
-                        leading: Icon(active ? Icons.check_circle : Icons.store_outlined, color: active ? FaidaBizTheme.green : null),
-                        title: Text(b['name']?.toString() ?? ''),
-                        subtitle: Text(
-                          [
-                            if (b['business_type'] != null) b['business_type'].toString(),
-                            if (role.isNotEmpty) role == 'owner' ? 'settings.role_owner'.tr() : 'settings.role_staff'.tr(),
-                          ].join(' · '),
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(child: _HeroHeader(biz: biz, user: user)),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        if (_error != null) ...[
+                          const SizedBox(height: 12),
+                          _ErrorBanner(message: _error!),
+                        ],
+                        const SizedBox(height: 16),
+                        _SectionCard(
+                          title: 'settings.my_businesses'.tr(),
+                          icon: Icons.storefront_rounded,
+                          child: Column(
+                            children: [
+                              if (businesses.isEmpty)
+                                _EmptyHint(text: 'settings.no_businesses'.tr())
+                              else
+                                ...businesses.map((b) {
+                                  final id = (b['id'] as num?)?.toInt() ?? 0;
+                                  final active = b['is_active'] == true;
+                                  final role = b['role']?.toString() ?? '';
+                                  return _BusinessRow(
+                                    name: b['name']?.toString() ?? '',
+                                    subtitle: [
+                                      if (b['business_type'] != null) b['business_type'].toString(),
+                                      if (role.isNotEmpty)
+                                        role == 'owner' ? 'settings.role_owner'.tr() : 'settings.role_staff'.tr(),
+                                    ].join(' · '),
+                                    active: active,
+                                    switching: _switching,
+                                    onSwitch: () => _switchBusiness(id),
+                                  );
+                                }),
+                              if (_checkOwner()) ...[
+                                const SizedBox(height: 8),
+                                _ActionTile(
+                                  icon: Icons.add_business_rounded,
+                                  color: FaidaBizTheme.green,
+                                  title: 'settings.business_add'.tr(),
+                                  onTap: _openAddBusiness,
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
-                        trailing: active
-                            ? Chip(
-                                label: Text('settings.active'.tr()),
-                                backgroundColor: FaidaBizTheme.green.withValues(alpha: 0.12),
-                                labelStyle: const TextStyle(color: FaidaBizTheme.green, fontSize: 12),
-                              )
-                            : _switching
-                                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                                : TextButton(onPressed: () => _switchBusiness(id), child: Text('settings.switch'.tr())),
-                        onTap: active || _switching ? null : () => _switchBusiness(id),
-                      );
-                    }),
-                  if (_checkOwner())
-                    ListTile(
-                      leading: const Icon(Icons.add_business),
-                      title: Text('settings.business_add'.tr()),
-                      onTap: _openAddBusiness,
-                    ),
-                  const Divider(),
-                  if (_checkOwner()) ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                      child: Text('settings.team'.tr(), style: Theme.of(context).textTheme.titleSmall),
-                    ),
-                    if (_team.isEmpty)
-                      ListTile(title: Text('settings.team_empty'.tr()))
-                    else
-                      ..._team.map((m) => ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: m['role'] == 'owner' ? FaidaBizTheme.green : Colors.blueGrey,
-                              child: Icon(m['role'] == 'owner' ? Icons.star : Icons.person, color: Colors.white, size: 20),
+                        if (_checkOwner()) ...[
+                          const SizedBox(height: 14),
+                          _SectionCard(
+                            title: 'settings.team'.tr(),
+                            icon: Icons.groups_rounded,
+                            child: Column(
+                              children: [
+                                if (_team.isEmpty)
+                                  _EmptyHint(text: 'settings.team_empty'.tr())
+                                else
+                                  ..._team.map((m) => _TeamRow(
+                                        name: m['name']?.toString() ?? '',
+                                        phone: m['phone']?.toString() ?? '',
+                                        isOwner: m['role'] == 'owner',
+                                      )),
+                                const SizedBox(height: 8),
+                                _ActionTile(
+                                  icon: Icons.person_add_alt_1_rounded,
+                                  color: Colors.blueGrey,
+                                  title: 'settings.team_add'.tr(),
+                                  subtitle: 'settings.team_add_sub'.tr(),
+                                  onTap: _openAddStaff,
+                                ),
+                              ],
                             ),
-                            title: Text(m['name']?.toString() ?? ''),
-                            subtitle: Text('${m['phone'] ?? ''} · ${m['role'] == 'owner' ? 'settings.role_owner'.tr() : 'settings.role_staff'.tr()}'),
-                          )),
-                    ListTile(
-                      leading: const Icon(Icons.person_add),
-                      title: Text('settings.team_add'.tr()),
-                      subtitle: Text('settings.team_add_sub'.tr()),
-                      onTap: _openAddStaff,
+                          ),
+                        ],
+                        const SizedBox(height: 14),
+                        _SectionCard(
+                          title: 'settings.preferences'.tr(),
+                          icon: Icons.tune_rounded,
+                          child: Column(
+                            children: [
+                              _NavTile(
+                                icon: Icons.chat_bubble_outline_rounded,
+                                iconColor: const Color(0xFF128C7E),
+                                title: 'nav.chat'.tr(),
+                                subtitle: 'chat.subtitle'.tr(),
+                                badge: _unreadChat,
+                                onTap: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const FaidaBizSupportChatScreen()),
+                                  );
+                                  _load();
+                                },
+                              ),
+                              _NavTile(
+                                icon: Icons.history_rounded,
+                                iconColor: FaidaBizTheme.greenDark,
+                                title: 'settings.activity'.tr(),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const FaidaBizActivityScreen()),
+                                ),
+                              ),
+                              _NavTile(
+                                icon: Icons.language_rounded,
+                                iconColor: Colors.indigo,
+                                title: 'settings.language'.tr(),
+                                subtitle: isSw ? 'Kiswahili' : 'English',
+                                trailing: _LangToggle(
+                                  isSw: isSw,
+                                  onChanged: (sw) => _setLanguage(sw ? const Locale('sw') : const Locale('en')),
+                                ),
+                                onTap: () => _setLanguage(isSw ? const Locale('en') : const Locale('sw')),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        _SectionCard(
+                          title: 'settings.about'.tr(),
+                          icon: Icons.info_outline_rounded,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'FaidaBiz',
+                                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: FaidaBizTheme.greenDark),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'brand.tagline'.tr(),
+                                style: TextStyle(color: Colors.grey.shade700, height: 1.35),
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: () async {
+                                    await FaidaBizApi.logout();
+                                    if (!context.mounted) return;
+                                    Navigator.of(context).pushAndRemoveUntil(
+                                      MaterialPageRoute(builder: (_) => const FaidaBizLoginScreen()),
+                                      (_) => false,
+                                    );
+                                  },
+                                  icon: const Icon(Icons.logout_rounded, color: Colors.red),
+                                  label: Text('settings.logout'.tr(), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w700)),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: Colors.red.shade200),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ]),
                     ),
-                    const Divider(),
-                  ],
-                  ListTile(
-                    leading: const Icon(Icons.storage),
-                    title: Text('settings.migrations'.tr()),
-                    subtitle: Text('settings.migrations_hint'.tr()),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const FaidaBizSettingsMigrationsScreen()),
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.chat_bubble_outline, color: Color(0xFF128C7E)),
-                    title: Text('nav.chat'.tr()),
-                    subtitle: Text('chat.subtitle'.tr()),
-                    trailing: _unreadChat > 0
-                        ? CircleAvatar(
-                            radius: 12,
-                            backgroundColor: Colors.red,
-                            child: Text('$_unreadChat', style: const TextStyle(color: Colors.white, fontSize: 11)),
-                          )
-                        : null,
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const FaidaBizSupportChatScreen()),
-                      );
-                      _load();
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.history),
-                    title: Text('settings.activity'.tr()),
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FaidaBizActivityScreen())),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.language),
-                    title: Text('settings.language'.tr()),
-                    subtitle: Text(context.locale.languageCode == 'sw' ? 'Kiswahili' : 'English'),
-                    onTap: () {
-                      final next = context.locale.languageCode == 'sw' ? const Locale('en') : const Locale('sw');
-                      _setLanguage(next);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.info_outline),
-                    title: const Text('FaidaBiz'),
-                    subtitle: Text('brand.tagline'.tr()),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.red),
-                    title: Text('settings.logout'.tr(), style: const TextStyle(color: Colors.red)),
-                    onTap: () async {
-                      await FaidaBizApi.logout();
-                      if (!context.mounted) return;
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (_) => const FaidaBizLoginScreen()),
-                        (_) => false,
-                      );
-                    },
                   ),
                 ],
               ),
             ),
+    );
+  }
+}
+
+class _HeroHeader extends StatelessWidget {
+  const _HeroHeader({required this.biz, required this.user});
+
+  final Map<String, dynamic>? biz;
+  final Map<String, dynamic>? user;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 12, 16, 28),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [FaidaBizTheme.green, FaidaBizTheme.greenDark],
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+              ),
+              Expanded(
+                child: Text(
+                  'nav.settings'.tr(),
+                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+                ),
+                child: const Icon(Icons.store_rounded, color: Colors.white, size: 32),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      biz?['name']?.toString() ?? 'FaidaBiz',
+                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      [
+                        if ((biz?['business_type']?.toString() ?? '').isNotEmpty) biz!['business_type'].toString(),
+                        if ((user?['phone']?.toString() ?? '').isNotEmpty) user!['phone'].toString(),
+                      ].join(' · '),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13),
+                    ),
+                    if ((user?['name']?.toString() ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        user!['name'].toString(),
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.title, required this.icon, required this.child});
+
+  final String title;
+  final IconData icon;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 6)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: FaidaBizTheme.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: FaidaBizTheme.green, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _BusinessRow extends StatelessWidget {
+  const _BusinessRow({
+    required this.name,
+    required this.subtitle,
+    required this.active,
+    required this.switching,
+    required this.onSwitch,
+  });
+
+  final String name;
+  final String subtitle;
+  final bool active;
+  final bool switching;
+  final VoidCallback onSwitch;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: active ? FaidaBizTheme.green.withValues(alpha: 0.08) : const Color(0xFFF7FAF8),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: active ? FaidaBizTheme.green.withValues(alpha: 0.35) : Colors.grey.shade200),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+        leading: Icon(active ? Icons.check_circle_rounded : Icons.store_outlined, color: active ? FaidaBizTheme.green : Colors.grey),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
+        subtitle: subtitle.isEmpty ? null : Text(subtitle),
+        trailing: active
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: FaidaBizTheme.green,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text('settings.active'.tr(), style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+              )
+            : switching
+                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
+                : TextButton(onPressed: onSwitch, child: Text('settings.switch'.tr())),
+        onTap: active || switching ? null : onSwitch,
+      ),
+    );
+  }
+}
+
+class _TeamRow extends StatelessWidget {
+  const _TeamRow({required this.name, required this.phone, required this.isOwner});
+
+  final String name;
+  final String phone;
+  final bool isOwner;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7FAF8),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: isOwner ? FaidaBizTheme.green : Colors.blueGrey,
+            child: Icon(isOwner ? Icons.star_rounded : Icons.person_rounded, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                Text(
+                  '$phone · ${isOwner ? 'settings.role_owner'.tr() : 'settings.role_staff'.tr()}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({
+    required this.icon,
+    required this.color,
+    required this.title,
+    this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(
+            children: [
+              Icon(icon, color: color),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: TextStyle(fontWeight: FontWeight.w700, color: color)),
+                    if (subtitle != null)
+                      Text(subtitle!, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: color),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavTile extends StatelessWidget {
+  const _NavTile({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    this.subtitle,
+    this.badge = 0,
+    this.trailing,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String? subtitle;
+  final int badge;
+  final Widget? trailing;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: iconColor.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: iconColor),
+      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+      subtitle: subtitle == null ? null : Text(subtitle!),
+      trailing: trailing ??
+          (badge > 0
+              ? CircleAvatar(
+                  radius: 12,
+                  backgroundColor: Colors.red,
+                  child: Text('$badge', style: const TextStyle(color: Colors.white, fontSize: 11)),
+                )
+              : const Icon(Icons.chevron_right_rounded, color: Colors.grey)),
+      onTap: onTap,
+    );
+  }
+}
+
+class _LangToggle extends StatelessWidget {
+  const _LangToggle({required this.isSw, required this.onChanged});
+
+  final bool isSw;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _LangChip(label: 'EN', selected: !isSw, onTap: () => onChanged(false)),
+        const SizedBox(width: 6),
+        _LangChip(label: 'SW', selected: isSw, onTap: () => onChanged(true)),
+      ],
+    );
+  }
+}
+
+class _LangChip extends StatelessWidget {
+  const _LangChip({required this.label, required this.selected, required this.onTap});
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? FaidaBizTheme.green : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: selected ? Colors.white : Colors.grey.shade700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyHint extends StatelessWidget {
+  const _EmptyHint({required this.text});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Text(text, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+    );
+  }
+}
+
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner({required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.shade100),
+      ),
+      child: Text(message, style: TextStyle(color: Colors.red.shade800, fontSize: 13)),
     );
   }
 }

@@ -227,7 +227,7 @@ class _InfoCard extends StatelessWidget {
             _row(Icons.label_outline, cat),
           ],
           const SizedBox(height: 8),
-          _row(Icons.payments_outlined, (expense['payment_method']?.toString() ?? 'cash').toUpperCase()),
+          _row(Icons.payments_outlined, _paymentLabel(expense['payment_method']?.toString())),
           if (notes.isNotEmpty) ...[
             const SizedBox(height: 8),
             _row(Icons.notes_outlined, notes),
@@ -246,5 +246,12 @@ class _InfoCard extends StatelessWidget {
         Expanded(child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 13))),
       ],
     );
+  }
+
+  String _paymentLabel(String? method) {
+    final m = (method ?? 'cash').toLowerCase();
+    final key = 'payment.$m';
+    final translated = key.tr();
+    return translated == key ? m : translated;
   }
 }

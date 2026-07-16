@@ -285,7 +285,7 @@ class _Bubble extends StatelessWidget {
                   children: [
                     const Icon(Icons.attach_file, size: 18),
                     const SizedBox(width: 6),
-                    Expanded(child: Text(message['media_name']?.toString() ?? 'file', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                    Expanded(child: Text(message['media_name']?.toString() ?? 'chat.file'.tr(), maxLines: 1, overflow: TextOverflow.ellipsis)),
                   ],
                 ),
               if (body.isNotEmpty) ...[

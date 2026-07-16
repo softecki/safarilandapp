@@ -73,8 +73,7 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
     final biz = FaidaBizApi.user?['business'] as Map<String, dynamic>?;
     final summary = data?['summary'] as Map<String, dynamic>? ?? {};
     final recent = (data?['recent'] as List?) ?? [];
-    final question = data?['question']?.toString() ??
-        (_isToday ? 'home.question'.tr() : 'home.question_date'.tr(args: [faidaBizDateQuery(selectedDate)]));
+    final question = 'home.question'.tr();
 
     final summaryLabel = _isToday
         ? 'home.today'.tr()
