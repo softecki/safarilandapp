@@ -107,6 +107,87 @@ class FaidaBizApi {
     await context.setLocale(locale);
   }
 
+  static Future<List<Map<String, dynamic>>> fetchMyBusinesses() async {
+    final res = await get('/my-businesses');
+    final raw = res['data'];
+    if (raw is! List) return [];
+    return raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  static Future<void> switchBusiness(int businessId) async {
+    final res = await post('/switch-business', {'business_id': businessId});
+    final u = res['user'];
+    if (u is Map<String, dynamic> && token != null) {
+      await saveSession(token!, u);
+    } else if (u is Map && token != null) {
+      await saveSession(token!, Map<String, dynamic>.from(u));
+    }
+  }
+
+  static Future<void> createBusiness({
+    required String name,
+    String? businessType,
+    String? phone,
+    String? language,
+  }) async {
+    final res = await post('/businesses', {
+      'name': name,
+      if (businessType != null) 'business_type': businessType,
+      if (phone != null) 'phone': phone,
+      if (language != null) 'language': language,
+    });
+    final u = res['user'];
+    if (u is Map<String, dynamic> && token != null) {
+      await saveSession(token!, u);
+    } else if (u is Map && token != null) {
+      await saveSession(token!, Map<String, dynamic>.from(u));
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchTeam() async {
+    final res = await get('/team');
+    final raw = res['data'];
+    if (raw is! List) return [];
+    return raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  static Future<void> addStaff({
+    required String name,
+    required String phone,
+    required String password,
+  }) async {
+    await post('/team', {
+      'name': name,
+      'phone': phone,
+      'password': password,
+    });
+  }
+
+  static Future<Map<String, dynamic>> fetchMigrations() async {
+    Map<String, dynamic> body;
+    try {
+      body = await get('/settings/migrations');
+    } catch (_) {
+      body = await get('/setup/migrations');
+    }
+    final migrations = (body['data'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
+    final queries = (body['queries'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
+    return {'migrations': migrations, 'queries': queries};
+  }
+
+  static Future<Map<String, dynamic>> runMigrationSql({
+    required String file,
+    String kind = 'migration',
+  }) async {
+    Map<String, dynamic> body;
+    try {
+      body = await post('/settings/migrations/run-raw', {'file': file, 'kind': kind});
+    } catch (_) {
+      body = await post('/setup/migrations/run-raw', {'file': file, 'kind': kind});
+    }
+    return body;
+  }
+
   static bool get isLoggedIn => token != null && token!.isNotEmpty;
 
   static Map<String, String> get _headers => {

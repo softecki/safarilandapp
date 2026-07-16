@@ -19,6 +19,8 @@ class _FaidaBizPurchaseFormScreenState extends State<FaidaBizPurchaseFormScreen>
   final qty = TextEditingController(text: '1');
   final cost = TextEditingController();
   final supplier = TextEditingController();
+  final usedSalesAmount = TextEditingController();
+  bool usedSalesForPurchase = false;
   bool loading = false;
   bool productsLoaded = false;
   String? error;
@@ -34,6 +36,7 @@ class _FaidaBizPurchaseFormScreenState extends State<FaidaBizPurchaseFormScreen>
     qty.dispose();
     cost.dispose();
     supplier.dispose();
+    usedSalesAmount.dispose();
     super.dispose();
   }
 
@@ -90,6 +93,8 @@ class _FaidaBizPurchaseFormScreenState extends State<FaidaBizPurchaseFormScreen>
         'unit_cost': double.tryParse(cost.text) ?? 0,
         'supplier': supplier.text.trim().isEmpty ? null : supplier.text.trim(),
         'payment_method': 'cash',
+        'used_sales_for_purchase': usedSalesForPurchase,
+        'used_sales_amount': usedSalesForPurchase ? (double.tryParse(usedSalesAmount.text) ?? 0) : 0,
       });
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -158,6 +163,23 @@ class _FaidaBizPurchaseFormScreenState extends State<FaidaBizPurchaseFormScreen>
           ),
           const SizedBox(height: 12),
           TextField(controller: supplier, decoration: InputDecoration(labelText: 'form.supplier'.tr())),
+          const SizedBox(height: 8),
+          SwitchListTile(
+            value: usedSalesForPurchase,
+            onChanged: (v) => setState(() => usedSalesForPurchase = v),
+            title: Text('form.used_sales_for_purchase'.tr()),
+            subtitle: Text('form.used_sales_for_purchase_hint'.tr()),
+            activeColor: FaidaBizTheme.green,
+            contentPadding: EdgeInsets.zero,
+          ),
+          if (usedSalesForPurchase) ...[
+            const SizedBox(height: 8),
+            TextField(
+              controller: usedSalesAmount,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(labelText: 'form.used_sales_amount'.tr()),
+            ),
+          ],
           if (error != null) Text(error!, style: const TextStyle(color: Colors.red)),
           const SizedBox(height: 24),
           ElevatedButton(

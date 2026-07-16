@@ -4,16 +4,13 @@ import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/activity_screen.dart';
 import 'package:wicom/faidabiz/screens/debts_screen.dart';
-import 'package:wicom/faidabiz/screens/expense_form_screen.dart';
 import 'package:wicom/faidabiz/screens/expenses_screen.dart';
 import 'package:wicom/faidabiz/screens/product_form_screen.dart';
 import 'package:wicom/faidabiz/screens/products_screen.dart';
 import 'package:wicom/faidabiz/screens/purchase_form_screen.dart';
 import 'package:wicom/faidabiz/screens/reports_screen.dart';
-import 'package:wicom/faidabiz/screens/sale_form_screen.dart';
 import 'package:wicom/faidabiz/screens/sales_screen.dart';
 import 'package:wicom/faidabiz/screens/settings_screen.dart';
-import 'package:wicom/faidabiz/screens/support_chat_screen.dart';
 import 'package:wicom/faidabiz/widgets/count_up_money_card.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_activity_tile.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_date_filter.dart';
@@ -85,30 +82,16 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
         ? 'home.today'.tr()
         : 'home.summary_for'.tr(args: [DateFormat('EEE, d MMM yyyy').format(selectedDate)]);
 
-    final unreadChat = (data?['unread_chat'] is num)
-        ? (data!['unread_chat'] as num).toInt()
-        : int.tryParse('${data?['unread_chat'] ?? 0}') ?? 0;
-
     final features = [
       _Feature('nav.sales'.tr(), Icons.point_of_sale, FaidaBizTheme.green, () => _open(const FaidaBizSalesScreen())),
-      _Feature(
-        'nav.chat'.tr(),
-        Icons.chat_bubble_outline_rounded,
-        const Color(0xFF128C7E),
-        () => _open(const FaidaBizSupportChatScreen()),
-        badge: unreadChat,
-      ),
       _Feature('nav.debts'.tr(), Icons.handshake_outlined, Colors.orange.shade800, () => _open(const FaidaBizDebtsScreen())),
       _Feature('nav.expenses'.tr(), Icons.payments, Colors.deepOrange.shade700, () => _open(const FaidaBizExpensesScreen())),
       _Feature('nav.products'.tr(), Icons.inventory_2, FaidaBizTheme.greenDark, () => _open(const FaidaBizProductsScreen())),
       _Feature('nav.reports'.tr(), Icons.bar_chart, FaidaBizTheme.black, () => _open(const FaidaBizReportsScreen())),
-      _Feature('home.add_sale'.tr(), Icons.add_shopping_cart, FaidaBizTheme.green, () => _open(const FaidaBizSaleFormScreen())),
       _Feature('debts.add'.tr(), Icons.person_add_alt_1, Colors.orange.shade800, () => _open(const FaidaBizDebtFormScreen())),
-      _Feature('home.add_expense'.tr(), Icons.add_card, Colors.deepOrange.shade700, () => _open(const FaidaBizExpenseFormScreen())),
       _Feature('home.add_purchase'.tr(), Icons.add_box, FaidaBizTheme.black, () => _open(const FaidaBizPurchaseFormScreen())),
       _Feature('home.add_product'.tr(), Icons.playlist_add, FaidaBizTheme.greenDark, () => _open(const FaidaBizProductFormScreen())),
       _Feature('settings.activity'.tr(), Icons.history, Colors.blueGrey, () => _open(const FaidaBizActivityScreen())),
-      _Feature('nav.settings'.tr(), Icons.settings, Colors.grey.shade800, () => _open(const FaidaBizSettingsScreen())),
     ];
 
     return Scaffold(
