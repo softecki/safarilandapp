@@ -51,12 +51,15 @@ class _FaidaBizProductsScreenState extends State<FaidaBizProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('nav.products'.tr())),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           await Navigator.push(context, MaterialPageRoute(builder: (_) => const FaidaBizProductFormScreen()));
           _load();
         },
-        child: const Icon(Icons.add),
+        backgroundColor: FaidaBizTheme.green,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add),
+        label: Text('home.add_product'.tr()),
       ),
       body: loading
           ? FaidaBizLoader.body()

@@ -13,6 +13,7 @@
     "reports": "Reports",
     "settings": "Settings",
     "debts": "Debts",
+    "purchases": "Purchases",
     "chat": "Chat"
   },
   "auth": {
@@ -56,7 +57,7 @@
     "add_purchase": "+ Add Purchase",
     "add_product": "+ Add Product",
     "add_expense": "+ Add Expense",
-    "recent": "Recent activity",
+    "recent": "Transaction history",
     "recent_empty": "No activity for this day yet.",
     "view_more_activity": "View more activity"
   },
@@ -105,6 +106,11 @@
     "profit": "Profit",
     "stock_now": "In stock now: {} {}",
     "stock_topup_hint": "Stock is only {} {}. You are selling {}. The missing {} will be added to stock first, then all sold quantity will be deducted (stock ends at 0)."
+  },
+  "purchases": {
+    "empty": "No purchases yet. Tap Add Purchase to record stock bought.",
+    "list_total": "Total purchases",
+    "list_count": "{} purchases"
   },
   "expenses": {
     "empty": "No expenses yet. Add today's expenses.",

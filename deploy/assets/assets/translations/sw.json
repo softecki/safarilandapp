@@ -13,6 +13,7 @@
     "reports": "Ripoti",
     "settings": "Mipangilio",
     "debts": "Madeni",
+    "purchases": "Manunuzi",
     "chat": "Mazungumzo"
   },
   "auth": {
@@ -56,7 +57,7 @@
     "add_purchase": "+ Ongeza Manunuzi",
     "add_product": "+ Ongeza Bidhaa",
     "add_expense": "+ Ongeza Matumizi",
-    "recent": "Shughuli za hivi karibuni",
+    "recent": "Historia ya miamala",
     "recent_empty": "Hakuna shughuli kwa siku hii bado.",
     "view_more_activity": "Ona shughuli zaidi"
   },
@@ -105,6 +106,11 @@
     "profit": "Faida",
     "stock_now": "Stock sasa: {} {}",
     "stock_topup_hint": "Stock ina {} {} tu. Unauza {}. Isiyotosha ({}) itaongezwa kwenye stock kwanza, kisha kiasi chote kitaondolewa (stock itakuwa 0)."
+  },
+  "purchases": {
+    "empty": "Hakuna manunuzi bado. Bonyeza Ongeza Manunuzi kusajili.",
+    "list_total": "Jumla ya manunuzi",
+    "list_count": "Manunuzi {}"
   },
   "expenses": {
     "empty": "Hakuna matumizi bado. Ongeza matumizi ya leo.",
