@@ -4,8 +4,10 @@ import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/activity_screen.dart';
 import 'package:wicom/faidabiz/screens/login_screen.dart';
+import 'package:wicom/faidabiz/screens/referrals_screen.dart';
 import 'package:wicom/faidabiz/screens/settings_add_business_screen.dart';
 import 'package:wicom/faidabiz/screens/settings_add_staff_screen.dart';
+import 'package:wicom/faidabiz/screens/subscription_screen.dart';
 import 'package:wicom/faidabiz/screens/support_chat_screen.dart';
 
 class FaidaBizSettingsScreen extends StatefulWidget {
@@ -234,6 +236,35 @@ class _FaidaBizSettingsScreenState extends State<FaidaBizSettingsScreen> {
                             ),
                           ),
                         ],
+                        const SizedBox(height: 14),
+                        _SectionCard(
+                          title: 'subscription.section'.tr(),
+                          icon: Icons.workspace_premium_rounded,
+                          child: Column(
+                            children: [
+                              _NavTile(
+                                icon: Icons.payments_outlined,
+                                iconColor: FaidaBizTheme.green,
+                                title: 'subscription.title'.tr(),
+                                subtitle: 'subscription.section_hint'.tr(),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const FaidaBizSubscriptionScreen()),
+                                ),
+                              ),
+                              _NavTile(
+                                icon: Icons.person_add_alt_1_rounded,
+                                iconColor: Colors.teal,
+                                title: 'subscription.invite_friends'.tr(),
+                                subtitle: 'subscription.invite_hint'.tr(),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const FaidaBizReferralsScreen()),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         const SizedBox(height: 14),
                         _SectionCard(
                           title: 'settings.preferences'.tr(),

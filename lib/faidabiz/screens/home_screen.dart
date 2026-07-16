@@ -10,6 +10,7 @@ import 'package:wicom/faidabiz/screens/purchases_screen.dart';
 import 'package:wicom/faidabiz/screens/reports_screen.dart';
 import 'package:wicom/faidabiz/screens/sales_screen.dart';
 import 'package:wicom/faidabiz/screens/settings_screen.dart';
+import 'package:wicom/faidabiz/screens/subscription_screen.dart';
 import 'package:wicom/faidabiz/widgets/count_up_money_card.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_date_filter.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
@@ -24,6 +25,7 @@ class FaidaBizHomeScreen extends StatefulWidget {
 
 class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
   Map<String, dynamic>? data;
+  Map<String, dynamic>? subscription;
   String? error;
   bool loading = true;
   late DateTime selectedDate;
@@ -47,10 +49,15 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
       error = null;
     });
     try {
-      final res = await FaidaBizApi.get('/home', query: {
-        'date': faidaBizDateQuery(selectedDate),
+      final home = await FaidaBizApi.get('/home', query: {'date': faidaBizDateQuery(selectedDate)});
+      Map<String, dynamic> subRes = {};
+      try {
+        subRes = await FaidaBizApi.get('/subscription');
+      } catch (_) {}
+      setState(() {
+        data = home;
+        subscription = subRes['subscription'] as Map<String, dynamic>?;
       });
-      setState(() => data = res);
     } catch (e) {
       setState(() => error = e.toString());
     } finally {
@@ -98,6 +105,28 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
           ],
         ),
         actions: [
+          if (subscription != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Center(
+                child: InkWell(
+                  onTap: () => _open(const FaidaBizSubscriptionScreen()),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white54),
+                    ),
+                    child: Text(
+                      subscription!['label']?.toString() ?? 'subscription.status'.tr(),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
