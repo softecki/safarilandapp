@@ -8,6 +8,20 @@ class FaidaBizTheme {
   static const black = Color(0xFF111111);
   static const canvas = Color(0xFFF7FAF8);
 
+  /// Trial = red, expired/unpaid = blue, active/paid = green.
+  static Color subscriptionStatusColor(String? status) {
+    switch (status) {
+      case 'active':
+        return green;
+      case 'trial':
+        return const Color(0xFFDC2626);
+      case 'expired':
+        return const Color(0xFF2563EB);
+      default:
+        return Colors.grey.shade700;
+    }
+  }
+
   static ThemeData material() {
     final base = ThemeData(
       useMaterial3: true,

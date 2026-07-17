@@ -96,7 +96,31 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
                       'landing.subtitle'.tr(),
                       style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
                     ),
-                    const SizedBox(height: 36),
+                    const SizedBox(height: 28),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const FaidaBizRegisterScreen()),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(
+                        'landing.register_cta'.tr(),
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.white,
+                          decorationThickness: 2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.all(22),
                       decoration: BoxDecoration(

@@ -113,7 +113,7 @@ class _FaidaBizReferralsScreenState extends State<FaidaBizReferralsScreen> {
                 const SizedBox(height: 16),
                 Text('subscription.invite_title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                TextField(controller: name, decoration: InputDecoration(labelText: 'auth.name'.tr(), border: const OutlineInputBorder())),
+                TextField(controller: name, decoration: InputDecoration(labelText: 'auth.their_name'.tr(), border: const OutlineInputBorder())),
                 const SizedBox(height: 8),
                 TextField(
                   controller: phone,

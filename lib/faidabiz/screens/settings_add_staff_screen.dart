@@ -65,7 +65,7 @@ class _FaidaBizAddStaffScreenState extends State<FaidaBizAddStaffScreen> {
           const SizedBox(height: 16),
           TextField(
             controller: _name,
-            decoration: InputDecoration(labelText: 'auth.name'.tr(), border: const OutlineInputBorder()),
+            decoration: InputDecoration(labelText: 'auth.their_name'.tr(), border: const OutlineInputBorder()),
             textCapitalization: TextCapitalization.words,
           ),
           const SizedBox(height: 12),

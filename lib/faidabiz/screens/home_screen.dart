@@ -115,13 +115,13 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
+                      color: FaidaBizTheme.subscriptionStatusColor(subscription!['status']?.toString()),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white54),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
                     ),
                     child: Text(
                       subscription!['label']?.toString() ?? 'subscription.status'.tr(),
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
                     ),
                   ),
                 ),
@@ -156,6 +156,47 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                       FaidaBizDateFilter(selected: selectedDate, onChanged: _onDateChanged),
                       const SizedBox(height: 10),
                       Text(summaryLabel, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
+                      if (subscription?['payment_reminder'] is Map && subscription!['payment_reminder']['show'] == true) ...[
+                        const SizedBox(height: 12),
+                        Material(
+                          color: const Color(0xFFFFF7ED),
+                          borderRadius: BorderRadius.circular(14),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () => _open(const FaidaBizSubscriptionScreen()),
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.notifications_active_outlined, color: Color(0xFFC2410C)),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'subscription.reminder_title'.tr(),
+                                          style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF9A3412)),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          subscription!['payment_reminder']['message']?.toString()
+                                              ?? 'subscription.reminder_body'.tr(
+                                                  args: ['${subscription!['payment_reminder']['days_left'] ?? ''}'],
+                                                ),
+                                          style: TextStyle(color: Colors.grey.shade800, fontSize: 13, height: 1.35),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(Icons.chevron_right, color: Color(0xFFC2410C)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                       if (loading) ...[
                         const SizedBox(height: 12),
                         const LinearProgressIndicator(

@@ -315,15 +315,77 @@ class _FaidaBizSettingsScreenState extends State<FaidaBizSettingsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'FaidaBiz',
-                                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: FaidaBizTheme.greenDark),
+                              // Brand header
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 52,
+                                    height: 52,
+                                    decoration: BoxDecoration(
+                                      color: FaidaBizTheme.green,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 28),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('FaidaBiz', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: FaidaBizTheme.greenDark)),
+                                      Text('about.version'.tr(), style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 12),
                               Text(
-                                'brand.tagline'.tr(),
-                                style: TextStyle(color: Colors.grey.shade700, height: 1.35),
+                                'about.description'.tr(),
+                                style: TextStyle(color: Colors.grey.shade800, height: 1.5, fontSize: 13.5),
                               ),
+                              const SizedBox(height: 16),
+                              Text('about.features_title'.tr(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: FaidaBizTheme.greenDark)),
+                              const SizedBox(height: 10),
+                              ...[
+                                ('about.feat_sales_icon', 'about.feat_sales_title', 'about.feat_sales_body', Icons.point_of_sale_rounded, FaidaBizTheme.green),
+                                ('about.feat_expenses_icon', 'about.feat_expenses_title', 'about.feat_expenses_body', Icons.payments_rounded, Colors.orange.shade700),
+                                ('about.feat_purchases_icon', 'about.feat_purchases_title', 'about.feat_purchases_body', Icons.shopping_bag_rounded, Colors.brown.shade600),
+                                ('about.feat_products_icon', 'about.feat_products_title', 'about.feat_products_body', Icons.inventory_2_rounded, FaidaBizTheme.greenDark),
+                                ('about.feat_debts_icon', 'about.feat_debts_title', 'about.feat_debts_body', Icons.handshake_rounded, Colors.deepOrange.shade600),
+                                ('about.feat_reports_icon', 'about.feat_reports_title', 'about.feat_reports_body', Icons.bar_chart_rounded, Colors.indigo),
+                                ('about.feat_team_icon', 'about.feat_team_title', 'about.feat_team_body', Icons.groups_rounded, Colors.blueGrey),
+                                ('about.feat_multi_icon', 'about.feat_multi_title', 'about.feat_multi_body', Icons.store_mall_directory_rounded, Colors.teal),
+                                ('about.feat_referral_icon', 'about.feat_referral_title', 'about.feat_referral_body', Icons.person_add_rounded, Colors.purple.shade600),
+                                ('about.feat_subscription_icon', 'about.feat_subscription_title', 'about.feat_subscription_body', Icons.workspace_premium_rounded, Colors.amber.shade800),
+                                ('about.feat_chat_icon', 'about.feat_chat_title', 'about.feat_chat_body', Icons.chat_rounded, const Color(0xFF128C7E)),
+                              ].map((f) => Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: f.$5.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Icon(f.$4, color: f.$5, size: 20),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(f.$2.tr(), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+                                          const SizedBox(height: 2),
+                                          Text(f.$3.tr(), style: TextStyle(fontSize: 12.5, color: Colors.grey.shade700, height: 1.4)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )),
+                              const Divider(height: 24),
+                              Text('about.contact'.tr(), style: TextStyle(fontSize: 12.5, color: Colors.grey.shade600, height: 1.4)),
                               const SizedBox(height: 16),
                               SizedBox(
                                 width: double.infinity,

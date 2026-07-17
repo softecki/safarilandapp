@@ -13,9 +13,12 @@ class FaidaBizSubscriptionScreen extends StatefulWidget {
 
 class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen> {
   Map<String, dynamic>? payload;
+  List<Map<String, dynamic>> transactions = const [];
   bool loading = true;
   bool paying = false;
+  bool refreshingStatus = false;
   String? error;
+  String? refreshMessage;
   String paymentMode = 'annual';
   String pushType = 'voda_push';
   late final TextEditingController phone;
@@ -40,9 +43,12 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
     });
     try {
       final res = await FaidaBizApi.get('/subscription');
+      final txRes = await FaidaBizApi.get('/subscription/transactions');
+      final txRaw = (txRes['data'] as List?) ?? const [];
       if (!mounted) return;
       setState(() {
         payload = res;
+        transactions = txRaw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
         final defaultPhone = res['default_phone']?.toString().trim();
         if (defaultPhone != null && defaultPhone.isNotEmpty) phone.text = defaultPhone;
         final modes = (res['subscription']?['payment_modes'] as List?) ?? [];
@@ -60,6 +66,33 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
     }
   }
 
+  Future<void> _refreshPaymentStatus() async {
+    setState(() {
+      refreshingStatus = true;
+      refreshMessage = null;
+    });
+    try {
+      final res = await FaidaBizApi.post('/subscription/refresh-status', {});
+      if (!mounted) return;
+      setState(() {
+        payload = {
+          ...?payload,
+          'subscription': Map<String, dynamic>.from(res['subscription'] as Map? ?? {}),
+        };
+        final txRaw = (res['transactions'] as List?) ?? const [];
+        transactions = txRaw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        refreshMessage = res['message']?.toString();
+      });
+      await _load();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    } finally {
+      if (mounted) setState(() => refreshingStatus = false);
+    }
+  }
+
   Map<String, dynamic> get sub => payload?['subscription'] as Map<String, dynamic>? ?? {};
   List get networks => (payload?['networks'] as List?) ?? [];
   List get modes => (sub['payment_modes'] as List?) ?? [];
@@ -73,18 +106,10 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
     return 0;
   }
 
-  Color get _statusColor {
-    switch (sub['status']?.toString()) {
-      case 'active':
-        return FaidaBizTheme.green;
-      case 'trial':
-        return const Color(0xFF0369A1);
-      case 'expired':
-        return const Color(0xFFC2410C);
-      default:
-        return Colors.grey.shade700;
-    }
-  }
+  Color get _statusColor => FaidaBizTheme.subscriptionStatusColor(sub['status']?.toString());
+
+  Map<String, dynamic> get paymentReminder =>
+      sub['payment_reminder'] is Map ? Map<String, dynamic>.from(sub['payment_reminder'] as Map) : const {};
 
   Future<void> _pay() async {
     if (phone.text.trim().isEmpty) {
@@ -156,6 +181,41 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Text(error!, style: const TextStyle(color: Colors.red)),
                         ),
+                      if (paymentReminder['show'] == true) ...[
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF7ED),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFFDBA74)),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.warning_amber_rounded, color: Color(0xFFC2410C)),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'subscription.reminder_title'.tr(),
+                                      style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF9A3412)),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      paymentReminder['message']?.toString()
+                                          ?? 'subscription.reminder_body'.tr(args: ['${paymentReminder['days_left'] ?? ''}']),
+                                      style: TextStyle(color: Colors.grey.shade800, fontSize: 13, height: 1.35),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                      ],
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
@@ -194,6 +254,16 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
                                 style: TextStyle(color: Colors.white.withValues(alpha: 0.95), fontSize: 14),
                               ),
                             ],
+                            if (sub['installments_paid'] != null && sub['installments_total'] != null) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                'subscription.installments_paid'.tr(args: [
+                                  '${sub['installments_paid']}',
+                                  '${sub['installments_total']}',
+                                ]),
+                                style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13),
+                              ),
+                            ],
                             if (annual != null) ...[
                               const SizedBox(height: 14),
                               Container(
@@ -222,6 +292,28 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
                           ),
                           icon: const Icon(Icons.more_time_rounded),
                           label: Text(pendingExt ? 'subscription.extension_pending'.tr() : 'subscription.request_extension'.tr()),
+                        ),
+                      ],
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: refreshingStatus ? null : _refreshPaymentStatus,
+                        icon: refreshingStatus
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.refresh_rounded),
+                        label: Text('subscription.refresh_status'.tr()),
+                      ),
+                      if (refreshMessage != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          refreshMessage!,
+                          style: TextStyle(
+                            color: refreshMessage!.toLowerCase().contains('active') ? FaidaBizTheme.greenDark : Colors.orange.shade800,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                       const SizedBox(height: 22),
@@ -332,6 +424,40 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
                           );
                         }).toList(),
                       ),
+                      const SizedBox(height: 18),
+                      Text('subscription.transactions_title'.tr(), style: const TextStyle(fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 8),
+                      if (transactions.isEmpty)
+                        Text(
+                          'subscription.transactions_empty'.tr(),
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                        )
+                      else
+                        ...transactions.take(10).map((tx) {
+                          final status = tx['status']?.toString() ?? 'pending';
+                          final amount = FaidaBizTheme.money(tx['amount']);
+                          final ref = tx['deposit_request_id']?.toString() ?? tx['payment_request_id']?.toString() ?? '-';
+                          final date = tx['paid_at']?.toString() ?? tx['created_at']?.toString() ?? '';
+                          final color = switch (status) {
+                            'success' => FaidaBizTheme.green,
+                            'failed' => Colors.red.shade700,
+                            'cancelled' => Colors.grey.shade700,
+                            _ => Colors.orange.shade700,
+                          };
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: ListTile(
+                              dense: true,
+                              title: Text('$amount • ${'subscription.mode_${tx['payment_mode'] ?? 'annual'}'.tr()}'),
+                              subtitle: Text('$ref\n$date', style: const TextStyle(fontSize: 12)),
+                              isThreeLine: true,
+                              trailing: Text(
+                                'subscription.tx_status_$status'.tr(),
+                                style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12),
+                              ),
+                            ),
+                          );
+                        }),
                     ],
                   ),
                 ),
