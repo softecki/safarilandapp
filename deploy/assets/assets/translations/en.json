@@ -4,7 +4,8 @@
   },
   "landing": {
     "subtitle": "A simple business notebook — sales, expenses and profit.",
-    "register_cta": "Register"
+    "register_cta": "Register",
+    "register_biz_cta": "Register your business"
   },
   "nav": {
     "home": "Home",
@@ -20,6 +21,13 @@
   "auth": {
     "name": "Your name",
     "their_name": "Their name",
+    "register_biz": "Register your business",
+    "fill_required": "Please enter your phone number and password.",
+    "name_optional_hint": "Optional — you can leave this blank",
+    "enter_biz_name_title": "Your business name",
+    "enter_biz_name_hint": "Enter your shop or business name so we can identify your account.",
+    "biz_name_label": "Shop / business name",
+    "business_name_required": "Please enter your business name.",
     "phone": "Phone number",
     "password": "Password",
     "login": "Log in",
@@ -287,11 +295,12 @@
     "installments_paid": "Payments {}/{} this year",
     "reminder_title": "Payment reminder",
     "reminder_body": "Subscription ends in {} days. Pay to continue.",
+    "reminder_dismiss": "Dismiss",
     "pay_title": "Choose payment plan",
     "phone": "Phone for payment",
     "network": "Mobile network",
     "pay_now": "Pay now",
-    "refresh_status": "Refresh payment status",
+    "refresh_status": "Refresh",
     "payment_sent": "Payment push sent. Confirm on your phone.",
     "request_extension": "Request 7-day extension",
     "extension_pending": "Extension pending approval",

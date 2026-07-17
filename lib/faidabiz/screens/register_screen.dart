@@ -20,8 +20,8 @@ class _FaidaBizRegisterScreenState extends State<FaidaBizRegisterScreen> {
   String? error;
 
   Future<void> _submit() async {
-    if (name.text.trim().isEmpty || phone.text.trim().isEmpty || password.text.isEmpty) {
-      setState(() => error = 'auth.fill_all'.tr());
+    if (phone.text.trim().isEmpty || password.text.isEmpty) {
+      setState(() => error = 'auth.fill_required'.tr());
       return;
     }
     setState(() {
@@ -30,7 +30,7 @@ class _FaidaBizRegisterScreenState extends State<FaidaBizRegisterScreen> {
     });
     try {
       final res = await FaidaBizApi.register(
-        name: name.text.trim(),
+        name: name.text.trim().isEmpty ? null : name.text.trim(),
         phone: phone.text.trim(),
         password: password.text,
       );
@@ -52,7 +52,7 @@ class _FaidaBizRegisterScreenState extends State<FaidaBizRegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('auth.register'.tr())),
+      appBar: AppBar(title: Text('auth.register_biz'.tr())),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
@@ -64,7 +64,10 @@ class _FaidaBizRegisterScreenState extends State<FaidaBizRegisterScreen> {
           TextField(
             controller: name,
             textCapitalization: TextCapitalization.words,
-            decoration: InputDecoration(labelText: 'auth.name'.tr()),
+            decoration: InputDecoration(
+              labelText: 'auth.name'.tr(),
+              hintText: 'auth.name_optional_hint'.tr(),
+            ),
           ),
           const SizedBox(height: 12),
           TextField(

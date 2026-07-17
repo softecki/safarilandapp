@@ -108,7 +108,7 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
                         foregroundColor: Colors.white,
                       ),
                       child: Text(
-                        'landing.register_cta'.tr(),
+                        'landing.register_biz_cta'.tr(),
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,

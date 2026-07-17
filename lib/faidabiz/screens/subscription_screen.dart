@@ -167,7 +167,23 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBF8),
-      appBar: AppBar(title: Text('subscription.title'.tr())),
+      appBar: AppBar(
+        title: Text('subscription.title'.tr()),
+        actions: [
+          TextButton.icon(
+            onPressed: refreshingStatus || loading ? null : _refreshPaymentStatus,
+            icon: refreshingStatus
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.refresh_rounded, size: 20),
+            label: Text('subscription.refresh_status'.tr()),
+            style: TextButton.styleFrom(foregroundColor: Colors.white),
+          ),
+        ],
+      ),
       body: loading
           ? FaidaBizLoader.body()
           : Column(
@@ -294,18 +310,6 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
                           label: Text(pendingExt ? 'subscription.extension_pending'.tr() : 'subscription.request_extension'.tr()),
                         ),
                       ],
-                      const SizedBox(height: 10),
-                      OutlinedButton.icon(
-                        onPressed: refreshingStatus ? null : _refreshPaymentStatus,
-                        icon: refreshingStatus
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.refresh_rounded),
-                        label: Text('subscription.refresh_status'.tr()),
-                      ),
                       if (refreshMessage != null) ...[
                         const SizedBox(height: 8),
                         Text(

@@ -124,6 +124,13 @@ class FaidaBizApi {
     }
   }
 
+  static Future<Map<String, dynamic>> setBusinessName(String name) async {
+    final res = await post('/set-business-name', {'business_name': name});
+    final u = res['user'] as Map<String, dynamic>?;
+    if (u != null && token != null) await saveSession(token!, u);
+    return res;
+  }
+
   static Future<void> createBusiness({
     required String name,
     String? businessType,
@@ -222,9 +229,9 @@ class FaidaBizApi {
     return body;
   }
 
-  /// Sajili: jina + simu + nenosiri → SMS OTP (hakuna token bado).
+  /// Sajili: simu + nenosiri → SMS OTP. Jina ni la hiari.
   static Future<Map<String, dynamic>> register({
-    required String name,
+    String? name,
     required String phone,
     required String password,
   }) async {
@@ -233,7 +240,7 @@ class FaidaBizApi {
           Uri.parse('$_base/register'),
           headers: _headers,
           body: jsonEncode({
-            'name': name,
+            if (name != null && name.isNotEmpty) 'name': name,
             'phone': phone,
             'password': password,
             'source': 'app',

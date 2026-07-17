@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/activity_screen.dart';
@@ -28,7 +31,15 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
   Map<String, dynamic>? subscription;
   String? error;
   bool loading = true;
+  bool _showPaymentReminder = false;
+  Timer? _reminderAutoDismissTimer;
   late DateTime selectedDate;
+
+  @override
+  void dispose() {
+    _reminderAutoDismissTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -58,11 +69,50 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
         data = home;
         subscription = subRes['subscription'] as Map<String, dynamic>?;
       });
+      await _syncPaymentReminderBanner();
     } catch (e) {
       setState(() => error = e.toString());
     } finally {
       if (mounted) setState(() => loading = false);
     }
+  }
+
+  Future<void> _syncPaymentReminderBanner() async {
+    _reminderAutoDismissTimer?.cancel();
+    final sub = subscription;
+    final reminder = sub?['payment_reminder'];
+    if (reminder is! Map || reminder['show'] != true) {
+      if (mounted) setState(() => _showPaymentReminder = false);
+      return;
+    }
+
+    final subId = sub?['id']?.toString() ?? '0';
+    final day = reminder['reminder_day']?.toString() ?? DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final dismissed = prefs.getString('fb_reminder_dismissed_$subId');
+    if (dismissed == day) {
+      if (mounted) setState(() => _showPaymentReminder = false);
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _showPaymentReminder = true);
+    _reminderAutoDismissTimer = Timer(const Duration(minutes: 1), () {
+      if (mounted) _dismissPaymentReminder();
+    });
+  }
+
+  Future<void> _dismissPaymentReminder() async {
+    _reminderAutoDismissTimer?.cancel();
+    final sub = subscription;
+    final reminder = sub?['payment_reminder'];
+    if (reminder is Map) {
+      final subId = sub?['id']?.toString() ?? '0';
+      final day = reminder['reminder_day']?.toString() ?? DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('fb_reminder_dismissed_$subId', day);
+    }
+    if (mounted) setState(() => _showPaymentReminder = false);
   }
 
   Future<void> _open(Widget page) async {
@@ -156,7 +206,7 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                       FaidaBizDateFilter(selected: selectedDate, onChanged: _onDateChanged),
                       const SizedBox(height: 10),
                       Text(summaryLabel, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
-                      if (subscription?['payment_reminder'] is Map && subscription!['payment_reminder']['show'] == true) ...[
+                      if (_showPaymentReminder) ...[
                         const SizedBox(height: 12),
                         Material(
                           color: const Color(0xFFFFF7ED),
@@ -165,7 +215,7 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                             borderRadius: BorderRadius.circular(14),
                             onTap: () => _open(const FaidaBizSubscriptionScreen()),
                             child: Padding(
-                              padding: const EdgeInsets.all(14),
+                              padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -190,7 +240,13 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                                       ],
                                     ),
                                   ),
-                                  const Icon(Icons.chevron_right, color: Color(0xFFC2410C)),
+                                  IconButton(
+                                    tooltip: 'subscription.reminder_dismiss'.tr(),
+                                    onPressed: _dismissPaymentReminder,
+                                    icon: const Icon(Icons.close_rounded, color: Color(0xFFC2410C)),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                                  ),
                                 ],
                               ),
                             ),

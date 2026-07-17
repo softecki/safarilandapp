@@ -4,7 +4,8 @@
   },
   "landing": {
     "subtitle": "Daftari rahisi la biashara — mauzo, matumizi na faida.",
-    "register_cta": "Jisajili"
+    "register_cta": "Jisajili",
+    "register_biz_cta": "Jisajili biashara yako"
   },
   "nav": {
     "home": "Nyumbani",
@@ -20,6 +21,13 @@
   "auth": {
     "name": "Jina lako",
     "their_name": "Jina lake",
+    "register_biz": "Jisajili biashara yako",
+    "fill_required": "Jaza namba ya simu na nenosiri.",
+    "name_optional_hint": "Si lazima — unaweza kuacha wazi",
+    "enter_biz_name_title": "Jina la biashara yako",
+    "enter_biz_name_hint": "Ingiza jina la duka au biashara yako ili tuweze kutambua akaunti yako.",
+    "biz_name_label": "Jina la duka / biashara",
+    "business_name_required": "Tafadhali ingiza jina la biashara.",
     "phone": "Namba ya simu",
     "password": "Nenosiri",
     "login": "Ingia",
@@ -287,11 +295,12 @@
     "installments_paid": "Malipo {}/{} kwa mwaka",
     "reminder_title": "Kumbusho la malipo",
     "reminder_body": "Usajili utaisha baada ya siku {}. Lipia ili kuendelea.",
+    "reminder_dismiss": "Funga",
     "pay_title": "Chagua mpango wa malipo",
     "phone": "Simu ya malipo",
     "network": "Mtandao wa simu",
     "pay_now": "Lipa sasa",
-    "refresh_status": "Refresh hali ya malipo",
+    "refresh_status": "Refresh",
     "payment_sent": "Ombi la malipo limetumwa. Thibitisha kwenye simu.",
     "request_extension": "Omba kuongeza siku 7",
     "extension_pending": "Ombi linasubiri idhini",

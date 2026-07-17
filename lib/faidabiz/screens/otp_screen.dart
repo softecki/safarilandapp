@@ -48,10 +48,16 @@ class _FaidaBizOtpScreenState extends State<FaidaBizOtpScreen> {
       error = null;
     });
     try {
-      await FaidaBizApi.verifyOtp(phone: widget.phone, code: code);
+      final body = await FaidaBizApi.verifyOtp(phone: widget.phone, code: code);
       if (!mounted) return;
       await FaidaBizApi.applyLocaleFromUser(context);
       if (!mounted) return;
+
+      if (body['needs_business_name'] == true) {
+        await _showBusinessNameDialog();
+        if (!mounted) return;
+      }
+
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const FaidaBizShell()),
         (_) => false,
@@ -61,6 +67,103 @@ class _FaidaBizOtpScreenState extends State<FaidaBizOtpScreen> {
     } finally {
       if (mounted) setState(() => loading = false);
     }
+  }
+
+  Future<void> _showBusinessNameDialog() async {
+    final ctrl = TextEditingController();
+    bool saving = false;
+    String? dlgError;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(builder: (ctx, setDlgState) {
+          Future<void> save() async {
+            final name = ctrl.text.trim();
+            if (name.isEmpty) {
+              setDlgState(() => dlgError = 'auth.business_name_required'.tr());
+              return;
+            }
+            setDlgState(() {
+              saving = true;
+              dlgError = null;
+            });
+            try {
+              await FaidaBizApi.setBusinessName(name);
+              if (ctx.mounted) Navigator.of(ctx).pop();
+            } catch (e) {
+              setDlgState(() {
+                saving = false;
+                dlgError = e.toString();
+              });
+            }
+          }
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                const Icon(Icons.storefront_rounded, color: FaidaBizTheme.green),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'auth.enter_biz_name_title'.tr(),
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'auth.enter_biz_name_hint'.tr(),
+                  style: TextStyle(color: Colors.grey.shade700, fontSize: 13.5),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: ctrl,
+                  autofocus: true,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(
+                    labelText: 'auth.biz_name_label'.tr(),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: FaidaBizTheme.green, width: 2),
+                    ),
+                  ),
+                  onSubmitted: (_) => save(),
+                ),
+                if (dlgError != null) ...[
+                  const SizedBox(height: 8),
+                  Text(dlgError!, style: const TextStyle(color: Colors.red, fontSize: 12.5)),
+                ],
+              ],
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: saving ? null : save,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: FaidaBizTheme.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: saving
+                      ? FaidaBizLoader.button()
+                      : Text('common.save'.tr(), style: const TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          );
+        });
+      },
+    );
   }
 
   Future<void> _resend() async {
