@@ -114,8 +114,8 @@ class _FaidaBizDeleteScreenState extends State<FaidaBizDeleteScreen> {
             ),
           ),
           if (loading) ...[
-            const SizedBox(height: 8),
-            Center(child: FaidaBizLoader.button()),
+            const SizedBox(height: 12),
+            Center(child: FaidaBizLoader.button(message: 'Subiri...')),
           ],
           const SizedBox(height: 10),
           TextButton(

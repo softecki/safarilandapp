@@ -25,9 +25,9 @@ class _FaidaBizProductFormScreenState extends State<FaidaBizProductFormScreen> {
     final u = widget.product?['unit']?.toString() ?? 'pcs';
     return kProductUnits.contains(u) ? u : 'pcs';
   })();
-  late final stock = TextEditingController(text: '${widget.product?['stock_qty'] ?? 0}');
-  late final buy = TextEditingController(text: '${widget.product?['buy_price'] ?? 0}');
-  late final sell = TextEditingController(text: '${widget.product?['sell_price'] ?? 0}');
+  late final stock = TextEditingController(text: FaidaBizTheme.qtyInput(widget.product?['stock_qty'] ?? 0));
+  late final buy = TextEditingController(text: FaidaBizTheme.amountInput(widget.product?['buy_price'] ?? 0));
+  late final sell = TextEditingController(text: FaidaBizTheme.amountInput(widget.product?['sell_price'] ?? 0));
   late final note = TextEditingController();
   List history = [];
   bool loading = false;
@@ -328,7 +328,7 @@ class _FaidaBizProductFormScreenState extends State<FaidaBizProductFormScreen> {
               return Card(
                 child: ListTile(
                   title: Text(
-                    '${'form.buying'.tr()}: ${m['buy_price']} · ${'form.selling'.tr()}: ${m['sell_price']}',
+                    '${'form.buying'.tr()}: ${FaidaBizTheme.money(m['buy_price'])} · ${'form.selling'.tr()}: ${FaidaBizTheme.money(m['sell_price'])}',
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(

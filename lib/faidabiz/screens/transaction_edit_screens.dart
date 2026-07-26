@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
+import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_neumorphic.dart';
 
@@ -19,8 +20,8 @@ class _FaidaBizSaleEditScreenState extends State<FaidaBizSaleEditScreen> {
     return Map<String, dynamic>.from(items.first as Map);
   })();
 
-  late final qty = TextEditingController(text: '${item['quantity'] ?? 1}');
-  late final price = TextEditingController(text: '${item['unit_price'] ?? 0}');
+  late final qty = TextEditingController(text: FaidaBizTheme.qtyInput(item['quantity'] ?? 1));
+  late final price = TextEditingController(text: FaidaBizTheme.amountInput(item['unit_price'] ?? 0));
   late final notes = TextEditingController(text: widget.sale['notes']?.toString() ?? '');
   final reason = TextEditingController();
   bool loading = false;
@@ -135,9 +136,9 @@ class _FaidaBizPurchaseEditScreenState extends State<FaidaBizPurchaseEditScreen>
     return Map<String, dynamic>.from(items.first as Map);
   })();
 
-  late final qty = TextEditingController(text: '${item['quantity'] ?? 1}');
-  late final buy = TextEditingController(text: '${item['unit_cost'] ?? item['unit_price'] ?? 0}');
-  late final sell = TextEditingController(text: '${_initialSellPrice()}');
+  late final qty = TextEditingController(text: FaidaBizTheme.qtyInput(item['quantity'] ?? 1));
+  late final buy = TextEditingController(text: FaidaBizTheme.amountInput(item['unit_cost'] ?? item['unit_price'] ?? 0));
+  late final sell = TextEditingController(text: FaidaBizTheme.amountInput(_initialSellPrice()));
   late final supplier = TextEditingController(text: widget.purchase['supplier']?.toString() ?? '');
   late final notes = TextEditingController(text: widget.purchase['notes']?.toString() ?? '');
   final reason = TextEditingController();

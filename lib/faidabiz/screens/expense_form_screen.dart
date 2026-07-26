@@ -17,7 +17,7 @@ class FaidaBizExpenseFormScreen extends StatefulWidget {
 
 class _FaidaBizExpenseFormScreenState extends State<FaidaBizExpenseFormScreen> {
   late final title = TextEditingController(text: widget.expense?['title']?.toString() ?? '');
-  late final amount = TextEditingController(text: widget.expense != null ? '${widget.expense!['amount'] ?? ''}' : '');
+  late final amount = TextEditingController(text: widget.expense != null ? FaidaBizTheme.amountInput(widget.expense!['amount'] ?? 0) : '');
   late final category = TextEditingController(text: widget.expense?['category']?.toString() ?? '');
   late final notes = TextEditingController(text: widget.expense?['notes']?.toString() ?? '');
   late final reason = TextEditingController();
@@ -72,7 +72,7 @@ class _FaidaBizExpenseFormScreenState extends State<FaidaBizExpenseFormScreen> {
     final cat = s['category']?.toString() ?? '';
     if (cat.isNotEmpty) category.text = cat;
     final amt = FaidaBizTheme.asDouble(s['amount']);
-    if (amt > 0) amount.text = amt == amt.roundToDouble() ? amt.toStringAsFixed(0) : amt.toStringAsFixed(2);
+    if (amt > 0) amount.text = FaidaBizTheme.amountInput(amt);
     setState(() => suggestions = const []);
     Future<void>.delayed(const Duration(milliseconds: 350), () {
       _ignoreNextSuggest = false;

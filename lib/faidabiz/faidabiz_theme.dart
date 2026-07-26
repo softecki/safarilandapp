@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wicom/core/app_color.dart';
 
 class FaidaBizTheme {
   static const green = Color(0xFF15803D);
@@ -104,10 +103,27 @@ class FaidaBizTheme {
 
   static String money(Object? v, {String currency = 'TZS'}) {
     final n = asDouble(v);
-    final s = n.toStringAsFixed(0).replaceAllMapped(
+    final s = n.round().toString().replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (m) => '${m[1]},',
         );
     return '$s $currency';
+  }
+
+  /// Plain integer for amount/price TextFields (no `.00`, no thousand separators).
+  static String amountInput(Object? v) {
+    return asDouble(v).round().toString();
+  }
+
+  /// Quantity / stock for TextFields — whole numbers without `.0` / `.00`.
+  static String qtyInput(Object? v) {
+    final n = asDouble(v);
+    if (n == n.roundToDouble()) return n.round().toString();
+    // Rare fractional stock: trim trailing zeros (e.g. 1.50 → 1.5)
+    var s = n.toStringAsFixed(4);
+    while (s.contains('.') && (s.endsWith('0') || s.endsWith('.'))) {
+      s = s.substring(0, s.length - 1);
+    }
+    return s;
   }
 }

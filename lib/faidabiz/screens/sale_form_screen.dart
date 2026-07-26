@@ -82,7 +82,7 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
     setState(() {
       newProductName = null;
       productId = int.tryParse('${p['id']}');
-      price.text = '${p['sell_price'] ?? 0}';
+      price.text = FaidaBizTheme.amountInput(p['sell_price']);
       error = null;
     });
   }

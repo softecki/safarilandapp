@@ -182,16 +182,22 @@ class _FaidaBizReportsScreenState extends State<FaidaBizReportsScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          FilledButton.icon(
+          FilledButton(
             onPressed: loading ? null : _load,
             style: FilledButton.styleFrom(
               backgroundColor: FaidaBizTheme.green,
               minimumSize: const Size.fromHeight(48),
             ),
-            icon: loading
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.analytics_outlined),
-            label: Text('reports.generate'.tr()),
+            child: loading
+                ? FaidaBizLoader.button(message: 'Subiri...')
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.analytics_outlined, size: 20),
+                      const SizedBox(width: 8),
+                      Text('reports.generate'.tr()),
+                    ],
+                  ),
           ),
           if (error != null) ...[
             const SizedBox(height: 12),
@@ -216,16 +222,22 @@ class _FaidaBizReportsScreenState extends State<FaidaBizReportsScreen> {
             const SizedBox(height: 16),
             _ReportBody(type: reportType, report: report, currency: _currency),
             const SizedBox(height: 24),
-            FilledButton.icon(
+            FilledButton(
               onPressed: exporting ? null : () => _exportPdf(share: false),
               style: FilledButton.styleFrom(
                 backgroundColor: FaidaBizTheme.green,
                 minimumSize: const Size.fromHeight(48),
               ),
-              icon: exporting
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Icon(Icons.download),
-              label: Text('reports.download_pdf'.tr().toUpperCase()),
+              child: exporting
+                  ? FaidaBizLoader.button(message: 'Subiri...')
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.download, size: 20),
+                        const SizedBox(width: 8),
+                        Text('reports.download_pdf'.tr().toUpperCase()),
+                      ],
+                    ),
             ),
             const SizedBox(height: 10),
             OutlinedButton.icon(

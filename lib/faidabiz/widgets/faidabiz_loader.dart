@@ -43,10 +43,13 @@ class FaidaBizLoader extends StatefulWidget {
       );
 
   /// Compact spinner for elevated buttons (white on green).
-  static Widget button({Color color = Colors.white}) => FaidaBizLoader(
-        size: FaidaBizLoaderSize.button,
-        color: color,
-      );
+  /// Pass [message] (e.g. `Subiri...`) to show a small spinning icon + label.
+  static Widget button({Color color = Colors.white, String? message}) {
+    if (message == null || message.trim().isEmpty) {
+      return FaidaBizLoader(size: FaidaBizLoaderSize.button, color: color);
+    }
+    return _FaidaBizButtonWait(color: color, message: message.trim());
+  }
 
   /// Small green spinner for inline UI.
   static Widget inline({Color? color}) => FaidaBizLoader(
@@ -69,6 +72,53 @@ class FaidaBizLoader extends StatefulWidget {
 }
 
 enum FaidaBizLoaderSize { page, body, button, inline, splash }
+
+class _FaidaBizButtonWait extends StatefulWidget {
+  const _FaidaBizButtonWait({required this.color, required this.message});
+
+  final Color color;
+  final String message;
+
+  @override
+  State<_FaidaBizButtonWait> createState() => _FaidaBizButtonWaitState();
+}
+
+class _FaidaBizButtonWaitState extends State<_FaidaBizButtonWait>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        RotationTransition(
+          turns: _c,
+          child: Icon(Icons.autorenew_rounded, color: widget.color, size: 18),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          widget.message,
+          style: TextStyle(
+            color: widget.color,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class _FaidaBizLoaderState extends State<FaidaBizLoader> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(

@@ -103,7 +103,9 @@
     "save_more": "Save debt",
     "more_saved": "Debt added.",
     "amount_required": "Enter the debt amount.",
-    "edit": "Edit debt"
+    "edit": "Edit debt",
+    "edit_hint": "Edit name, phone, total owed, amount paid and notes. Balance is calculated automatically.",
+    "paid_exceeds_owed": "Paid amount cannot exceed total owed."
   },
   "chat": {
     "title": "Support chat",

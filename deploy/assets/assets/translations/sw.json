@@ -103,7 +103,9 @@
     "save_more": "Hifadhi deni",
     "more_saved": "Deni limeongezwa.",
     "amount_required": "Weka kiasi cha deni.",
-    "edit": "Hariri deni"
+    "edit": "Badilisha deni",
+    "edit_hint": "Badilisha jina, simu, deni lote, kilicholipwa na maelezo. Salio litahesabiwa kiotomatiki.",
+    "paid_exceeds_owed": "Kilicholipwa hakiwezi kuzidi deni lote."
   },
   "chat": {
     "title": "Mazungumzo ya msaada",
@@ -137,7 +139,7 @@
     "price_required": "Weka bei.",
     "create_product_failed": "Imeshindikana kuunda bidhaa.",
     "delete_hint": "Kufuta kunahitaji sababu na nenosiri. Stock itarekebishwa.",
-    "edit": "Hariri mauzo",
+    "edit": "Badilisha mauzo",
     "edit_hint": "Badilisha idadi au bei. Stock itasasishwa kiotomatiki."
   },
   "purchases": {
@@ -150,7 +152,7 @@
     "create_inline_hint": "Bidhaa haipo — bonyeza + kuongeza bidhaa mpya, kisha weka idadi, bei ya kununua na bei ya kuuza.",
     "sell_price_hint": "Bei ya kuuza inaweza kubadilishwa — itaonyeshwa hata kama bidhaa ipo au ni mpya.",
     "delete_hint": "Kufuta kunahitaji sababu na nenosiri. Stock itarekebishwa.",
-    "edit": "Hariri manunuzi",
+    "edit": "Badilisha manunuzi",
     "edit_hint": "Badilisha idadi, bei ya kununua au bei ya kuuza. Stock itasasishwa."
   },
   "expenses": {
@@ -158,7 +160,7 @@
     "list_total": "Jumla ya matumizi",
     "list_count": "Rekodi {}",
     "detail": "Maelezo ya matumizi",
-    "edit": "Hariri matumizi",
+    "edit": "Badilisha matumizi",
     "category": "Aina (si lazima)",
     "notes": "Maelezo (si lazima)",
     "history": "Matoleo ya zamani",
@@ -186,7 +188,7 @@
     "supplier": "Supplier (si lazima)",
     "expense_title": "Jina la matumizi",
     "amount": "Kiasi",
-    "edit_product": "Hariri bidhaa",
+    "edit_product": "Badilisha bidhaa",
     "no_products": "Hakuna bidhaa bado. Sajili bidhaa kwanza.",
     "select_product": "Chagua bidhaa",
     "search_product": "Tafuta bidhaa…",
@@ -237,8 +239,8 @@
     "col_total": "Jumla",
     "col_supplier": "Supplier",
     "type": "Aina ya ripoti",
-    "start_date": "Tarehe ya kuanza",
-    "end_date": "Tarehe ya mwisho",
+    "start_date": "Kuanza",
+    "end_date": "Mwisho",
     "generate": "Tengeneza ripoti",
     "download_pdf": "Pakua PDF",
     "share_pdf": "Shiriki PDF",
@@ -376,7 +378,7 @@
     "page": "Ukurasa {} / {}",
     "summary": "Muhtasari",
     "no_file_upload": "Hakuna faili ya kupakia",
-    "edit": "Hariri"
+    "edit": "Badilisha"
   },
   "manual": {
     "title": "Mwongozo wa matumizi",

@@ -172,16 +172,18 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
       appBar: faidaBizAppBar(
         title: 'subscription.title'.tr(),
         actions: [
-          TextButton.icon(
+          TextButton(
             onPressed: refreshingStatus || loading ? null : _refreshPaymentStatus,
-            icon: refreshingStatus
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  )
-                : const Icon(Icons.refresh_rounded, size: 20),
-            label: Text('subscription.refresh_status'.tr()),
+            child: refreshingStatus
+                ? FaidaBizLoader.button(message: 'Subiri...')
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.refresh_rounded, size: 20),
+                      const SizedBox(width: 6),
+                      Text('subscription.refresh_status'.tr()),
+                    ],
+                  ),
             style: TextButton.styleFrom(foregroundColor: Colors.white),
           ),
         ],

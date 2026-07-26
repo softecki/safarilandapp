@@ -16,7 +16,7 @@ class FaidaBizDebtPayScreen extends StatefulWidget {
 }
 
 class _FaidaBizDebtPayScreenState extends State<FaidaBizDebtPayScreen> {
-  late final amount = TextEditingController(text: widget.balance.toStringAsFixed(0));
+  late final amount = TextEditingController(text: FaidaBizTheme.amountInput(widget.balance));
   final notes = TextEditingController();
   bool loading = false;
   String? error;
@@ -180,15 +180,23 @@ class FaidaBizDebtEditScreen extends StatefulWidget {
 class _FaidaBizDebtEditScreenState extends State<FaidaBizDebtEditScreen> {
   late final name = TextEditingController(text: widget.debt['name']?.toString() ?? '');
   late final phone = TextEditingController(text: widget.debt['phone']?.toString() ?? '');
+  late final owed = TextEditingController(text: FaidaBizTheme.amountInput(widget.debt['owed'] ?? 0));
+  late final paid = TextEditingController(text: FaidaBizTheme.amountInput(widget.debt['paid'] ?? 0));
   late final notes = TextEditingController(text: widget.debt['notes']?.toString() ?? '');
   final reason = TextEditingController();
   bool loading = false;
   String? error;
 
+  double get _owed => double.tryParse(owed.text.replaceAll(',', '')) ?? 0;
+  double get _paid => double.tryParse(paid.text.replaceAll(',', '')) ?? 0;
+  double get _balance => _owed - _paid;
+
   @override
   void dispose() {
     name.dispose();
     phone.dispose();
+    owed.dispose();
+    paid.dispose();
     notes.dispose();
     reason.dispose();
     super.dispose();
@@ -197,6 +205,14 @@ class _FaidaBizDebtEditScreenState extends State<FaidaBizDebtEditScreen> {
   Future<void> _save() async {
     if (name.text.trim().isEmpty) {
       setState(() => error = 'debts.fill_required'.tr());
+      return;
+    }
+    if (_owed < 0 || _paid < 0) {
+      setState(() => error = 'debts.amount_required'.tr());
+      return;
+    }
+    if (_paid > _owed) {
+      setState(() => error = 'debts.paid_exceeds_owed'.tr());
       return;
     }
     if (reason.text.trim().length < 3) {
@@ -211,6 +227,8 @@ class _FaidaBizDebtEditScreenState extends State<FaidaBizDebtEditScreen> {
       await FaidaBizApi.put('/customers/${widget.debt['id']}', {
         'name': name.text.trim(),
         'phone': phone.text.trim().isEmpty ? null : phone.text.trim(),
+        'owed': _owed,
+        'paid': _paid,
         'notes': notes.text.trim().isEmpty ? null : notes.text.trim(),
         'edit_reason': reason.text.trim(),
       });
@@ -229,12 +247,39 @@ class _FaidaBizDebtEditScreenState extends State<FaidaBizDebtEditScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          Text(
+            'debts.edit_hint'.tr(),
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 13, height: 1.35),
+          ),
+          const SizedBox(height: 16),
           FaidaBizNeuField(controller: name, label: 'debts.customer_name'.tr()),
           const SizedBox(height: 14),
           FaidaBizNeuField(
             controller: phone,
             label: 'debts.phone_optional'.tr(),
             keyboardType: TextInputType.phone,
+          ),
+          const SizedBox(height: 14),
+          FaidaBizNeuField(
+            controller: owed,
+            label: 'debts.owed'.tr(),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 14),
+          FaidaBizNeuField(
+            controller: paid,
+            label: 'debts.paid'.tr(),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '${'debts.remaining'.tr()}: ${FaidaBizTheme.money(_balance)}',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: _balance > 0 ? Colors.orange.shade900 : FaidaBizTheme.green,
+            ),
           ),
           const SizedBox(height: 14),
           FaidaBizNeuField(controller: notes, label: 'debts.notes_optional'.tr(), maxLines: 2),

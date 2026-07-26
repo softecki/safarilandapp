@@ -24,6 +24,7 @@ class NeuPrimaryButton extends StatelessWidget {
     required this.label,
     this.onPressed,
     this.loading = false,
+    this.loadingLabel = 'Subiri...',
     this.icon,
     this.height = 52,
   });
@@ -31,6 +32,8 @@ class NeuPrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final bool loading;
+  /// Shown next to the wait icon while [loading] is true.
+  final String loadingLabel;
   final IconData? icon;
   final double height;
 
@@ -49,14 +52,7 @@ class NeuPrimaryButton extends StatelessWidget {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: loading
-            ? const SizedBox(
-                height: 22,
-                width: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.2,
-                  color: Colors.white,
-                ),
-              )
+            ? _NeuButtonWaitRow(label: loadingLabel)
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -75,6 +71,53 @@ class NeuPrimaryButton extends StatelessWidget {
                 ],
               ),
       ),
+    );
+  }
+}
+
+/// Small spinning wait icon + message (replaces CircularProgressIndicator on buttons).
+class _NeuButtonWaitRow extends StatefulWidget {
+  const _NeuButtonWaitRow({required this.label});
+
+  final String label;
+
+  @override
+  State<_NeuButtonWaitRow> createState() => _NeuButtonWaitRowState();
+}
+
+class _NeuButtonWaitRowState extends State<_NeuButtonWaitRow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        RotationTransition(
+          turns: _c,
+          child: const Icon(Icons.autorenew_rounded, color: Colors.white, size: 18),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          widget.label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          ),
+        ),
+      ],
     );
   }
 }

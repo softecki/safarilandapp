@@ -184,7 +184,7 @@ class _FaidaBizProductPickerPageState extends State<_FaidaBizProductPickerPage> 
                     ),
                     title: Text(p['name']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.w700)),
                     subtitle: Text(
-                      '${p['unit'] ?? ''} · ${'form.stock'.tr()}: ${p['stock_qty']} · ${FaidaBizTheme.money(p['sell_price'])}',
+                      '${p['unit'] ?? ''} · ${'form.stock'.tr()}: ${FaidaBizTheme.qtyInput(p['stock_qty'])} · ${FaidaBizTheme.money(p['sell_price'])}',
                     ),
                     trailing: isSelected ? const Icon(Icons.check_circle, color: FaidaBizTheme.green) : null,
                     onTap: () => Navigator.pop(context, p),
