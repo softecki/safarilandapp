@@ -2,11 +2,20 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
-import 'package:wicom/faidabiz/widgets/faidabiz_delete_dialog.dart';
+import 'package:wicom/faidabiz/screens/transaction_edit_screens.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_delete_screen.dart';
 
-class FaidaBizSaleDetailScreen extends StatelessWidget {
+class FaidaBizSaleDetailScreen extends StatefulWidget {
   const FaidaBizSaleDetailScreen({super.key, required this.sale});
   final Map<String, dynamic> sale;
+
+  @override
+  State<FaidaBizSaleDetailScreen> createState() => _FaidaBizSaleDetailScreenState();
+}
+
+class _FaidaBizSaleDetailScreenState extends State<FaidaBizSaleDetailScreen> {
+  late Map<String, dynamic> sale = Map<String, dynamic>.from(widget.sale);
 
   String _fmtDate(String? raw) {
     final dt = DateTime.tryParse(raw ?? '');
@@ -14,7 +23,15 @@ class FaidaBizSaleDetailScreen extends StatelessWidget {
     return DateFormat('d MMM yyyy · HH:mm').format(dt);
   }
 
-  Future<void> _delete(BuildContext context) async {
+  Future<void> _edit() async {
+    final updated = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (_) => FaidaBizSaleEditScreen(sale: sale)),
+    );
+    if (updated != null && mounted) setState(() => sale = updated);
+  }
+
+  Future<void> _delete() async {
     final id = sale['id'];
     final ok = await confirmAndSoftDelete(
       context: context,
@@ -27,7 +44,7 @@ class FaidaBizSaleDetailScreen extends StatelessWidget {
         });
       },
     );
-    if (ok && context.mounted) Navigator.pop(context, true);
+    if (ok && mounted) Navigator.pop(context, true);
   }
 
   @override
@@ -37,18 +54,7 @@ class FaidaBizSaleDetailScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F7F4),
-      appBar: AppBar(
-        title: Text('sales.detail'.tr()),
-        backgroundColor: FaidaBizTheme.green,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () => _delete(context),
-            tooltip: 'delete.confirm'.tr(),
-          ),
-        ],
-      ),
+      appBar: faidaBizAppBar(title: 'sales.detail'.tr()),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
@@ -61,23 +67,13 @@ class FaidaBizSaleDetailScreen extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: [Color(0xFF166534), FaidaBizTheme.green, Color(0xFF0B1A12)],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: FaidaBizTheme.green.withValues(alpha: 0.35),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('sales.sale_total'.tr(), style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13)),
                 const SizedBox(height: 6),
-                Text(
-                  FaidaBizTheme.money(sale['total']),
-                  style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w800),
-                ),
+                Text(FaidaBizTheme.money(sale['total']), style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 14),
                 _row(Icons.calendar_today_outlined, _fmtDate(sale['sold_at']?.toString())),
                 const SizedBox(height: 8),
@@ -97,11 +93,7 @@ class FaidaBizSaleDetailScreen extends StatelessWidget {
           Text('sales.items'.tr(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           const SizedBox(height: 10),
           if (lineItems.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-              child: Text('sales.no_items'.tr(), style: TextStyle(color: Colors.grey.shade600)),
-            )
+            Text('sales.no_items'.tr(), style: TextStyle(color: Colors.grey.shade600))
           else
             ...lineItems.map((raw) {
               final it = Map<String, dynamic>.from(raw as Map);
@@ -137,6 +129,10 @@ class FaidaBizSaleDetailScreen extends StatelessWidget {
                 ),
               );
             }),
+          const SizedBox(height: 24),
+          FaidaBizDetailActions(onEdit: _edit, onDelete: _delete),
+          const SizedBox(height: 8),
+          Text('sales.delete_hint'.tr(), style: TextStyle(fontSize: 12.5, color: Colors.grey.shade600, height: 1.35)),
         ],
       ),
     );

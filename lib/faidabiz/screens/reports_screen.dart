@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_report_pdf.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizReportsScreen extends StatefulWidget {
@@ -125,7 +126,7 @@ class _FaidaBizReportsScreenState extends State<FaidaBizReportsScreen> {
     final summary = report?['summary'] as Map<String, dynamic>? ?? {};
 
     return Scaffold(
-      appBar: AppBar(title: Text('nav.reports'.tr())),
+      appBar: faidaBizAppBar(title: 'nav.reports'.tr()),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [

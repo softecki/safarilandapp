@@ -90,14 +90,20 @@
     "paid": "Amelipa",
     "remaining": "Lililobaki",
     "cleared": "Amelipa yote",
-    "record_payment": "Andika malipo",
+    "record_payment": "Jaza malipo",
     "payment_amount": "Kiasi cha malipo",
     "save_payment": "Hifadhi malipo",
     "payment_saved": "Malipo yamehifadhiwa.",
     "payment_history": "Historia ya malipo",
     "no_payments": "Hakuna malipo bado.",
     "show_all": "Ona zote",
-    "show_open": "Wazi tu"
+    "show_open": "Wazi tu",
+    "add_more": "Ongeza deni",
+    "add_more_hint": "Ongeza deni zaidi kwa {}",
+    "save_more": "Hifadhi deni",
+    "more_saved": "Deni limeongezwa.",
+    "amount_required": "Weka kiasi cha deni.",
+    "edit": "Hariri deni"
   },
   "chat": {
     "title": "Mazungumzo ya msaada",
@@ -119,12 +125,33 @@
     "no_items": "Hakuna bidhaa kwenye mauzo haya.",
     "profit": "Faida",
     "stock_now": "Stock sasa: {} {}",
-    "stock_topup_hint": "Stock ina {} {} tu. Unauza {}. Isiyotosha ({}) itaongezwa kwenye stock kwanza, kisha kiasi chote kitaondolewa (stock itakuwa 0)."
+    "stock_topup_hint": "Stock ina {} {} tu. Unauza {}. Isiyotosha ({}) itaongezwa kwenye stock kwanza, kisha kiasi chote kitaondolewa (stock itakuwa 0).",
+    "product_not_found": "Hakuna bidhaa inayolingana na \"{}\".",
+    "create_product_from_search": "Ongeza bidhaa mpya",
+    "create_product_cta": "Ongeza \"{}\"",
+    "create_product_hint": "Bonyeza + kuongeza bidhaa hii, chagua kipimo, weka idadi na bei, kisha hifadhi mauzo.",
+    "create_inline_hint": "Bidhaa mpya — chagua kipimo, weka idadi na bei. Bei ya kununua itawekwa sawa na bei ya kuuza.",
+    "buy_equals_sell_hint": "Bei ya kununua = bei ya kuuza (unaweza kuhariri baadaye kwenye Bidhaa).",
+    "new_product_badge": "mpya",
+    "qty_required": "Weka idadi sahihi.",
+    "price_required": "Weka bei.",
+    "create_product_failed": "Imeshindikana kuunda bidhaa.",
+    "delete_hint": "Kufuta kunahitaji sababu na nenosiri. Stock itarekebishwa.",
+    "edit": "Hariri mauzo",
+    "edit_hint": "Badilisha idadi au bei. Stock itasasishwa kiotomatiki."
   },
   "purchases": {
     "empty": "Hakuna manunuzi bado. Bonyeza Ongeza Manunuzi kusajili.",
     "list_total": "Jumla ya manunuzi",
-    "list_count": "Manunuzi {}"
+    "list_count": "Manunuzi {}",
+    "detail": "Maelezo ya manunuzi",
+    "items": "Bidhaa zilizonunuliwa",
+    "no_items": "Hakuna bidhaa kwenye manunuzi haya.",
+    "create_inline_hint": "Bidhaa haipo — bonyeza + kuongeza bidhaa mpya, kisha weka idadi, bei ya kununua na bei ya kuuza.",
+    "sell_price_hint": "Bei ya kuuza inaweza kubadilishwa — itaonyeshwa hata kama bidhaa ipo au ni mpya.",
+    "delete_hint": "Kufuta kunahitaji sababu na nenosiri. Stock itarekebishwa.",
+    "edit": "Hariri manunuzi",
+    "edit_hint": "Badilisha idadi, bei ya kununua au bei ya kuuza. Stock itasasishwa."
   },
   "expenses": {
     "empty": "Hakuna matumizi bado. Ongeza matumizi ya leo.",
@@ -137,10 +164,16 @@
     "history": "Matoleo ya zamani",
     "history_hint": "Kila hariri huhifadhi taarifa za zamani pamoja na sababu.",
     "history_empty": "Hakuna hariri bado.",
-    "reason": "Sababu"
+    "reason": "Sababu",
+    "title_hint": "Andika jina la matumizi…",
+    "suggestions_hint": "Matumizi yaliyorekodiwa awali — bonyeza kuchagua:"
   },
   "form": {
     "product": "Bidhaa",
+    "product_name_hint": "Andika jina la bidhaa…",
+    "product_duplicate": "Bidhaa yenye jina hili tayari ipo. Tumia jina lingine.",
+    "product_duplicate_detail": "\"{}\" tayari ipo ({})",
+    "product_similar_hint": "Majina yanayofanana yaliyopo:",
     "qty": "Idadi",
     "price": "Bei",
     "total": "Jumla",
@@ -342,7 +375,31 @@
     "http_error": "Hitilafu ({})",
     "page": "Ukurasa {} / {}",
     "summary": "Muhtasari",
-    "no_file_upload": "Hakuna faili ya kupakia"
+    "no_file_upload": "Hakuna faili ya kupakia",
+    "edit": "Hariri"
+  },
+  "manual": {
+    "title": "Mwongozo wa matumizi",
+    "settings_tile_hint": "Jifunze jinsi ya kutumia kila kipengele cha FaidaBiz",
+    "intro": "Soma maelekezo haya kwa kila menyu ya nyumbani ili uweze kutumia FaidaBiz mwenyewe. Kila ukurasa una mshale wa kurudi juu kushoto.",
+    "sales_title": "Mauzo",
+    "sales_body": "Andika mauzo unapouza. Tafuta bidhaa; ikiwa haipo bonyeza +. Weka idadi na bei, kisha hifadhi. Fungua mauzo kuona, kuhariri au kufuta (na sababu).",
+    "debts_title": "Madeni",
+    "debts_body": "Rekodi mteja anayechukua kwa mkopo. Jaza malipo, ongeza deni, hariri maelezo, au futa deni kwa sababu na nenosiri.",
+    "expenses_title": "Matumizi",
+    "expenses_body": "Andika matumizi ya biashara. Fungua rekodi kuona historia, hariri, au futa kwa sababu.",
+    "products_title": "Bidhaa",
+    "products_body": "Sajili bidhaa, kipimo, stock, bei ya kununua na kuuza. Fungua bidhaa kuhariri au kufuta.",
+    "purchases_title": "Manunuzi",
+    "purchases_body": "Rekodi unaponunua stock. Ikiwa bidhaa haipo, bonyeza + kuongeza. Weka idadi, bei ya kununua na bei ya kuuza. Unaweza kuona, kuhariri au kufuta manunuzi.",
+    "reports_title": "Ripoti",
+    "reports_body": "Angalia muhtasari wa mauzo, manunuzi, matumizi na faida kwa kipindi.",
+    "settings_title": "Mipangilio",
+    "settings_body": "Badilisha lugha, biashara, wafanyakazi, malipo, na soma mwongozo huu.",
+    "subscription_title": "Malipo / Usajili",
+    "subscription_body": "Angalia hali ya usajili, lipia, na alika marafiki kwa bonasi.",
+    "delete_title": "Kufuta rekodi",
+    "delete_body": "Kila kufuta hufungua ukurasa (sio popup). Lazima uandike sababu na nenosiri lako."
   },
   "payment": {
     "cash": "Taslimu"
@@ -368,14 +425,23 @@
     "password_required": "Weka nenosiri lako.",
     "cancel": "Ghairi",
     "confirm": "Futa",
+    "item": "Kifaa",
     "title_product": "Futa bidhaa",
     "title_sale": "Futa mauzo",
     "title_expense": "Futa matumizi",
-    "title_debt": "Futa deni"
+    "title_debt": "Futa deni",
+    "title_purchase": "Futa manunuzi"
   },
   "activity": {
     "today_at": "Leo saa",
-    "yesterday_at": "Jana saa"
+    "yesterday_at": "Jana saa",
+    "detail": "Maelezo ya shughuli",
+    "description": "Maelezo",
+    "type": "Aina",
+    "history_sales": "Historia ya miamala — Mauzo",
+    "history_expenses": "Historia ya miamala — Matumizi",
+    "history_purchases": "Historia ya miamala — Manunuzi",
+    "history_profit": "Historia ya miamala — Faida"
   },
   "about": {
     "version": "Toleo 2.1 · FaidaBiz na Softecki",

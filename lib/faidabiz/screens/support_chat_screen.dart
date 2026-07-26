@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 /// WhatsApp-style support chat: business owner ↔ platform admin.
@@ -129,6 +130,10 @@ class _FaidaBizSupportChatScreenState extends State<FaidaBizSupportChatScreen> {
     return Scaffold(
       backgroundColor: chatBg,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.maybePop(context),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

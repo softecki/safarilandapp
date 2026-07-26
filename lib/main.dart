@@ -1,15 +1,16 @@
-import 'dart:ui' show PointerDeviceKind;
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:wicom/core/font_loader.dart';
-import 'package:wicom/core/whatslipa_config.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
+import 'package:wicom/core/app_neumorphic.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_shell.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/login_screen.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 import 'package:wicom/faidabiz/widgets/landing_backdrop.dart';
+import 'package:wicom/core/font_loader.dart';
+import 'package:wicom/core/whatslipa_config.dart';
+import 'dart:ui' show PointerDeviceKind;
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -47,7 +48,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return NeumorphicTheme(
+      themeMode: ThemeMode.light,
+      theme: AppNeumorphic.lightTheme,
+      child: MaterialApp(
       navigatorKey: navigatorKey,
       title: 'FaidaBiz',
       theme: FaidaBizTheme.material(),
@@ -94,6 +98,7 @@ class MyApp extends StatelessWidget {
           child: child ?? const SizedBox.shrink(),
         );
       },
+    ),
     );
   }
 }

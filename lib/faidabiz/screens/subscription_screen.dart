@@ -2,7 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_neumorphic.dart';
 
 class FaidaBizSubscriptionScreen extends StatefulWidget {
   const FaidaBizSubscriptionScreen({super.key});
@@ -167,8 +169,8 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBF8),
-      appBar: AppBar(
-        title: Text('subscription.title'.tr()),
+      appBar: faidaBizAppBar(
+        title: 'subscription.title'.tr(),
         actions: [
           TextButton.icon(
             onPressed: refreshingStatus || loading ? null : _refreshPaymentStatus,
@@ -189,9 +191,10 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
           : Column(
               children: [
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                    children: [
+                  child: FaidaBizNeuScope(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                      children: [
                       if (error != null)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -388,22 +391,12 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
                         );
                       }),
                       const SizedBox(height: 8),
-                      Text('subscription.phone'.tr(), style: const TextStyle(fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 8),
-                      TextField(
+                      FaidaBizNeuField(
                         controller: phone,
+                        label: 'subscription.phone'.tr(),
+                        hint: '07XXXXXXXX',
+                        prefixIcon: Icons.phone_iphone_rounded,
                         keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(
-                          hintText: '07XXXXXXXX',
-                          prefixIcon: const Icon(Icons.phone_iphone_rounded, color: FaidaBizTheme.green),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(color: Colors.grey.shade200),
-                          ),
-                        ),
                       ),
                       const SizedBox(height: 16),
                       Text('subscription.network'.tr(), style: const TextStyle(fontWeight: FontWeight.w700)),
@@ -465,54 +458,35 @@ class _FaidaBizSubscriptionScreenState extends State<FaidaBizSubscriptionScreen>
                     ],
                   ),
                 ),
+              ),
                 SafeArea(
                   top: false,
-                  child: Container(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.06),
-                          blurRadius: 12,
-                          offset: const Offset(0, -4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('subscription.pay_amount'.tr(), style: TextStyle(color: Colors.grey.shade700)),
-                            Text(
-                              FaidaBizTheme.money(selectedAmount),
-                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: FaidaBizTheme.greenDark),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        FilledButton.icon(
-                          onPressed: paying ? null : _pay,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: FaidaBizTheme.green,
-                            minimumSize: const Size.fromHeight(52),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  child: FaidaBizNeuScope(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                      color: faidaBizNeuCanvas,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('subscription.pay_amount'.tr(), style: TextStyle(color: Colors.grey.shade700)),
+                              Text(
+                                FaidaBizTheme.money(selectedAmount),
+                                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: FaidaBizTheme.greenDark),
+                              ),
+                            ],
                           ),
-                          icon: paying
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Icon(Icons.lock_outline_rounded),
-                          label: Text(
-                            paying ? 'subscription.sending'.tr() : 'subscription.pay_now'.tr(),
-                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                          const SizedBox(height: 10),
+                          NeuPrimaryButton(
+                            label: paying ? 'subscription.sending'.tr() : 'subscription.pay_now'.tr(),
+                            loading: paying,
+                            icon: Icons.lock_outline_rounded,
+                            onPressed: paying ? null : _pay,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

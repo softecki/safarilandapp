@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
+import 'package:wicom/faidabiz/screens/purchase_detail_screen.dart';
 import 'package:wicom/faidabiz/screens/purchase_form_screen.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
@@ -59,15 +61,20 @@ class _FaidaBizPurchasesScreenState extends State<FaidaBizPurchasesScreen> {
     return lines.map((e) => (e as Map)['product_name']?.toString() ?? '').where((s) => s.isNotEmpty).join(', ');
   }
 
+  Future<void> _openDetail(Map<String, dynamic> purchase) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => FaidaBizPurchaseDetailScreen(purchase: purchase)),
+    );
+    if (changed == true) _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F7F4),
-      appBar: AppBar(
-        title: Text('nav.purchases'.tr()),
-        backgroundColor: FaidaBizTheme.green,
-        foregroundColor: Colors.white,
-        elevation: 0,
+      appBar: faidaBizAppBar(
+        title: 'nav.purchases'.tr(),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: FaidaBizTheme.green,
@@ -124,6 +131,7 @@ class _FaidaBizPurchasesScreenState extends State<FaidaBizPurchasesScreen> {
                           margin: const EdgeInsets.only(bottom: 10),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           child: ListTile(
+                            onTap: () => _openDetail(p),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             title: Text(_itemsLabel(p), maxLines: 2, overflow: TextOverflow.ellipsis),
                             subtitle: Text(
@@ -133,9 +141,16 @@ class _FaidaBizPurchasesScreenState extends State<FaidaBizPurchasesScreen> {
                                 if (usedSales > 0) '${'form.used_sales_amount'.tr()}: ${FaidaBizTheme.money(usedSales)}',
                               ].join(' · '),
                             ),
-                            trailing: Text(
-                              FaidaBizTheme.money(p['total']),
-                              style: const TextStyle(fontWeight: FontWeight.w800, color: FaidaBizTheme.greenDark),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  FaidaBizTheme.money(p['total']),
+                                  style: const TextStyle(fontWeight: FontWeight.w800, color: FaidaBizTheme.greenDark),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400),
+                              ],
                             ),
                           ),
                         );

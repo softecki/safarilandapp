@@ -9,6 +9,7 @@ import 'package:wicom/faidabiz/screens/settings_add_business_screen.dart';
 import 'package:wicom/faidabiz/screens/settings_add_staff_screen.dart';
 import 'package:wicom/faidabiz/screens/subscription_screen.dart';
 import 'package:wicom/faidabiz/screens/support_chat_screen.dart';
+import 'package:wicom/faidabiz/screens/user_manual_screen.dart';
 
 class FaidaBizSettingsScreen extends StatefulWidget {
   const FaidaBizSettingsScreen({super.key});
@@ -284,6 +285,16 @@ class _FaidaBizSettingsScreenState extends State<FaidaBizSettingsScreen> {
                                   );
                                   _load();
                                 },
+                              ),
+                              _NavTile(
+                                icon: Icons.menu_book_rounded,
+                                iconColor: Colors.teal.shade700,
+                                title: 'manual.title'.tr(),
+                                subtitle: 'manual.settings_tile_hint'.tr(),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const FaidaBizUserManualScreen()),
+                                ),
                               ),
                               _NavTile(
                                 icon: Icons.history_rounded,

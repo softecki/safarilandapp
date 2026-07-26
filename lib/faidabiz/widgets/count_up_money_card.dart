@@ -10,6 +10,7 @@ class CountUpMoneyCard extends StatefulWidget {
     required this.color,
     this.icon,
     this.delay = Duration.zero,
+    this.onTap,
   });
 
   final String label;
@@ -17,6 +18,7 @@ class CountUpMoneyCard extends StatefulWidget {
   final Color color;
   final IconData? icon;
   final Duration delay;
+  final VoidCallback? onTap;
 
   @override
   State<CountUpMoneyCard> createState() => _CountUpMoneyCardState();
@@ -58,7 +60,7 @@ class _CountUpMoneyCardState extends State<CountUpMoneyCard> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
+    final card = FadeTransition(
       opacity: _fade,
       child: SlideTransition(
         position: _slide,
@@ -67,10 +69,10 @@ class _CountUpMoneyCardState extends State<CountUpMoneyCard> with SingleTickerPr
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: widget.color.withOpacity(0.18)),
+            border: Border.all(color: widget.color.withValues(alpha: 0.18)),
             boxShadow: [
               BoxShadow(
-                color: widget.color.withOpacity(0.08),
+                color: widget.color.withValues(alpha: 0.08),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -86,7 +88,7 @@ class _CountUpMoneyCardState extends State<CountUpMoneyCard> with SingleTickerPr
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: widget.color.withOpacity(0.12),
+                        color: widget.color.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(widget.icon, size: 16, color: widget.color),
@@ -101,6 +103,8 @@ class _CountUpMoneyCardState extends State<CountUpMoneyCard> with SingleTickerPr
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (widget.onTap != null)
+                    Icon(Icons.chevron_right_rounded, size: 18, color: Colors.grey.shade400),
                 ],
               ),
               const SizedBox(height: 10),
@@ -123,6 +127,16 @@ class _CountUpMoneyCardState extends State<CountUpMoneyCard> with SingleTickerPr
             ],
           ),
         ),
+      ),
+    );
+
+    if (widget.onTap == null) return card;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: widget.onTap,
+        child: card,
       ),
     );
   }

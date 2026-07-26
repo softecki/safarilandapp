@@ -2,8 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
 import 'package:wicom/faidabiz/screens/product_form_screen.dart';
-import 'package:wicom/faidabiz/widgets/faidabiz_delete_dialog.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizProductsScreen extends StatefulWidget {
@@ -32,25 +32,10 @@ class _FaidaBizProductsScreenState extends State<FaidaBizProductsScreen> {
     if (mounted) setState(() => loading = false);
   }
 
-  Future<void> _delete(Map<String, dynamic> p) async {
-    final ok = await confirmAndSoftDelete(
-      context: context,
-      title: 'delete.title_product'.tr(),
-      itemLabel: p['name']?.toString(),
-      onConfirm: (reason, password) async {
-        await FaidaBizApi.delete('/products/${p['id']}', {
-          'delete_reason': reason,
-          'password': password,
-        });
-      },
-    );
-    if (ok) _load();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('nav.products'.tr())),
+      appBar: faidaBizAppBar(title: 'nav.products'.tr()),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           await Navigator.push(context, MaterialPageRoute(builder: (_) => const FaidaBizProductFormScreen()));
@@ -87,10 +72,7 @@ class _FaidaBizProductsScreenState extends State<FaidaBizProductsScreen> {
                         );
                         _load();
                       },
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete_outline, color: faidaBizDeleteColor),
-                        onPressed: () => _delete(p),
-                      ),
+                      trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
                     ),
                   );
                 },

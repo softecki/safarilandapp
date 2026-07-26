@@ -2,15 +2,30 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_activity_tile.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_date_filter.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizActivityScreen extends StatefulWidget {
-  const FaidaBizActivityScreen({super.key, this.initialDate});
+  const FaidaBizActivityScreen({
+    super.key,
+    this.initialDate,
+    this.filterType,
+    this.title,
+    this.showSignedAmounts = true,
+  });
 
   /// Optional day filter (same as home). Null = all recent pages from API.
   final DateTime? initialDate;
+
+  /// Filter by activity type: sale | expense | purchase. Null = all (e.g. Faida).
+  final String? filterType;
+
+  /// Optional AppBar title override (e.g. Historia ya miamala — Mauzo).
+  final String? title;
+
+  final bool showSignedAmounts;
 
   @override
   State<FaidaBizActivityScreen> createState() => _FaidaBizActivityScreenState();
@@ -29,6 +44,22 @@ class _FaidaBizActivityScreenState extends State<FaidaBizActivityScreen> {
     _load();
   }
 
+  String get _appBarTitle {
+    if (widget.title != null && widget.title!.isNotEmpty) return widget.title!;
+    switch (widget.filterType) {
+      case 'sale':
+        return 'activity.history_sales'.tr();
+      case 'expense':
+        return 'activity.history_expenses'.tr();
+      case 'purchase':
+        return 'activity.history_purchases'.tr();
+      default:
+        return widget.filterType == null && widget.initialDate != null
+            ? 'home.recent'.tr()
+            : 'settings.activity'.tr();
+    }
+  }
+
   Future<void> _load() async {
     setState(() {
       loading = true;
@@ -38,6 +69,9 @@ class _FaidaBizActivityScreenState extends State<FaidaBizActivityScreen> {
       final query = <String, String>{};
       if (selectedDate != null) {
         query['date'] = faidaBizDateQuery(selectedDate!);
+      }
+      if (widget.filterType != null && widget.filterType!.isNotEmpty) {
+        query['type'] = widget.filterType!;
       }
       final res = await FaidaBizApi.get('/activity', query: query.isEmpty ? null : query);
       final page = res['data'];
@@ -61,7 +95,8 @@ class _FaidaBizActivityScreenState extends State<FaidaBizActivityScreen> {
     final today = DateTime(n.year, n.month, n.day);
 
     return Scaffold(
-      appBar: AppBar(title: Text('settings.activity'.tr())),
+      backgroundColor: FaidaBizTheme.canvas,
+      appBar: faidaBizAppBar(title: _appBarTitle),
       body: Column(
         children: [
           Padding(
@@ -106,7 +141,10 @@ class _FaidaBizActivityScreenState extends State<FaidaBizActivityScreen> {
                               itemCount: items.length,
                               itemBuilder: (_, i) {
                                 final m = Map<String, dynamic>.from(items[i] as Map);
-                                return FaidaBizActivityTile(item: m);
+                                return FaidaBizActivityTile(
+                                  item: m,
+                                  animateAmount: widget.showSignedAmounts,
+                                );
                               },
                             ),
                           ),

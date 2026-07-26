@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
 import 'package:wicom/faidabiz/screens/expense_detail_screen.dart';
 import 'package:wicom/faidabiz/screens/expense_form_screen.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
@@ -72,11 +73,9 @@ class _FaidaBizExpensesScreenState extends State<FaidaBizExpensesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F4EF),
-      appBar: AppBar(
-        title: Text('nav.expenses'.tr()),
+      appBar: faidaBizAppBar(
+        title: 'nav.expenses'.tr(),
         backgroundColor: Colors.orange.shade800,
-        foregroundColor: Colors.white,
-        elevation: 0,
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.orange.shade800,

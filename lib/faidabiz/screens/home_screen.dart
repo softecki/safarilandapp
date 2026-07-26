@@ -275,6 +275,11 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                             value: summary['sales'] ?? 0,
                             color: FaidaBizTheme.green,
                             icon: Icons.trending_up,
+                            onTap: () => _open(FaidaBizActivityScreen(
+                              initialDate: selectedDate,
+                              filterType: 'sale',
+                              title: 'activity.history_sales'.tr(),
+                            )),
                           ),
                           CountUpMoneyCard(
                             label: 'home.expenses'.tr(),
@@ -282,6 +287,11 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                             color: Colors.orange.shade800,
                             icon: Icons.payments_outlined,
                             delay: const Duration(milliseconds: 150),
+                            onTap: () => _open(FaidaBizActivityScreen(
+                              initialDate: selectedDate,
+                              filterType: 'expense',
+                              title: 'activity.history_expenses'.tr(),
+                            )),
                           ),
                           CountUpMoneyCard(
                             label: 'home.purchases'.tr(),
@@ -289,6 +299,11 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                             color: FaidaBizTheme.black,
                             icon: Icons.shopping_bag_outlined,
                             delay: const Duration(milliseconds: 250),
+                            onTap: () => _open(FaidaBizActivityScreen(
+                              initialDate: selectedDate,
+                              filterType: 'purchase',
+                              title: 'activity.history_purchases'.tr(),
+                            )),
                           ),
                           CountUpMoneyCard(
                             label: 'home.profit'.tr(),
@@ -296,6 +311,10 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                             color: FaidaBizTheme.greenDark,
                             icon: Icons.savings_outlined,
                             delay: const Duration(milliseconds: 350),
+                            onTap: () => _open(FaidaBizActivityScreen(
+                              initialDate: selectedDate,
+                              title: 'activity.history_profit'.tr(),
+                            )),
                           ),
                         ],
                       ),

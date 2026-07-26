@@ -2,8 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
 import 'package:wicom/faidabiz/screens/otp_screen.dart';
-import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_neumorphic.dart';
 
 class FaidaBizRegisterScreen extends StatefulWidget {
   const FaidaBizRegisterScreen({super.key});
@@ -51,8 +52,8 @@ class _FaidaBizRegisterScreenState extends State<FaidaBizRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('auth.register_biz'.tr())),
+    return FaidaBizNeuFormScaffold(
+      appBar: faidaBizAppBar(title: 'auth.register_biz'.tr()),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
@@ -61,36 +62,34 @@ class _FaidaBizRegisterScreenState extends State<FaidaBizRegisterScreen> {
             style: TextStyle(color: Colors.grey.shade700),
           ),
           const SizedBox(height: 24),
-          TextField(
+          FaidaBizNeuField(
             controller: name,
+            label: 'auth.name'.tr(),
+            hint: 'auth.name_optional_hint'.tr(),
             textCapitalization: TextCapitalization.words,
-            decoration: InputDecoration(
-              labelText: 'auth.name'.tr(),
-              hintText: 'auth.name_optional_hint'.tr(),
-            ),
           ),
-          const SizedBox(height: 12),
-          TextField(
+          const SizedBox(height: 14),
+          FaidaBizNeuField(
             controller: phone,
+            label: 'auth.phone'.tr(),
+            hint: 'auth.phone_hint'.tr(),
             keyboardType: TextInputType.phone,
-            decoration: InputDecoration(labelText: 'auth.phone'.tr(), hintText: 'auth.phone_hint'.tr()),
           ),
-          const SizedBox(height: 12),
-          TextField(
+          const SizedBox(height: 14),
+          FaidaBizNeuField(
             controller: password,
+            label: 'auth.password'.tr(),
             obscureText: true,
-            decoration: InputDecoration(labelText: 'auth.password'.tr()),
           ),
           if (error != null) ...[
             const SizedBox(height: 12),
             Text(error!, style: const TextStyle(color: Colors.red)),
           ],
           const SizedBox(height: 24),
-          ElevatedButton(
+          NeuPrimaryButton(
+            label: 'auth.send_otp'.tr(),
+            loading: loading,
             onPressed: loading ? null : _submit,
-            child: loading
-                ? FaidaBizLoader.button()
-                : Text('auth.send_otp'.tr()),
           ),
           const SizedBox(height: 12),
           Text(

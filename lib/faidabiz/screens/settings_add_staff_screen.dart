@@ -1,7 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
-import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_neumorphic.dart';
 
 class FaidaBizAddStaffScreen extends StatefulWidget {
   const FaidaBizAddStaffScreen({super.key});
@@ -56,28 +57,28 @@ class _FaidaBizAddStaffScreenState extends State<FaidaBizAddStaffScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('settings.team_add'.tr())),
+    return FaidaBizNeuFormScaffold(
+      appBar: faidaBizAppBar(title: 'settings.team_add'.tr()),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text('settings.team_add_hint'.tr(), style: TextStyle(color: Colors.grey.shade700)),
           const SizedBox(height: 16),
-          TextField(
+          FaidaBizNeuField(
             controller: _name,
-            decoration: InputDecoration(labelText: 'auth.their_name'.tr(), border: const OutlineInputBorder()),
+            label: 'auth.their_name'.tr(),
             textCapitalization: TextCapitalization.words,
           ),
-          const SizedBox(height: 12),
-          TextField(
+          const SizedBox(height: 14),
+          FaidaBizNeuField(
             controller: _phone,
-            decoration: InputDecoration(labelText: 'auth.phone'.tr(), border: const OutlineInputBorder()),
+            label: 'auth.phone'.tr(),
             keyboardType: TextInputType.phone,
           ),
-          const SizedBox(height: 12),
-          TextField(
+          const SizedBox(height: 14),
+          FaidaBizNeuField(
             controller: _password,
-            decoration: InputDecoration(labelText: 'auth.password'.tr(), border: const OutlineInputBorder()),
+            label: 'auth.password'.tr(),
             obscureText: true,
           ),
           if (_error != null) ...[
@@ -85,12 +86,10 @@ class _FaidaBizAddStaffScreenState extends State<FaidaBizAddStaffScreen> {
             Text(_error!, style: const TextStyle(color: Colors.red)),
           ],
           const SizedBox(height: 24),
-          FilledButton(
+          NeuPrimaryButton(
+            label: 'settings.team_add_btn'.tr(),
+            loading: _saving,
             onPressed: _saving ? null : _save,
-            style: FilledButton.styleFrom(backgroundColor: FaidaBizTheme.green, minimumSize: const Size.fromHeight(48)),
-            child: _saving
-                ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : Text('settings.team_add_btn'.tr()),
           ),
         ],
       ),

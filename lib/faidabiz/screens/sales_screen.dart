@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
 import 'package:wicom/faidabiz/screens/sale_detail_screen.dart';
 import 'package:wicom/faidabiz/screens/sale_form_screen.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
@@ -72,11 +73,8 @@ class _FaidaBizSalesScreenState extends State<FaidaBizSalesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F7F4),
-      appBar: AppBar(
-        title: Text('nav.sales'.tr()),
-        backgroundColor: FaidaBizTheme.green,
-        foregroundColor: Colors.white,
-        elevation: 0,
+      appBar: faidaBizAppBar(
+        title: 'nav.sales'.tr(),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: FaidaBizTheme.green,

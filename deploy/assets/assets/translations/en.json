@@ -90,14 +90,20 @@
     "paid": "Paid",
     "remaining": "Remaining",
     "cleared": "Fully paid",
-    "record_payment": "Record payment",
+    "record_payment": "Enter payment",
     "payment_amount": "Payment amount",
     "save_payment": "Save payment",
     "payment_saved": "Payment saved.",
     "payment_history": "Payment history",
     "no_payments": "No payments yet.",
     "show_all": "Show all",
-    "show_open": "Open only"
+    "show_open": "Open only",
+    "add_more": "Add more debt",
+    "add_more_hint": "Add more debt for {}",
+    "save_more": "Save debt",
+    "more_saved": "Debt added.",
+    "amount_required": "Enter the debt amount.",
+    "edit": "Edit debt"
   },
   "chat": {
     "title": "Support chat",
@@ -119,12 +125,33 @@
     "no_items": "No line items.",
     "profit": "Profit",
     "stock_now": "In stock now: {} {}",
-    "stock_topup_hint": "Stock is only {} {}. You are selling {}. The missing {} will be added to stock first, then all sold quantity will be deducted (stock ends at 0)."
+    "stock_topup_hint": "Stock is only {} {}. You are selling {}. The missing {} will be added to stock first, then all sold quantity will be deducted (stock ends at 0).",
+    "product_not_found": "No product matches \"{}\".",
+    "create_product_from_search": "Add new product",
+    "create_product_cta": "Add \"{}\"",
+    "create_product_hint": "Tap + to add this product, choose a unit, enter quantity and price, then save the sale.",
+    "create_inline_hint": "New product — choose unit, enter quantity and price. Buying price will equal selling price.",
+    "buy_equals_sell_hint": "Buying price = selling price (you can edit later in Products).",
+    "new_product_badge": "new",
+    "qty_required": "Enter a valid quantity.",
+    "price_required": "Enter a price.",
+    "create_product_failed": "Could not create the product.",
+    "delete_hint": "Deleting needs a reason and your password. Stock will be adjusted.",
+    "edit": "Edit sale",
+    "edit_hint": "Change quantity or price. Stock updates automatically."
   },
   "purchases": {
     "empty": "No purchases yet. Tap Add Purchase to record stock bought.",
     "list_total": "Total purchases",
-    "list_count": "{} purchases"
+    "list_count": "{} purchases",
+    "detail": "Purchase details",
+    "items": "Purchased items",
+    "no_items": "No items on this purchase.",
+    "create_inline_hint": "Product not found — tap + to add it, then enter quantity, buying price and selling price.",
+    "sell_price_hint": "Selling price can change — shown whether the product already exists or is new.",
+    "delete_hint": "Deleting needs a reason and your password. Stock will be adjusted.",
+    "edit": "Edit purchase",
+    "edit_hint": "Change quantity, buying or selling price. Stock will update."
   },
   "expenses": {
     "empty": "No expenses yet. Add today's expenses.",
@@ -137,10 +164,16 @@
     "history": "Previous versions",
     "history_hint": "Each edit keeps the old information with a reason.",
     "history_empty": "No edits yet.",
-    "reason": "Reason"
+    "reason": "Reason",
+    "title_hint": "Type expense name…",
+    "suggestions_hint": "Previously recorded expenses — tap to select:"
   },
   "form": {
     "product": "Product",
+    "product_name_hint": "Type product name…",
+    "product_duplicate": "A product with this name already exists. Use a different name.",
+    "product_duplicate_detail": "\"{}\" already exists ({})",
+    "product_similar_hint": "Similar existing names:",
     "qty": "Quantity",
     "price": "Price",
     "total": "Total",
@@ -381,7 +414,31 @@
     "http_error": "Error ({})",
     "page": "Page {} / {}",
     "summary": "Summary",
-    "no_file_upload": "No file to upload"
+    "no_file_upload": "No file to upload",
+    "edit": "Edit"
+  },
+  "manual": {
+    "title": "User manual",
+    "settings_tile_hint": "Learn how to use every FaidaBiz feature",
+    "intro": "Read these guides for each home menu so you can use FaidaBiz on your own. Every page has a back arrow at the top left.",
+    "sales_title": "Sales",
+    "sales_body": "Record a sale when you sell. Search a product; if missing tap +. Enter quantity and price, then save. Open a sale to view, edit or delete (with a reason).",
+    "debts_title": "Debts",
+    "debts_body": "Record a customer buying on credit. Record payments, add more debt, edit details, or delete with a reason and password.",
+    "expenses_title": "Expenses",
+    "expenses_body": "Record business expenses. Open a record to view history, edit, or delete with a reason.",
+    "products_title": "Products",
+    "products_body": "Register products, unit, stock, buying and selling prices. Open a product to edit or delete.",
+    "purchases_title": "Purchases",
+    "purchases_body": "Record stock purchases. If the product is missing, tap + to add it. Enter quantity, buying price and selling price. You can view, edit or delete purchases.",
+    "reports_title": "Reports",
+    "reports_body": "See summaries of sales, purchases, expenses and profit for a period.",
+    "settings_title": "Settings",
+    "settings_body": "Change language, businesses, staff, payments, and read this manual.",
+    "subscription_title": "Subscription / Payments",
+    "subscription_body": "Check subscription status, pay, and invite friends for a bonus.",
+    "delete_title": "Deleting records",
+    "delete_body": "Every delete opens a full page (not a popup). You must enter a reason and your password."
   },
   "payment": {
     "cash": "Cash"
@@ -407,13 +464,22 @@
     "password_required": "Enter your password.",
     "cancel": "Cancel",
     "confirm": "Delete",
+    "item": "Item",
     "title_product": "Delete product",
     "title_sale": "Delete sale",
     "title_expense": "Delete expense",
-    "title_debt": "Delete debt"
+    "title_debt": "Delete debt",
+    "title_purchase": "Delete purchase"
   },
   "activity": {
     "today_at": "Today at",
-    "yesterday_at": "Yesterday at"
+    "yesterday_at": "Yesterday at",
+    "detail": "Activity details",
+    "description": "Description",
+    "type": "Type",
+    "history_sales": "Transaction history — Sales",
+    "history_expenses": "Transaction history — Expenses",
+    "history_purchases": "Transaction history — Purchases",
+    "history_profit": "Transaction history — Profit"
   }
 }

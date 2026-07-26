@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_shell.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_neumorphic.dart';
 
 class FaidaBizOtpScreen extends StatefulWidget {
   const FaidaBizOtpScreen({
@@ -187,8 +189,8 @@ class _FaidaBizOtpScreenState extends State<FaidaBizOtpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('auth.verify_title'.tr())),
+    return FaidaBizNeuFormScaffold(
+      appBar: faidaBizAppBar(title: 'auth.verify_title'.tr()),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
@@ -218,9 +220,13 @@ class _FaidaBizOtpScreenState extends State<FaidaBizOtpScreen> {
                   decoration: InputDecoration(
                     counterText: '',
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: faidaBizNeuCanvas,
                     contentPadding: const EdgeInsets.symmetric(vertical: 14),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: FaidaBizTheme.green, width: 2),
@@ -248,9 +254,10 @@ class _FaidaBizOtpScreenState extends State<FaidaBizOtpScreen> {
             Text(error!, style: const TextStyle(color: Colors.red)),
           ],
           const SizedBox(height: 28),
-          ElevatedButton(
+          NeuPrimaryButton(
+            label: 'auth.verify'.tr(),
+            loading: loading,
             onPressed: loading ? null : _verify,
-            child: loading ? FaidaBizLoader.button() : Text('auth.verify'.tr()),
           ),
           TextButton(
             onPressed: loading ? null : _resend,

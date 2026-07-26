@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_neumorphic.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
 class FaidaBizReferralsScreen extends StatefulWidget {
@@ -89,12 +91,13 @@ class _FaidaBizReferralsScreenState extends State<FaidaBizReferralsScreen> {
     final items = (referral?['items'] as List?) ?? [];
 
     return Scaffold(
-      appBar: AppBar(title: Text('subscription.invite_friends'.tr())),
+      appBar: faidaBizAppBar(title: 'subscription.invite_friends'.tr()),
       body: loading
           ? FaidaBizLoader.body()
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
+          : FaidaBizNeuScope(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -113,12 +116,15 @@ class _FaidaBizReferralsScreenState extends State<FaidaBizReferralsScreen> {
                 const SizedBox(height: 16),
                 Text('subscription.invite_title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                TextField(controller: name, decoration: InputDecoration(labelText: 'auth.their_name'.tr(), border: const OutlineInputBorder())),
-                const SizedBox(height: 8),
-                TextField(
+                FaidaBizNeuField(
+                  controller: name,
+                  label: 'auth.their_name'.tr(),
+                ),
+                const SizedBox(height: 14),
+                FaidaBizNeuField(
                   controller: phone,
+                  label: 'auth.phone'.tr(),
                   keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(labelText: 'auth.phone'.tr(), border: const OutlineInputBorder()),
                 ),
                 const SizedBox(height: 8),
                 FilledButton(
@@ -130,22 +136,22 @@ class _FaidaBizReferralsScreenState extends State<FaidaBizReferralsScreen> {
                   const SizedBox(height: 24),
                   Text('subscription.withdraw'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  TextField(controller: withdrawName, decoration: InputDecoration(labelText: 'auth.name'.tr(), border: const OutlineInputBorder())),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: withdrawPhone,
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(labelText: 'subscription.phone'.tr(), border: const OutlineInputBorder()),
+                  FaidaBizNeuField(
+                    controller: withdrawName,
+                    label: 'auth.name'.tr(),
                   ),
-                  const SizedBox(height: 8),
-                  TextField(
+                  const SizedBox(height: 14),
+                  FaidaBizNeuField(
+                    controller: withdrawPhone,
+                    label: 'subscription.phone'.tr(),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 14),
+                  FaidaBizNeuField(
                     controller: withdrawAmount,
+                    label: 'subscription.withdraw_amount'.tr(),
+                    hint: FaidaBizTheme.money(active),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: 'subscription.withdraw_amount'.tr(),
-                      hintText: FaidaBizTheme.money(active),
-                      border: const OutlineInputBorder(),
-                    ),
                   ),
                   const SizedBox(height: 8),
                   FilledButton(
@@ -183,6 +189,7 @@ class _FaidaBizReferralsScreenState extends State<FaidaBizReferralsScreen> {
                 }),
               ],
             ),
+          ),
     );
   }
 }

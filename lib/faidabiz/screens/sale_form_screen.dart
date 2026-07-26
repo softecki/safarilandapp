@@ -2,8 +2,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
 import 'package:wicom/faidabiz/screens/product_form_screen.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_neumorphic.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_select.dart';
 
 class FaidaBizSaleFormScreen extends StatefulWidget {
@@ -16,11 +18,15 @@ class FaidaBizSaleFormScreen extends StatefulWidget {
 class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
   List products = [];
   int? productId;
+  String? newProductName;
+  String newProductUnit = 'pcs';
   final qty = TextEditingController(text: '1');
   final price = TextEditingController();
   bool loading = false;
   bool productsLoaded = false;
   String? error;
+
+  bool get isCreatingNew => newProductName != null && newProductName!.trim().isNotEmpty;
 
   @override
   void initState() {
@@ -39,11 +45,6 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
     try {
       final res = await FaidaBizApi.get('/products');
       products = (res['data'] as List?) ?? [];
-      if (products.isNotEmpty && productId == null) {
-        final p = products.first as Map<String, dynamic>;
-        productId = int.tryParse('${p['id']}');
-        price.text = '${p['sell_price'] ?? 0}';
-      }
     } catch (_) {}
     if (mounted) setState(() => productsLoaded = true);
   }
@@ -66,10 +67,36 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
       selectedId: productId,
     );
     if (p == null) return;
+
+    if (p['_create_new'] == true) {
+      setState(() {
+        newProductName = p['name']?.toString().trim();
+        productId = null;
+        newProductUnit = 'pcs';
+        if (price.text.trim().isEmpty) price.text = '';
+        error = null;
+      });
+      return;
+    }
+
     setState(() {
+      newProductName = null;
       productId = int.tryParse('${p['id']}');
       price.text = '${p['sell_price'] ?? 0}';
+      error = null;
     });
+  }
+
+  Future<void> _pickUnit() async {
+    final picked = await showFaidaBizOptionPicker<String>(
+      context: context,
+      title: 'form.select_unit'.tr(),
+      selected: newProductUnit,
+      options: [
+        for (final u in kProductUnits) (value: u, label: 'units.$u'.tr(), subtitle: null),
+      ],
+    );
+    if (picked != null) setState(() => newProductUnit = picked);
   }
 
   double get total {
@@ -78,24 +105,81 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
     return q * p;
   }
 
+  String get _unit {
+    if (isCreatingNew) return newProductUnit;
+    return selected?['unit']?.toString() ?? 'pcs';
+  }
+
   double get _stockQty => FaidaBizTheme.asDouble(selected?['stock_qty']);
   double get _sellQty => double.tryParse(qty.text.replaceAll(',', '')) ?? 0;
-  double get _stockDeficit => _sellQty > _stockQty ? (_sellQty - _stockQty) : 0;
+  double get _stockDeficit {
+    if (isCreatingNew) return _sellQty; // new product starts at 0 stock
+    return _sellQty > _stockQty ? (_sellQty - _stockQty) : 0;
+  }
 
   Future<void> _save() async {
-    if (productId == null) {
+    if (!isCreatingNew && productId == null) {
       setState(() => error = 'form.select_product'.tr());
       return;
     }
+    if (isCreatingNew && (newProductName == null || newProductName!.trim().isEmpty)) {
+      setState(() => error = 'form.select_product'.tr());
+      return;
+    }
+
+    final sellQty = double.tryParse(qty.text) ?? 0;
+    final unitPrice = double.tryParse(price.text) ?? 0;
+    if (sellQty <= 0) {
+      setState(() => error = 'sales.qty_required'.tr());
+      return;
+    }
+    if (unitPrice < 0) {
+      setState(() => error = 'sales.price_required'.tr());
+      return;
+    }
+
     setState(() {
       loading = true;
       error = null;
     });
+
     try {
+      int? saleProductId = productId;
+
+      if (isCreatingNew) {
+        // Block duplicate product names before create
+        final check = await FaidaBizApi.get('/products/check-name', query: {
+          'name': newProductName!.trim(),
+        });
+        if (check['exists'] == true) {
+          setState(() {
+            loading = false;
+            error = 'form.product_duplicate'.tr();
+          });
+          return;
+        }
+
+        // Create product first: buy_price = sell_price for quick onboarding
+        final created = await FaidaBizApi.post('/products', {
+          'name': newProductName!.trim(),
+          'unit': newProductUnit,
+          'stock_qty': 0,
+          'buy_price': unitPrice,
+          'sell_price': unitPrice,
+        });
+        final data = created['data'];
+        if (data is Map) {
+          saleProductId = int.tryParse('${data['id']}');
+        }
+        if (saleProductId == null) {
+          throw Exception('sales.create_product_failed'.tr());
+        }
+      }
+
       await FaidaBizApi.post('/sales', {
-        'product_id': productId,
-        'quantity': double.tryParse(qty.text) ?? 1,
-        'unit_price': double.tryParse(price.text) ?? 0,
+        'product_id': saleProductId,
+        'quantity': sellQty,
+        'unit_price': unitPrice,
         'payment_method': 'cash',
       });
       if (mounted) Navigator.pop(context, true);
@@ -109,43 +193,22 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
   @override
   Widget build(BuildContext context) {
     if (!productsLoaded) {
-      return Scaffold(appBar: AppBar(title: Text('home.add_sale'.tr())), body: FaidaBizLoader.body());
-    }
-    if (products.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(title: Text('home.add_sale'.tr())),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('form.no_products'.tr()),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (_) => const FaidaBizProductFormScreen()));
-                  _loadProducts();
-                },
-                child: Text('home.add_product'.tr()),
-              ),
-            ],
-          ),
-        ),
+      return FaidaBizNeuFormScaffold(
+        appBar: faidaBizAppBar(title: 'home.add_sale'.tr()),
+        body: FaidaBizLoader.body(),
       );
     }
 
-    final unit = selected?['unit']?.toString() ?? 'pcs';
-    final valueLabel = selected == null
-        ? null
-        : '${selected!['name']} · $unit · ${FaidaBizTheme.money(selected!['sell_price'])}';
+    final unit = _unit;
+    final valueLabel = isCreatingNew
+        ? '${newProductName!} · ${'sales.new_product_badge'.tr()}'
+        : (selected == null
+            ? null
+            : '${selected!['name']} · $unit · ${FaidaBizTheme.money(selected!['sell_price'])}');
     final deficit = _stockDeficit;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('home.add_sale'.tr()),
-        backgroundColor: FaidaBizTheme.green,
-        foregroundColor: Colors.white,
-      ),
+    return FaidaBizNeuFormScaffold(
+      appBar: faidaBizAppBar(title: 'home.add_sale'.tr()),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -153,28 +216,53 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
             label: 'form.product'.tr(),
             hint: 'form.select_product'.tr(),
             valueLabel: valueLabel,
-            leading: const Icon(Icons.inventory_2_outlined, color: FaidaBizTheme.green, size: 22),
+            leading: Icon(
+              isCreatingNew ? Icons.add_box_outlined : Icons.inventory_2_outlined,
+              color: FaidaBizTheme.green,
+              size: 22,
+            ),
             onTap: _pickProduct,
           ),
-          if (selected != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              'sales.stock_now'.tr(args: ['${FaidaBizTheme.asDouble(selected!['stock_qty'])}', unit]),
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+          if (isCreatingNew) ...[
+            const SizedBox(height: 10),
+            FaidaBizNeuHint(
+              icon: Icons.info_outline,
+              child: Text(
+                'sales.create_inline_hint'.tr(),
+                style: TextStyle(color: Colors.grey.shade800, fontSize: 13, height: 1.35),
+              ),
+            ),
+            const SizedBox(height: 12),
+            FaidaBizSelectField(
+              label: 'form.unit'.tr(),
+              hint: 'form.select_unit'.tr(),
+              valueLabel: 'units.$newProductUnit'.tr(),
+              leading: const Icon(Icons.straighten_rounded, color: FaidaBizTheme.green, size: 22),
+              onTap: _pickUnit,
+            ),
+          ] else if (selected != null) ...[
+            const SizedBox(height: 10),
+            FaidaBizNeuHint(
+              icon: Icons.inventory_2_outlined,
+              child: Text(
+                'sales.stock_now'.tr(args: ['${FaidaBizTheme.asDouble(selected!['stock_qty'])}', unit]),
+                style: TextStyle(color: Colors.grey.shade800, fontSize: 13),
+              ),
             ),
           ],
-          const SizedBox(height: 12),
-          TextField(
+          const SizedBox(height: 14),
+          FaidaBizNeuField(
             controller: qty,
+            label: '${'form.qty'.tr()} ($unit)',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(labelText: '${'form.qty'.tr()} ($unit)'),
             onChanged: (_) => setState(() {}),
           ),
-          const SizedBox(height: 12),
-          TextField(
+          const SizedBox(height: 14),
+          FaidaBizNeuField(
             controller: price,
+            label: 'form.price'.tr(),
+            helperText: isCreatingNew ? 'sales.buy_equals_sell_hint'.tr() : null,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(labelText: 'form.price'.tr()),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 16),
@@ -184,16 +272,12 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
           ),
           if (deficit > 0) ...[
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF7ED),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFDBA74)),
-              ),
+            FaidaBizNeuHint(
+              color: const Color(0xFF9A3412),
+              icon: Icons.warning_amber_rounded,
               child: Text(
                 'sales.stock_topup_hint'.tr(args: [
-                  '${FaidaBizTheme.asDouble(_stockQty)}',
+                  '${FaidaBizTheme.asDouble(isCreatingNew ? 0 : _stockQty)}',
                   unit,
                   '${FaidaBizTheme.asDouble(_sellQty)}',
                   '${FaidaBizTheme.asDouble(deficit)}',
@@ -207,9 +291,10 @@ class _FaidaBizSaleFormScreenState extends State<FaidaBizSaleFormScreen> {
             Text(error!, style: const TextStyle(color: Colors.red)),
           ],
           const SizedBox(height: 24),
-          ElevatedButton(
+          NeuPrimaryButton(
+            label: 'form.save'.tr(),
+            loading: loading,
             onPressed: loading ? null : _save,
-            child: loading ? FaidaBizLoader.button() : Text('form.save'.tr()),
           ),
         ],
       ),

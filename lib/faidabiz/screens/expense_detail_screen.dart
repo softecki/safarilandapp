@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/expense_form_screen.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_delete_dialog.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
 
@@ -84,27 +85,10 @@ class _FaidaBizExpenseDetailScreenState extends State<FaidaBizExpenseDetailScree
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF7F4EF),
-        appBar: AppBar(
-          title: Text('expenses.detail'.tr()),
+        appBar: faidaBizAppBar(
+          title: 'expenses.detail'.tr(),
           backgroundColor: Colors.orange.shade800,
-          foregroundColor: Colors.white,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context, changed),
-          ),
-          actions: [
-            if (expense != null) ...[
-              TextButton(
-                onPressed: _edit,
-                child: Text('expenses.edit'.tr(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.white),
-                onPressed: _delete,
-                tooltip: 'delete.confirm'.tr(),
-              ),
-            ],
-          ],
+          onBack: () => Navigator.pop(context, changed),
         ),
         body: loading
             ? FaidaBizLoader.body()
@@ -116,6 +100,13 @@ class _FaidaBizExpenseDetailScreenState extends State<FaidaBizExpenseDetailScree
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                       children: [
                         _InfoCard(expense: expense!, fmtDate: _fmtDate),
+                        const SizedBox(height: 16),
+                        FaidaBizDetailActions(
+                          onEdit: _edit,
+                          onDelete: _delete,
+                          editLabel: 'expenses.edit'.tr(),
+                          accentColor: Colors.orange.shade800,
+                        ),
                         const SizedBox(height: 20),
                         Text(
                           'expenses.history'.tr(),

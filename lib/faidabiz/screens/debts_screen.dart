@@ -2,7 +2,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/screens/debt_action_screens.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_delete_screen.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_neumorphic.dart';
 
 /// List of customer debts / loans with outstanding balances.
 class FaidaBizDebtsScreen extends StatefulWidget {
@@ -60,8 +64,9 @@ class _FaidaBizDebtsScreenState extends State<FaidaBizDebtsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('debts.title'.tr()),
+      appBar: faidaBizAppBar(
+        title: 'debts.title'.tr(),
+        backgroundColor: Colors.orange.shade800,
         actions: [
           IconButton(
             tooltip: openOnly ? 'debts.show_all'.tr() : 'debts.show_open'.tr(),
@@ -223,44 +228,49 @@ class _FaidaBizDebtFormScreenState extends State<FaidaBizDebtFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('debts.add'.tr())),
+    return FaidaBizNeuFormScaffold(
+      appBar: faidaBizAppBar(title: 'debts.add'.tr(), backgroundColor: Colors.orange.shade800),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('debts.add_hint'.tr(), style: TextStyle(color: Colors.grey.shade700, height: 1.4)),
+          FaidaBizNeuHint(
+            icon: Icons.info_outline,
+            child: Text('debts.add_hint'.tr(), style: TextStyle(color: Colors.grey.shade800, height: 1.4)),
+          ),
           const SizedBox(height: 16),
-          TextField(
+          FaidaBizNeuField(
             controller: name,
-            decoration: InputDecoration(labelText: 'debts.customer_name'.tr()),
+            label: 'debts.customer_name'.tr(),
             textCapitalization: TextCapitalization.words,
           ),
-          const SizedBox(height: 12),
-          TextField(
+          const SizedBox(height: 14),
+          FaidaBizNeuField(
             controller: phone,
+            label: 'debts.phone_optional'.tr(),
             keyboardType: TextInputType.phone,
-            decoration: InputDecoration(labelText: 'debts.phone_optional'.tr()),
           ),
-          const SizedBox(height: 12),
-          TextField(
+          const SizedBox(height: 14),
+          FaidaBizNeuField(
             controller: amount,
+            label: 'debts.loan_amount'.tr(),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(labelText: 'debts.loan_amount'.tr()),
           ),
-          const SizedBox(height: 12),
-          TextField(
+          const SizedBox(height: 14),
+          FaidaBizNeuField(
             controller: notes,
+            label: 'debts.notes_optional'.tr(),
+            hint: 'debts.notes_hint'.tr(),
             maxLines: 2,
-            decoration: InputDecoration(labelText: 'debts.notes_optional'.tr(), hintText: 'debts.notes_hint'.tr()),
           ),
           if (error != null) ...[
             const SizedBox(height: 12),
             Text(error!, style: const TextStyle(color: Colors.red)),
           ],
           const SizedBox(height: 24),
-          ElevatedButton(
+          NeuPrimaryButton(
+            label: 'form.save'.tr(),
+            loading: loading,
             onPressed: loading ? null : _save,
-            child: loading ? FaidaBizLoader.button() : Text('form.save'.tr()),
           ),
         ],
       ),
@@ -306,83 +316,67 @@ class _FaidaBizDebtDetailScreenState extends State<FaidaBizDebtDetailScreen> {
 
   Future<void> _pay() async {
     final balance = FaidaBizTheme.asDouble(debt?['balance']);
-    if (balance <= 0) return;
-
-    final amountCtrl = TextEditingController(text: balance.toStringAsFixed(0));
-    final notesCtrl = TextEditingController();
-
-    final ok = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(4)),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text('debts.record_payment'.tr(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 6),
-                Text(
-                  '${'debts.remaining'.tr()}: ${FaidaBizTheme.money(balance)}',
-                  style: TextStyle(color: Colors.grey.shade700),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: amountCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(labelText: 'debts.payment_amount'.tr()),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: notesCtrl,
-                  decoration: InputDecoration(labelText: 'debts.notes_optional'.tr()),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(ctx, true),
-                  child: Text('debts.save_payment'.tr()),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+    if (balance <= 0 || debt == null) return;
+    final ok = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FaidaBizDebtPayScreen(
+          debtId: widget.debtId,
+          balance: balance,
+          name: debt!['name']?.toString() ?? '',
+        ),
+      ),
     );
-
-    if (ok != true) return;
-    final amount = double.tryParse(amountCtrl.text) ?? 0;
-    if (amount <= 0) return;
-
-    try {
-      await FaidaBizApi.post('/debts/${widget.debtId}/pay', {
-        'amount': amount,
-        'notes': notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
-      });
+    if (ok == true) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('debts.payment_saved'.tr())));
       }
       await _load();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
-      }
     }
+  }
+
+  Future<void> _addMoreDebt() async {
+    if (debt == null) return;
+    final ok = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FaidaBizDebtAddMoreScreen(
+          debtId: widget.debtId,
+          name: debt!['name']?.toString() ?? '',
+        ),
+      ),
+    );
+    if (ok == true) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('debts.more_saved'.tr())));
+      }
+      await _load();
+    }
+  }
+
+  Future<void> _edit() async {
+    if (debt == null) return;
+    final ok = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => FaidaBizDebtEditScreen(debt: debt!)),
+    );
+    if (ok == true) await _load();
+  }
+
+  Future<void> _delete() async {
+    if (debt == null) return;
+    final ok = await confirmAndSoftDelete(
+      context: context,
+      title: 'delete.title_debt'.tr(),
+      itemLabel: debt!['name']?.toString(),
+      onConfirm: (reason, password) async {
+        await FaidaBizApi.delete('/debts/${widget.debtId}', {
+          'delete_reason': reason,
+          'password': password,
+        });
+      },
+    );
+    if (ok && mounted) Navigator.pop(context, true);
   }
 
   @override
@@ -391,7 +385,10 @@ class _FaidaBizDebtDetailScreenState extends State<FaidaBizDebtDetailScreen> {
     final cleared = balance <= 0;
 
     return Scaffold(
-      appBar: AppBar(title: Text(debt?['name']?.toString() ?? 'debts.title'.tr())),
+      appBar: faidaBizAppBar(
+        title: debt?['name']?.toString() ?? 'debts.title'.tr(),
+        backgroundColor: Colors.orange.shade800,
+      ),
       body: loading
           ? FaidaBizLoader.body()
           : error != null
@@ -435,14 +432,45 @@ class _FaidaBizDebtDetailScreenState extends State<FaidaBizDebtDetailScreen> {
                         ],
                       ),
                     ),
-                    if (!cleared) ...[
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: _pay,
-                        icon: const Icon(Icons.payments_outlined),
-                        label: Text('debts.record_payment'.tr()),
-                      ),
-                    ],
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        if (!cleared)
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: _pay,
+                              icon: const Icon(Icons.payments_outlined),
+                              label: Text('debts.record_payment'.tr()),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange.shade800,
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size.fromHeight(48),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                            ),
+                          ),
+                        if (!cleared) const SizedBox(width: 10),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _addMoreDebt,
+                            icon: const Icon(Icons.add_rounded),
+                            label: Text('debts.add_more'.tr()),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.orange.shade900,
+                              side: BorderSide(color: Colors.orange.shade300),
+                              minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    FaidaBizDetailActions(
+                      onEdit: _edit,
+                      onDelete: _delete,
+                      accentColor: Colors.orange.shade800,
+                    ),
                     const SizedBox(height: 24),
                     Text('debts.payment_history'.tr(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                     const SizedBox(height: 8),

@@ -5,7 +5,7 @@ import 'package:wicom/faidabiz/faidabiz_shell.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/otp_screen.dart';
 import 'package:wicom/faidabiz/screens/register_screen.dart';
-import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_neumorphic.dart';
 import 'package:wicom/faidabiz/widgets/landing_backdrop.dart';
 
 class FaidaBizLoginScreen extends StatefulWidget {
@@ -121,51 +121,46 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(22),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 28, offset: const Offset(0, 14)),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text('auth.login'.tr(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: FaidaBizTheme.black)),
-                          const SizedBox(height: 18),
-                          TextField(
-                            controller: phone,
-                            keyboardType: TextInputType.phone,
-                            decoration: InputDecoration(labelText: 'auth.phone'.tr()),
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: password,
-                            obscureText: true,
-                            decoration: InputDecoration(labelText: 'auth.password'.tr()),
-                          ),
-                          if (error != null) ...[
-                            const SizedBox(height: 12),
-                            Text(error!, style: const TextStyle(color: Colors.red)),
+                    FaidaBizNeuScope(
+                      child: NeuPanel(
+                        padding: const EdgeInsets.all(22),
+                        depth: 6,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text('auth.login'.tr(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: FaidaBizTheme.black)),
+                            const SizedBox(height: 18),
+                            FaidaBizNeuField(
+                              controller: phone,
+                              label: 'auth.phone'.tr(),
+                              keyboardType: TextInputType.phone,
+                            ),
+                            const SizedBox(height: 14),
+                            FaidaBizNeuField(
+                              controller: password,
+                              label: 'auth.password'.tr(),
+                              obscureText: true,
+                            ),
+                            if (error != null) ...[
+                              const SizedBox(height: 12),
+                              Text(error!, style: const TextStyle(color: Colors.red)),
+                            ],
+                            const SizedBox(height: 20),
+                            NeuPrimaryButton(
+                              label: 'auth.login'.tr(),
+                              loading: loading,
+                              onPressed: loading ? null : _submit,
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => const FaidaBizRegisterScreen()),
+                                );
+                              },
+                              child: Text('auth.no_account'.tr()),
+                            ),
                           ],
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: loading ? null : _submit,
-                            child: loading
-                                ? FaidaBizLoader.button()
-                                : Text('auth.login'.tr()),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const FaidaBizRegisterScreen()),
-                              );
-                            },
-                            child: Text('auth.no_account'.tr()),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ],
