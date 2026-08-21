@@ -49,6 +49,25 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
     super.dispose();
   }
 
+  Future<void> _setLanguage(Locale next) async {
+    await context.setLocale(next);
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _openForgotPassword() async {
+    final updatedPhone = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => FaidaBizForgotPasswordScreen(
+          initialPhone: phone.text.trim(),
+        ),
+      ),
+    );
+    if (updatedPhone != null && updatedPhone.isNotEmpty && mounted) {
+      phone.text = updatedPhone;
+      password.clear();
+    }
+  }
+
   Future<void> _submit() async {
     setState(() {
       loading = true;
@@ -87,6 +106,8 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
 
   @override
   Widget build(BuildContext context) {
+    final isSw = context.locale.languageCode == 'sw';
+
     return Scaffold(
       body: Stack(
         children: [
@@ -97,8 +118,47 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
               child: SlideTransition(
                 position: _slide,
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                   children: [
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Material(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(24),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(24),
+                          onTap: () => _setLanguage(isSw ? const Locale('en') : const Locale('sw')),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.language_rounded, color: Colors.white, size: 18),
+                                const SizedBox(width: 6),
+                                Text(
+                                  isSw ? 'SW' : 'EN',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  isSw ? 'Kiswahili' : 'English',
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
                     Text(
                       'FaidaBiz',
                       style: Theme.of(context).textTheme.displaySmall?.copyWith(
@@ -111,12 +171,12 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
                     const SizedBox(height: 10),
                     Text(
                       'brand.tagline'.tr(),
-                      style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 16, height: 1.35),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 16, height: 1.35),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'landing.subtitle'.tr(),
-                      style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
                     ),
                     const SizedBox(height: 28),
                     TextButton(
@@ -163,23 +223,27 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
                               label: 'auth.password'.tr(),
                               obscureText: true,
                             ),
+                            const SizedBox(height: 8),
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
-                                onPressed: () async {
-                                  final updatedPhone = await Navigator.of(context).push<String>(
-                                    MaterialPageRoute(
-                                      builder: (_) => FaidaBizForgotPasswordScreen(
-                                        initialPhone: phone.text.trim(),
-                                      ),
-                                    ),
-                                  );
-                                  if (updatedPhone != null && updatedPhone.isNotEmpty && mounted) {
-                                    phone.text = updatedPhone;
-                                    password.clear();
-                                  }
-                                },
-                                child: Text('auth.forgot_password'.tr()),
+                                onPressed: _openForgotPassword,
+                                style: TextButton.styleFrom(
+                                  foregroundColor: FaidaBizTheme.greenDark,
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                                  minimumSize: const Size(0, 36),
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  'auth.forgot_password'.tr(),
+                                  style: const TextStyle(
+                                    color: FaidaBizTheme.greenDark,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: FaidaBizTheme.greenDark,
+                                  ),
+                                ),
                               ),
                             ),
                             if (error != null) ...[
