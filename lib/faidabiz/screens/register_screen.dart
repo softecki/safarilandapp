@@ -40,6 +40,7 @@ class _FaidaBizRegisterScreenState extends State<FaidaBizRegisterScreen> {
         MaterialPageRoute(
           builder: (_) => FaidaBizOtpScreen(
             phone: res['phone']?.toString() ?? phone.text.trim(),
+            password: password.text,
           ),
         ),
       );

@@ -5,7 +5,7 @@
   "landing": {
     "subtitle": "Daftari rahisi la biashara — mauzo, matumizi na faida.",
     "register_cta": "Jisajili",
-    "register_biz_cta": "Jisajili biashara yako"
+    "register_biz_cta": "Sajili biashara yako"
   },
   "nav": {
     "home": "Nyumbani",
@@ -31,6 +31,20 @@
     "phone": "Namba ya simu",
     "password": "Nenosiri",
     "login": "Ingia",
+    "forgot_password": "Umesahau nenosiri?",
+    "forgot_title": "Badilisha nenosiri",
+    "forgot_phone_hint": "Ingiza namba ya simu ya akaunti yako. Ikiwa ipo, utaweza kuweka nenosiri jipya.",
+    "forgot_new_password_hint": "Weka nenosiri jipya kisha thibitisha.",
+    "forgot_new_password": "Nenosiri jipya",
+    "forgot_confirm_password": "Thibitisha nenosiri jipya",
+    "forgot_continue": "Endelea",
+    "forgot_save": "Hifadhi nenosiri jipya",
+    "forgot_change_phone": "Tumia namba nyingine",
+    "forgot_phone_required": "Weka namba ya simu.",
+    "forgot_fill_passwords": "Weka na thibitisha nenosiri jipya.",
+    "forgot_password_min": "Nenosiri liwe na angalau herufi 4.",
+    "forgot_password_mismatch": "Nenosiri jipya na uthibitisho haviendani.",
+    "forgot_success": "Nenosiri limebadilishwa. Ingia kwa nenosiri jipya.",
     "register": "Sajili",
     "register_subtitle": "Weka jina, namba ya simu na nenosiri. Tutakutumia namba ya uthibitisho kwa SMS.",
     "no_account": "Huna akaunti? Sajili sasa",
@@ -47,6 +61,15 @@
     "otp_incomplete": "Ingiza tarakimu zote 6.",
     "fill_all": "Jaza jina, simu na nenosiri.",
     "session_expired": "Session imeisha. Ingia tena.",
+    "offline_mode": "Uko nje ya mtandao. Mabadiliko yatasawazishwa utakapounganishwa.",
+    "offline_banner": "Hali ya nje ya mtandao — umeingia mtandaoni ndani ya saa 24",
+    "offline_pending": "{0} zinasubiri kusawazishwa",
+    "offline_expired": "Zaidi ya saa 24 bila kuingia mtandaoni. Unganisha mtandao kisha ingia tena.",
+    "offline_unavailable": "Huwezi kufikia seva. Ingia mtandaoni mara moja, kisha unaweza kufanya kazi nje ya mtandao hadi saa 24.",
+    "offline_no_cache": "Hakuna data iliyohifadhiwa kwa nje ya mtandao. Unganisha mtandao mara moja, kisha jaribu tena.",
+    "offline_saved": "Imehifadhiwa nje ya mtandao — itasawazishwa mtandaoni.",
+    "offline_syncing": "Mtandao umepatikana — inasawazisha…",
+    "offline_synced": "Data ya nje ya mtandao imesawazishwa.",
     "phone_hint": "07XXXXXXXX"
   },
   "home": {

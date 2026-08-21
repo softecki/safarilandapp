@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
+import 'package:wicom/faidabiz/faidabiz_offline.dart';
 import 'package:wicom/faidabiz/faidabiz_shell.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_chrome.dart';
@@ -12,9 +13,12 @@ class FaidaBizOtpScreen extends StatefulWidget {
   const FaidaBizOtpScreen({
     super.key,
     required this.phone,
+    this.password,
   });
 
   final String phone;
+  /// When set, stored for offline login after successful OTP.
+  final String? password;
 
   @override
   State<FaidaBizOtpScreen> createState() => _FaidaBizOtpScreenState();
@@ -52,6 +56,9 @@ class _FaidaBizOtpScreenState extends State<FaidaBizOtpScreen> {
     try {
       final body = await FaidaBizApi.verifyOtp(phone: widget.phone, code: code);
       if (!mounted) return;
+      if (widget.password != null && widget.password!.isNotEmpty) {
+        await FaidaBizOffline.saveCredentials(phone: widget.phone, password: widget.password!);
+      }
       await FaidaBizApi.applyLocaleFromUser(context);
       if (!mounted) return;
 

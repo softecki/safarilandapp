@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
+import 'package:wicom/faidabiz/faidabiz_offline.dart';
 import 'package:wicom/faidabiz/faidabiz_shell.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
+import 'package:wicom/faidabiz/screens/forgot_password_screen.dart';
 import 'package:wicom/faidabiz/screens/otp_screen.dart';
 import 'package:wicom/faidabiz/screens/register_screen.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_neumorphic.dart';
@@ -26,6 +28,20 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
       .animate(CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic));
 
   @override
+  void initState() {
+    super.initState();
+    _prefillPhone();
+  }
+
+  Future<void> _prefillPhone() async {
+    await FaidaBizOffline.load();
+    final p = FaidaBizOffline.storedPhone;
+    if (p != null && p.isNotEmpty && mounted) {
+      phone.text = p;
+    }
+  }
+
+  @override
   void dispose() {
     _anim.dispose();
     phone.dispose();
@@ -46,6 +62,7 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
           MaterialPageRoute(
             builder: (_) => FaidaBizOtpScreen(
               phone: res['phone']?.toString() ?? phone.text.trim(),
+              password: password.text,
             ),
           ),
         );
@@ -53,6 +70,11 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
       }
       await FaidaBizApi.applyLocaleFromUser(context);
       if (!mounted) return;
+      if (res['offline'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('auth.offline_mode'.tr())),
+        );
+      }
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const FaidaBizShell()),
       );
@@ -141,11 +163,30 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
                               label: 'auth.password'.tr(),
                               obscureText: true,
                             ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () async {
+                                  final updatedPhone = await Navigator.of(context).push<String>(
+                                    MaterialPageRoute(
+                                      builder: (_) => FaidaBizForgotPasswordScreen(
+                                        initialPhone: phone.text.trim(),
+                                      ),
+                                    ),
+                                  );
+                                  if (updatedPhone != null && updatedPhone.isNotEmpty && mounted) {
+                                    phone.text = updatedPhone;
+                                    password.clear();
+                                  }
+                                },
+                                child: Text('auth.forgot_password'.tr()),
+                              ),
+                            ),
                             if (error != null) ...[
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 4),
                               Text(error!, style: const TextStyle(color: Colors.red)),
                             ],
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 12),
                             NeuPrimaryButton(
                               label: 'auth.login'.tr(),
                               loading: loading,

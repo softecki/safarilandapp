@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:wicom/core/app_neumorphic.dart';
 import 'package:wicom/faidabiz/faidabiz_api.dart';
+import 'package:wicom/faidabiz/faidabiz_network_sync.dart';
 import 'package:wicom/faidabiz/faidabiz_shell.dart';
 import 'package:wicom/faidabiz/faidabiz_theme.dart';
 import 'package:wicom/faidabiz/screens/login_screen.dart';
@@ -20,6 +21,7 @@ void main() async {
   await WhatsLipaConfig.ensurePortalLoaded();
   await FaidaBizApi.loadSession();
   await EasyLocalization.ensureInitialized();
+  await FaidaBizNetworkSync.start();
 
   FaidaBizApi.onUnauthorized = () {
     final nav = navigatorKey.currentState;

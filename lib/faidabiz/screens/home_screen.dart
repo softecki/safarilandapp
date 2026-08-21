@@ -17,6 +17,7 @@ import 'package:wicom/faidabiz/screens/subscription_screen.dart';
 import 'package:wicom/faidabiz/widgets/count_up_money_card.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_date_filter.dart';
 import 'package:wicom/faidabiz/widgets/faidabiz_loader.dart';
+import 'package:wicom/faidabiz/widgets/faidabiz_offline_banner.dart';
 
 /// Home hub with summary cards + feature grid (no bottom navigation).
 class FaidaBizHomeScreen extends StatefulWidget {
@@ -184,119 +185,123 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
           ),
         ],
       ),
-      body: loading && data == null
-          ? FaidaBizLoader.body()
-          : error != null && data == null
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(padding: const EdgeInsets.all(16), child: Text(error!, textAlign: TextAlign.center)),
-                      TextButton(onPressed: _load, child: Text('common.retry'.tr())),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      Text(question, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 12),
-                      FaidaBizDateFilter(selected: selectedDate, onChanged: _onDateChanged),
-                      const SizedBox(height: 10),
-                      Text(summaryLabel, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
-                      if (_showPaymentReminder) ...[
-                        const SizedBox(height: 12),
-                        Material(
-                          color: const Color(0xFFFFF7ED),
-                          borderRadius: BorderRadius.circular(14),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(14),
-                            onTap: () => _open(const FaidaBizSubscriptionScreen()),
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Icon(Icons.notifications_active_outlined, color: Color(0xFFC2410C)),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
+      body: Column(
+        children: [
+          const FaidaBizOfflineBanner(),
+          Expanded(
+            child: loading && data == null
+                ? FaidaBizLoader.body()
+                : error != null && data == null
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(padding: const EdgeInsets.all(16), child: Text(error!, textAlign: TextAlign.center)),
+                            TextButton(onPressed: _load, child: Text('common.retry'.tr())),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _load,
+                        child: ListView(
+                          padding: const EdgeInsets.all(16),
+                          children: [
+                            Text(question, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 12),
+                            FaidaBizDateFilter(selected: selectedDate, onChanged: _onDateChanged),
+                            const SizedBox(height: 10),
+                            Text(summaryLabel, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
+                            if (_showPaymentReminder) ...[
+                              const SizedBox(height: 12),
+                              Material(
+                                color: const Color(0xFFFFF7ED),
+                                borderRadius: BorderRadius.circular(14),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(14),
+                                  onTap: () => _open(const FaidaBizSubscriptionScreen()),
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+                                    child: Row(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          'subscription.reminder_title'.tr(),
-                                          style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF9A3412)),
+                                        const Icon(Icons.notifications_active_outlined, color: Color(0xFFC2410C)),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'subscription.reminder_title'.tr(),
+                                                style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF9A3412)),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                subscription!['payment_reminder']['message']?.toString()
+                                                    ?? 'subscription.reminder_body'.tr(
+                                                        args: ['${subscription!['payment_reminder']['days_left'] ?? ''}'],
+                                                      ),
+                                                style: TextStyle(color: Colors.grey.shade800, fontSize: 13, height: 1.35),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          subscription!['payment_reminder']['message']?.toString()
-                                              ?? 'subscription.reminder_body'.tr(
-                                                  args: ['${subscription!['payment_reminder']['days_left'] ?? ''}'],
-                                                ),
-                                          style: TextStyle(color: Colors.grey.shade800, fontSize: 13, height: 1.35),
+                                        IconButton(
+                                          tooltip: 'subscription.reminder_dismiss'.tr(),
+                                          onPressed: _dismissPaymentReminder,
+                                          icon: const Icon(Icons.close_rounded, color: Color(0xFFC2410C)),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  IconButton(
-                                    tooltip: 'subscription.reminder_dismiss'.tr(),
-                                    onPressed: _dismissPaymentReminder,
-                                    icon: const Icon(Icons.close_rounded, color: Color(0xFFC2410C)),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
-                      ],
-                      if (loading) ...[
-                        const SizedBox(height: 12),
-                        const LinearProgressIndicator(
-                          minHeight: 2,
-                          color: FaidaBizTheme.green,
-                          backgroundColor: Color(0xFFE8F5EC),
-                        ),
-                      ],
-                      const SizedBox(height: 14),
-                      GridView.count(
-                        crossAxisCount: 2,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 1.35,
-                        children: [
-                          CountUpMoneyCard(
-                            label: _isToday ? 'home.sales'.tr() : 'home.sales_day'.tr(),
-                            value: summary['sales'] ?? 0,
-                            color: FaidaBizTheme.green,
-                            icon: Icons.trending_up,
-                            onTap: () => _open(FaidaBizActivityScreen(
-                              initialDate: selectedDate,
-                              filterType: 'sale',
-                              title: 'activity.history_sales'.tr(),
-                            )),
-                          ),
-                          CountUpMoneyCard(
-                            label: 'home.expenses'.tr(),
-                            value: summary['expenses'] ?? 0,
-                            color: Colors.orange.shade800,
-                            icon: Icons.payments_outlined,
-                            delay: const Duration(milliseconds: 150),
-                            onTap: () => _open(FaidaBizActivityScreen(
-                              initialDate: selectedDate,
-                              filterType: 'expense',
-                              title: 'activity.history_expenses'.tr(),
-                            )),
-                          ),
-                          CountUpMoneyCard(
-                            label: 'home.purchases'.tr(),
-                            value: summary['purchases'] ?? 0,
-                            color: FaidaBizTheme.black,
+                            ],
+                            if (loading) ...[
+                              const SizedBox(height: 12),
+                              const LinearProgressIndicator(
+                                minHeight: 2,
+                                color: FaidaBizTheme.green,
+                                backgroundColor: Color(0xFFE8F5EC),
+                              ),
+                            ],
+                            const SizedBox(height: 14),
+                            GridView.count(
+                              crossAxisCount: 2,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 1.35,
+                              children: [
+                                CountUpMoneyCard(
+                                  label: _isToday ? 'home.sales'.tr() : 'home.sales_day'.tr(),
+                                  value: summary['sales'] ?? 0,
+                                  color: FaidaBizTheme.green,
+                                  icon: Icons.trending_up,
+                                  onTap: () => _open(FaidaBizActivityScreen(
+                                    initialDate: selectedDate,
+                                    filterType: 'sale',
+                                    title: 'activity.history_sales'.tr(),
+                                  )),
+                                ),
+                                CountUpMoneyCard(
+                                  label: 'home.expenses'.tr(),
+                                  value: summary['expenses'] ?? 0,
+                                  color: Colors.orange.shade800,
+                                  icon: Icons.payments_outlined,
+                                  delay: const Duration(milliseconds: 150),
+                                  onTap: () => _open(FaidaBizActivityScreen(
+                                    initialDate: selectedDate,
+                                    filterType: 'expense',
+                                    title: 'activity.history_expenses'.tr(),
+                                  )),
+                                ),
+                                CountUpMoneyCard(
+                                  label: 'home.purchases'.tr(),
+                                  value: summary['purchases'] ?? 0,
+                                  color: FaidaBizTheme.black,
                             icon: Icons.shopping_bag_outlined,
                             delay: const Duration(milliseconds: 250),
                             onTap: () => _open(FaidaBizActivityScreen(
@@ -390,6 +395,9 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
                     ],
                   ),
                 ),
+          ),
+        ],
+      ),
     );
   }
 }
