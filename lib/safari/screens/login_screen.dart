@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
-import 'package:wicom/safari/safari_brand.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/otp_screen.dart';
@@ -33,25 +32,32 @@ class _SafariLoginScreenState extends State<SafariLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
           children: [
-            const SizedBox(height: 24),
-            const SafariHero(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(SafariBrand.name, style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
-                SizedBox(height: 8),
-                Text(SafariBrand.tagline),
-              ]),
+            const SizedBox(height: 36),
+            const Center(child: SafariLogo(height: 88)),
+            const SizedBox(height: 10),
+            const Center(
+              child: Text(
+                'TANZANIA',
+                textAlign: TextAlign.center,
+                style: TextStyle(letterSpacing: 6, fontSize: 11, fontWeight: FontWeight.w600, color: SafariTheme.black),
+              ),
             ),
-            const SizedBox(height: 24),
-            TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Mobile number', hintText: '07XXXXXXXX')),
+            const SizedBox(height: 48),
+            TextField(
+              controller: phone,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(labelText: 'Mobile number', hintText: '07XXXXXXXX'),
+            ),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: loading ? null : _send, child: Text(loading ? 'Sending…' : 'Send OTP')),
             TextButton(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SafariSettingsScreen())),
-              child: const Text('API settings', style: TextStyle(color: SafariTheme.muted)),
+              child: const Text('API settings', style: TextStyle(color: SafariTheme.muted, letterSpacing: 0.6)),
             ),
           ],
         ),

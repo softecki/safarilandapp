@@ -101,19 +101,29 @@ class _SafariSplashScreenState extends State<SafariSplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: SafariTheme.greenDark,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(SafariBrand.name, style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w800)),
-            SizedBox(height: 8),
-            Text(SafariBrand.tagline, style: TextStyle(color: Colors.white70)),
-            SizedBox(height: 24),
-            CircularProgressIndicator(color: Colors.white),
-          ],
-        ),
+    return Scaffold(
+      backgroundColor: SafariTheme.maroon,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            SafariBrand.posterAsset,
+            fit: BoxFit.contain,
+            alignment: Alignment.center,
+            errorBuilder: (_, __, ___) => const ColoredBox(color: SafariTheme.maroon),
+          ),
+          const SafeArea(
+            child: Column(
+              children: [
+                Spacer(),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(32, 0, 32, 48),
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

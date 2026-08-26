@@ -2,59 +2,105 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SafariTheme {
-  static const green = Color(0xFF2F5D3A);
-  static const greenDark = Color(0xFF1F3D28);
-  static const sand = Color(0xFFF4EFE6);
-  static const earth = Color(0xFF8B5E34);
-  static const gold = Color(0xFFC4A35A);
-  static const ink = Color(0xFF1C1917);
+  /// Deep maroon from the Safari Land brand artwork.
+  static const maroon = Color(0xFF800D12);
+  static const maroonDark = Color(0xFF5C090D);
+  static const black = Color(0xFF111111);
+  static const canvas = Color(0xFFF7F4F2);
   static const muted = Color(0xFF6B6259);
+
+  /// Legacy aliases used by older Safari widgets.
+  static const green = maroon;
+  static const greenDark = maroonDark;
+  static const sand = canvas;
+  static const earth = maroon;
+  static const gold = maroon;
+  static const ink = black;
 
   static ThemeData material() {
     final base = ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: green,
-        primary: green,
-        secondary: earth,
-        surface: Colors.white,
+      colorScheme: const ColorScheme.light(
+        primary: maroon,
         onPrimary: Colors.white,
-        onSurface: ink,
+        secondary: black,
+        onSecondary: Colors.white,
+        surface: Colors.white,
+        onSurface: black,
+        error: maroon,
+        onError: Colors.white,
       ),
-      scaffoldBackgroundColor: sand,
+      scaffoldBackgroundColor: canvas,
+      dividerColor: black,
       appBarTheme: const AppBarTheme(
-        backgroundColor: green,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: maroon,
         elevation: 0,
+        centerTitle: true,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: TextStyle(
+          color: black,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.2,
+        ),
+        iconTheme: IconThemeData(color: maroon),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(4),
+          borderSide: const BorderSide(color: Color(0xFFDDD6D0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(4),
+          borderSide: const BorderSide(color: Color(0xFFDDD6D0)),
+        ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: green, width: 1.5),
+          borderRadius: BorderRadius.circular(4),
+          borderSide: const BorderSide(color: maroon, width: 1.4),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: green,
+          backgroundColor: maroon,
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(52),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          elevation: 0,
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1.1),
         ),
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: maroon,
+          side: const BorderSide(color: maroon),
+          minimumSize: const Size.fromHeight(48),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+        ),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: maroon,
+        foregroundColor: Colors.white,
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(color: maroon),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? maroon : null),
+      ),
+      snackBarTheme: const SnackBarThemeData(backgroundColor: maroon, contentTextStyle: TextStyle(color: Colors.white)),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        selectedItemColor: green,
+        selectedItemColor: maroon,
         unselectedItemColor: muted,
         backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
+        elevation: 8,
       ),
     );
     try {
       return base.copyWith(
-        textTheme: GoogleFonts.dmSansTextTheme(base.textTheme).apply(bodyColor: ink, displayColor: ink),
+        textTheme: GoogleFonts.montserratTextTheme(base.textTheme).apply(bodyColor: black, displayColor: black),
       );
     } catch (_) {
       return base;

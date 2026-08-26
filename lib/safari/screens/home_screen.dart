@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
-import 'package:wicom/safari/safari_brand.dart';
+import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/notifications_screen.dart';
 import 'package:wicom/safari/screens/tourists_screen.dart';
@@ -39,7 +39,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
     final wallet = home?['wallet'] as Map? ?? {};
     return Scaffold(
       appBar: AppBar(
-        title: const Text(SafariBrand.name),
+        title: const SafariLogo(height: 34),
         actions: [
           IconButton(
             icon: Badge(isLabelVisible: (home?['unread_notifications'] ?? 0) > 0, child: const Icon(Icons.notifications_outlined)),
@@ -67,9 +67,9 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                   ),
                   const SizedBox(height: 12),
                   Row(children: [
-                    Expanded(child: SafariCard(child: Column(children: [const Text('Available'), Text(money(wallet['available']), style: const TextStyle(fontWeight: FontWeight.w800))]))),
+                    Expanded(child: SafariCard(child: Column(children: [const Text('Available'), Text(money(wallet['available']), style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon))]))),
                     const SizedBox(width: 8),
-                    Expanded(child: SafariCard(child: Column(children: [const Text('Pending'), Text(money(wallet['pending']), style: const TextStyle(fontWeight: FontWeight.w800))]))),
+                    Expanded(child: SafariCard(child: Column(children: [const Text('Pending'), Text(money(wallet['pending']), style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon))]))),
                   ]),
                   const SizedBox(height: 12),
                   SafariCard(
