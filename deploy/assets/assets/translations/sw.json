@@ -506,5 +506,9 @@
     "feat_subscription_icon": "workspace_premium",
     "feat_chat_icon": "chat",
     "contact": "Kwa msaada zaidi, piga simu +255799305441 au tuma ujumbe kupitia mazungumzo ya programu."
+  },
+  "safari": {
+    "name": "Safari Land",
+    "tagline": "Jukwaa la Madereva Waongozi"
   }
 }

@@ -506,5 +506,9 @@
     "history_expenses": "Transaction history — Expenses",
     "history_purchases": "Transaction history — Purchases",
     "history_profit": "Transaction history — Profit"
+  },
+  "safari": {
+    "name": "Safari Land",
+    "tagline": "Driver-Guide Partner Platform"
   }
 }
