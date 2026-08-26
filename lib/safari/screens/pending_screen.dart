@@ -55,7 +55,7 @@ class _SafariPendingScreenState extends State<SafariPendingScreen> {
                   ]),
                 ),
                 const SizedBox(height: 16),
-                const SafariCard(child: Text('Safari Land staff will review your profile. You will receive a permanent Driver ID when approved.')),
+                const SafariCard(child: Text('Safari Land Tanzania staff will review your profile. You will receive a permanent Driver ID when approved.')),
                 const SizedBox(height: 16),
                 ElevatedButton(onPressed: _refresh, child: const Text('Check status')),
                 TextButton(

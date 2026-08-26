@@ -199,7 +199,7 @@ class _FaidaBizLoaderState extends State<FaidaBizLoader> with SingleTickerProvid
       children: [
         if (widget.showBrand) ...[
           Text(
-            'FaidaBiz',
+            'Safari Land Tanzania',
             style: TextStyle(
               fontSize: widget.size == FaidaBizLoaderSize.page || isSplash ? 22 : 18,
               fontWeight: FontWeight.w800,

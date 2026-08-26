@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_brand.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/otp_screen.dart';
@@ -39,9 +40,9 @@ class _SafariLoginScreenState extends State<SafariLoginScreen> {
             const SizedBox(height: 24),
             const SafariHero(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Safari Land', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+                Text(SafariBrand.name, style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
                 SizedBox(height: 8),
-                Text('Driver-Guide Partner Platform'),
+                Text(SafariBrand.tagline),
               ]),
             ),
             const SizedBox(height: 24),

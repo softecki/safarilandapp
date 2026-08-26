@@ -76,7 +76,7 @@ class WhatsLipaBrand {
   static bool get isLotiGas => false;
 
   static String get name {
-    return _cached?['name']?.toString() ?? 'FaidaBiz';
+    return _cached?['name']?.toString() ?? 'Safari Land Tanzania';
   }
 
   static String? get logoAsset => null;

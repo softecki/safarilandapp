@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_brand.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/notifications_screen.dart';
 import 'package:wicom/safari/screens/tourists_screen.dart';
@@ -38,7 +39,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
     final wallet = home?['wallet'] as Map? ?? {};
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Safari Land'),
+        title: const Text(SafariBrand.name),
         actions: [
           IconButton(
             icon: Badge(isLabelVisible: (home?['unread_notifications'] ?? 0) > 0, child: const Icon(Icons.notifications_outlined)),

@@ -16,10 +16,10 @@ class AppData {
   static String url = "https://payroll.softecki.com/api";
 
   /// Shown in UI (splash / legacy modes).
-  static String appDisplayName = "FaidaBiz";
+  static String appDisplayName = "Safari Land Tanzania";
 
   /// Legacy label used in older screens.
-  static String School_name = "FaidaBiz";
+  static String School_name = "Safari Land Tanzania";
   static const String dummyText = 'Lorem Ipsum is simply dummy text of the printing and typesetting'
       ' industry. Lorem Ipsum has been the industry\'s standard dummy text'
       ' ever since the 1500s, when an unknown printer took a galley of type'

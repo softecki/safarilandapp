@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui' show PointerDeviceKind;
 import 'package:wicom/core/font_loader.dart';
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_brand.dart';
 import 'package:wicom/safari/safari_shell.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/screens/login_screen.dart';
@@ -44,7 +45,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'Safari Land',
+      title: SafariBrand.name,
       theme: SafariTheme.material(),
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
@@ -106,9 +107,9 @@ class _SafariSplashScreenState extends State<SafariSplashScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Safari Land', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w800)),
+            Text(SafariBrand.name, style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w800)),
             SizedBox(height: 8),
-            Text('Driver-Guide Partner', style: TextStyle(color: Colors.white70)),
+            Text(SafariBrand.tagline, style: TextStyle(color: Colors.white70)),
             SizedBox(height: 24),
             CircularProgressIndicator(color: Colors.white),
           ],

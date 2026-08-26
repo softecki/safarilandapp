@@ -151,7 +151,7 @@ class _FaidaBizHomeScreenState extends State<FaidaBizHomeScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('FaidaBiz', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const Text('Safari Land Tanzania', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             Text(biz?['name']?.toString() ?? 'brand.tagline'.tr(), style: const TextStyle(fontSize: 12, color: Colors.white70)),
           ],
         ),

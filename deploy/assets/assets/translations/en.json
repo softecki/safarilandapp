@@ -1,9 +1,9 @@
 {
   "brand": {
-    "tagline": "Know Your Sales, Control Your Business, Grow Profit"
+    "tagline": "Driver-Guide Partner Platform"
   },
   "landing": {
-    "subtitle": "A simple business notebook — sales, expenses and profit.",
+    "subtitle": "Verified guides, shopping passes, and guest memories.",
     "register_cta": "Register",
     "register_biz_cta": "Register your business"
   },
@@ -132,7 +132,7 @@
   },
   "chat": {
     "title": "Support chat",
-    "subtitle": "Message FaidaBiz support",
+    "subtitle": "Message Safari Land Tanzania support",
     "empty": "No messages yet. Say hello — support will reply here.",
     "placeholder": "Type a message",
     "attach_image": "Image",
@@ -300,7 +300,7 @@
     "preferences": "Preferences",
     "about": "About",
     "migrations": "Migration SQL",
-    "migrations_hint": "View FaidaBiz raw SQL and run it with one tap.",
+    "migrations_hint": "View Safari Land Tanzania raw SQL and run it with one tap.",
     "run_raw": "Run Raw SQL",
     "run_migrate": "Run Artisan Migrate",
     "migration_ran": "Already ran",
@@ -336,7 +336,7 @@
     "sql_verify_purchases": "Verify: purchases funded from sales",
     "sql_verify_expenses": "Verify: expenses from purchases",
     "sql_verify_links": "Verify: purchase ↔ expense links",
-    "sql_notebook": "FaidaBiz notebook tables",
+    "sql_notebook": "Safari Land Tanzania notebook tables",
     "sql_soft_delete": "Soft delete columns",
     "sql_expense_history": "Expense edit history",
     "sql_support_chat": "Support chat tables"
@@ -396,9 +396,9 @@
     "net_halotel": "Halotel"
   },
   "about": {
-    "version": "Version 2.1 · FaidaBiz by Softecki",
-    "description": "FaidaBiz is a smart business notebook designed for small and medium traders. Record your sales, track expenses, manage products and stock, monitor debts, and see your profit — all from your phone, anytime, anywhere. No accounting knowledge required.",
-    "features_title": "What FaidaBiz can do for you",
+    "version": "Version 2.1 · Safari Land Tanzania by Softecki",
+    "description": "Safari Land Tanzania is the Driver-Guide Partner Platform for verified safari guides. Manage trips, guest shopping passes, stories, farewells, and your commission wallet from your phone.",
+    "features_title": "What Safari Land Tanzania can do for you",
     "feat_sales_title": "Record Sales",
     "feat_sales_body": "Log every sale with one or more products, view daily sales history, and track your profit in real time.",
     "feat_expenses_title": "Track Expenses",
@@ -416,11 +416,11 @@
     "feat_multi_title": "Multiple Branches",
     "feat_multi_body": "Manage several shops or branches from one phone. Switch between businesses with a single tap.",
     "feat_referral_title": "Invite Friends — Earn Bonus",
-    "feat_referral_body": "Invite fellow traders to FaidaBiz. When they subscribe, you earn a cash bonus paid directly to your mobile money.",
+    "feat_referral_body": "Invite fellow traders to Safari Land Tanzania. When they subscribe, you earn a cash bonus paid directly to your mobile money.",
     "feat_subscription_title": "Simple Subscription",
     "feat_subscription_body": "Pay once a year, twice a year, or quarterly. No hidden fees — one transparent price.",
     "feat_chat_title": "Fast Support",
-    "feat_chat_body": "Get direct help through the in-app chat. The FaidaBiz support team is ready to assist you.",
+    "feat_chat_body": "Get direct help through the in-app chat. The Safari Land Tanzania support team is ready to assist you.",
     "feat_sales_icon": "point_of_sale",
     "feat_expenses_icon": "payments",
     "feat_purchases_icon": "shopping_bag",
@@ -444,8 +444,8 @@
   },
   "manual": {
     "title": "User manual",
-    "settings_tile_hint": "Learn how to use every FaidaBiz feature",
-    "intro": "Read these guides for each home menu so you can use FaidaBiz on your own. Every page has a back arrow at the top left.",
+    "settings_tile_hint": "Learn how to use every Safari Land Tanzania feature",
+    "intro": "Read these guides for each home menu so you can use Safari Land Tanzania on your own. Every page has a back arrow at the top left.",
     "sales_title": "Sales",
     "sales_body": "Record a sale when you sell. Search a product; if missing tap +. Enter quantity and price, then save. Open a sale to view, edit or delete (with a reason).",
     "debts_title": "Debts",
@@ -508,7 +508,7 @@
     "history_profit": "Transaction history — Profit"
   },
   "safari": {
-    "name": "Safari Land",
+    "name": "Safari Land Tanzania",
     "tagline": "Driver-Guide Partner Platform"
   }
 }

@@ -84,7 +84,7 @@ class _FaidaBizReportsScreenState extends State<FaidaBizReportsScreen> {
     if (fromPayload != null && fromPayload.isNotEmpty) return fromPayload;
     final fromUser = FaidaBizApi.user?['business']?['name']?.toString().trim();
     if (fromUser != null && fromUser.isNotEmpty) return fromUser;
-    return 'FaidaBiz';
+    return 'Safari Land Tanzania';
   }
 
   Future<void> _exportPdf({required bool share}) async {

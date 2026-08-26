@@ -1,16 +1,16 @@
 {
-    "name": "Safari Land",
-    "short_name": "Safari Land",
-    "version": "3..2.0[D[D[D[[[[C[C[C.2.0",
+    "name": "Safari Land Tanzania",
+    "short_name": "Safari Land TZ",
+    "version": "1.2.0",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FFFFFF",
-    "theme_color": "#15803D",
-    "description": "FaidaBiz â€” Simple Business Management App. Jua Mauzo Yako, Dhibiti Biashara Yako, Ongeza Faida.",
+    "theme_color": "#2F5D3A",
+    "description": "Safari Land Tanzania — Driver-Guide Partner Platform for verified guides, shopping passes, and guest memories.",
     "orientation": "any",
     "prefer_related_applications": false,
     "scope": "/",
-    "categories": ["business", "finance"],
+    "categories": ["travel", "business"],
     "icons": [
         {
             "src": "icons/Icon-192.png",

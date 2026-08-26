@@ -342,7 +342,7 @@ class _FaidaBizSettingsScreenState extends State<FaidaBizSettingsScreen> {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('FaidaBiz', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: FaidaBizTheme.greenDark)),
+                                      const Text('Safari Land Tanzania', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: FaidaBizTheme.greenDark)),
                                       Text('about.version'.tr(), style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                                     ],
                                   ),
@@ -486,7 +486,7 @@ class _HeroHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      biz?['name']?.toString() ?? 'FaidaBiz',
+                      biz?['name']?.toString() ?? 'Safari Land Tanzania',
                       style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 4),

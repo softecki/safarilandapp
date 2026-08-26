@@ -77,7 +77,7 @@ class _SafariRegisterScreenState extends State<SafariRegisterScreen> {
           CheckboxListTile(
             value: terms,
             onChanged: (v) => setState(() => terms = v ?? false),
-            title: const Text('I accept Safari Land partner terms'),
+            title: const Text('I accept Safari Land Tanzania partner terms'),
           ),
           ElevatedButton(onPressed: loading ? null : _submit, child: Text(loading ? 'Submitting…' : 'Submit for verification')),
         ],

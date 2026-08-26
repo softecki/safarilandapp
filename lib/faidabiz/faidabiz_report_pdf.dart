@@ -28,7 +28,7 @@ class FaidaBizReportPdf {
         header: (ctx) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text('FaidaBiz', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+            pw.Text('Safari Land Tanzania', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
             pw.SizedBox(height: 4),
             pw.Text(businessName, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
             pw.Text(title, style: const pw.TextStyle(fontSize: 14)),

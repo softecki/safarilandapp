@@ -160,7 +160,7 @@ class _FaidaBizLoginScreenState extends State<FaidaBizLoginScreen> with SingleTi
                     ),
                     const SizedBox(height: 18),
                     Text(
-                      'FaidaBiz',
+                      'Safari Land Tanzania',
                       style: Theme.of(context).textTheme.displaySmall?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
