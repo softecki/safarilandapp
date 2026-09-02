@@ -14,13 +14,11 @@ class SafariForgotPasswordScreen extends StatefulWidget {
 
 class _SafariForgotPasswordScreenState extends State<SafariForgotPasswordScreen> {
   final phone = TextEditingController();
-  final email = TextEditingController();
   bool loading = false;
 
   @override
   void dispose() {
     phone.dispose();
-    email.dispose();
     super.dispose();
   }
 
@@ -29,7 +27,6 @@ class _SafariForgotPasswordScreenState extends State<SafariForgotPasswordScreen>
     try {
       final json = await SafariApi.post('/auth/otp/request', {
         'phone': phone.text.trim(),
-        'email': email.text.trim().isEmpty ? null : email.text.trim(),
         'purpose': 'reset',
       });
       final data = Map<String, dynamic>.from(SafariApi.data(json) as Map);
@@ -38,7 +35,7 @@ class _SafariForgotPasswordScreenState extends State<SafariForgotPasswordScreen>
         context,
         SafariOtpScreen(
           phone: phone.text.trim(),
-          email: email.text.trim().isEmpty ? data['email']?.toString() : email.text.trim(),
+          email: data['email']?.toString(),
           purpose: 'reset',
           debugCode: data['debug_code']?.toString(),
           sentTo: (data['sent_to'] as List?)?.map((e) => e.toString()).toList() ?? const [],
@@ -58,11 +55,9 @@ class _SafariForgotPasswordScreenState extends State<SafariForgotPasswordScreen>
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          const Text('Enter the phone on your account. A one-time code is sent by SMS and to your email if we have it.', style: TextStyle(color: SafariTheme.muted)),
+          const Text('Enter the mobile number on your account. We will send a one-time code.', style: TextStyle(color: SafariTheme.muted)),
           const SizedBox(height: 20),
-          TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Mobile number')),
-          const SizedBox(height: 12),
-          TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email (optional)')),
+          TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Mobile number', hintText: '07XXXXXXXX')),
           const SizedBox(height: 20),
           SafariLoadingButton(label: 'Send code', loading: loading, onPressed: _send),
         ],

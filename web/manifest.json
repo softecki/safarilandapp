@@ -1,7 +1,7 @@
 {
     "name": "Safari Land Tanzania",
     "short_name": "Safari Land TZ",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#800D12",

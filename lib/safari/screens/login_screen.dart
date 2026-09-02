@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_gate.dart';
 import 'package:wicom/safari/safari_nav.dart';
-import 'package:wicom/safari/safari_shell.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/forgot_password_screen.dart';
-import 'package:wicom/safari/screens/pending_screen.dart';
 import 'package:wicom/safari/screens/register_start_screen.dart';
 
 class SafariLoginScreen extends StatefulWidget {
@@ -37,8 +36,7 @@ class _SafariLoginScreenState extends State<SafariLoginScreen> {
       final data = SafariApi.data(json) as Map<String, dynamic>;
       await SafariApi.saveAuth(data['token'].toString(), Map<String, dynamic>.from(data['driver'] as Map));
       if (!mounted) return;
-      final status = (SafariApi.driver?['status'] ?? '').toString();
-      SafariNav.reset(context, status == 'ACTIVE' ? const SafariShell() : const SafariPendingScreen());
+      SafariNav.reset(context, SafariGate.home());
     } catch (e) {
       await safariError(context, e);
     } finally {

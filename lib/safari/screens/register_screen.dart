@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_gate.dart';
 import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
-import 'package:wicom/safari/screens/pending_screen.dart';
 
 class SafariRegisterScreen extends StatefulWidget {
-  const SafariRegisterScreen({super.key, required this.phone, required this.registrationToken, this.email});
+  const SafariRegisterScreen({super.key, required this.phone, required this.registrationToken, this.email, this.isDriver = false});
   final String phone;
   final String registrationToken;
   final String? email;
+  final bool isDriver;
 
   @override
   State<SafariRegisterScreen> createState() => _SafariRegisterScreenState();
@@ -38,6 +39,10 @@ class _SafariRegisterScreenState extends State<SafariRegisterScreen> {
   }
 
   Future<void> _submit() async {
+    if (email.text.trim().isEmpty) {
+      await safariError(context, 'Email is required');
+      return;
+    }
     if (!terms) {
       await safariError(context, 'Please accept the terms');
       return;
@@ -53,6 +58,7 @@ class _SafariRegisterScreenState extends State<SafariRegisterScreen> {
         'name': name.text.trim(),
         'whatsapp': whatsapp.text.trim().isEmpty ? widget.phone : whatsapp.text.trim(),
         'email': email.text.trim(),
+        'is_driver': widget.isDriver ? '1' : '0',
         'password': password.text,
         'password_confirmation': confirm.text,
         'terms_accepted': '1',
@@ -60,7 +66,7 @@ class _SafariRegisterScreenState extends State<SafariRegisterScreen> {
       final data = SafariApi.data(json) as Map<String, dynamic>;
       await SafariApi.saveAuth(data['token'].toString(), Map<String, dynamic>.from(data['driver'] as Map));
       if (!mounted) return;
-      SafariNav.reset(context, const SafariPendingScreen());
+      SafariNav.reset(context, SafariGate.home());
     } catch (e) {
       await safariError(context, e);
     } finally {

@@ -4,11 +4,10 @@ import 'dart:ui' show PointerDeviceKind;
 import 'package:wicom/core/font_loader.dart';
 import 'package:wicom/safari/safari_api.dart';
 import 'package:wicom/safari/safari_brand.dart';
+import 'package:wicom/safari/safari_gate.dart';
 import 'package:wicom/safari/safari_nav.dart';
-import 'package:wicom/safari/safari_shell.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/screens/login_screen.dart';
-import 'package:wicom/safari/screens/pending_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -86,8 +85,7 @@ class _SafariSplashScreenState extends State<SafariSplashScreen> {
       try {
         final json = await SafariApi.get('/auth/me');
         SafariApi.driver = Map<String, dynamic>.from(SafariApi.data(json) as Map);
-        final status = SafariApi.driver?['status']?.toString();
-        next = status == 'ACTIVE' ? const SafariShell() : const SafariPendingScreen();
+        next = SafariGate.home();
       } catch (_) {
         next = const SafariLoginScreen();
       }

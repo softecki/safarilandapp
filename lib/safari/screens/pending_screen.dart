@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_gate.dart';
 import 'package:wicom/safari/safari_nav.dart';
-import 'package:wicom/safari/safari_shell.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/login_screen.dart';
@@ -34,8 +34,8 @@ class _SafariPendingScreenState extends State<SafariPendingScreen> {
       final json = await SafariApi.get('/auth/me');
       driver = Map<String, dynamic>.from(SafariApi.data(json) as Map);
       SafariApi.driver = driver;
-      if (driver?['status'] == 'ACTIVE' && mounted) {
-        SafariNav.reset(context, const SafariShell());
+      if (mounted && (SafariGate.isGuest || driver?['status'] == 'ACTIVE')) {
+        SafariNav.reset(context, SafariGate.home());
         return;
       }
     } catch (e) {

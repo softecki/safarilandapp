@@ -14,6 +14,7 @@ class SafariOtpScreen extends StatefulWidget {
     this.email,
     this.debugCode,
     this.sentTo = const [],
+    this.isDriver = false,
   });
 
   final String phone;
@@ -21,6 +22,7 @@ class SafariOtpScreen extends StatefulWidget {
   final String? email;
   final String? debugCode;
   final List<String> sentTo;
+  final bool isDriver;
 
   @override
   State<SafariOtpScreen> createState() => _SafariOtpScreenState();
@@ -56,6 +58,7 @@ class _SafariOtpScreenState extends State<SafariOtpScreen> {
         'email': widget.email,
         'code': code.text.trim(),
         'purpose': widget.purpose,
+        'is_driver': widget.isDriver,
       });
       final data = SafariApi.data(json) as Map<String, dynamic>;
       if (!mounted) return;
@@ -69,6 +72,7 @@ class _SafariOtpScreenState extends State<SafariOtpScreen> {
           phone: widget.phone,
           email: widget.email,
           registrationToken: data['registration_token'].toString(),
+          isDriver: widget.isDriver,
         ),
       );
     } catch (e) {
