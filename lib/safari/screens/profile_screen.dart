@@ -18,7 +18,7 @@ class SafariProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
         children: [
           SafariHero(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

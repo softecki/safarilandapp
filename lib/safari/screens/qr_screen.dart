@@ -62,8 +62,12 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My QR')),
-      floatingActionButton: FloatingActionButton(onPressed: _add, child: const Icon(Icons.add)),
+      appBar: AppBar(
+        title: const Text('My QR'),
+        actions: [
+          IconButton(onPressed: _add, icon: const Icon(Icons.add_rounded)),
+        ],
+      ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(

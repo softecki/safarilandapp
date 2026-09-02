@@ -51,7 +51,7 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                 await _load();
               },
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
                 children: [
                   SafariHero(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

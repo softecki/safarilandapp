@@ -66,7 +66,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                 await _load();
               },
               child: ListView(
-                padding: EdgeInsets.fromLTRB(16, MediaQuery.paddingOf(context).top + 4, 16, 28),
+                padding: EdgeInsets.fromLTRB(16, MediaQuery.paddingOf(context).top + 4, 16, 96),
                 children: [
                   Align(
                     alignment: Alignment.centerRight,

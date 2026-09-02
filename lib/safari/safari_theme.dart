@@ -84,6 +84,7 @@ class SafariTheme {
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: maroon,
         foregroundColor: Colors.white,
+        shape: CircleBorder(),
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(color: gold),
       snackBarTheme: SnackBarThemeData(

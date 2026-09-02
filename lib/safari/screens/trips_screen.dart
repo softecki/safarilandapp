@@ -38,12 +38,16 @@ class _SafariTripsScreenState extends State<SafariTripsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Trips')),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await SafariNav.push(context, const SafariTripFormScreen());
-          _load();
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 72),
+        child: FloatingActionButton(
+          heroTag: 'safari-trips-add',
+          onPressed: () async {
+            await SafariNav.push(context, const SafariTripFormScreen());
+            _load();
+          },
+          child: const Icon(Icons.add),
+        ),
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
