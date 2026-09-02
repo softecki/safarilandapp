@@ -4,10 +4,11 @@ import 'package:wicom/safari/safari_brand.dart';
 import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
+import 'package:wicom/safari/screens/ledger_detail_screen.dart';
 import 'package:wicom/safari/screens/notifications_screen.dart';
 import 'package:wicom/safari/screens/passport_screen.dart';
 import 'package:wicom/safari/screens/tourists_screen.dart';
-import 'package:wicom/safari/screens/trip_detail_screen.dart';
+import 'package:wicom/safari/screens/transactions_screen.dart';
 
 class SafariHomeScreen extends StatefulWidget {
   const SafariHomeScreen({super.key});
@@ -52,7 +53,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
   Widget build(BuildContext context) {
     final driver = home?['driver'] as Map? ?? SafariApi.driver ?? {};
     final wallet = home?['wallet'] as Map? ?? {};
-    final trips = (home?['trips'] as List?) ?? [];
+    final transactions = (home?['recent_transactions'] as List?) ?? [];
     final goals = (driver['goals'] as List?) ?? [];
     final tier = _tierCategory(driver, wallet);
     final stars = (tier['stars'] is num) ? (tier['stars'] as num).toInt() : 1;
@@ -199,30 +200,25 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                       ),
                     ),
                   ],
-                  const SafariSectionTitle('Recent trips'),
-                  if (trips.isEmpty)
-                    const SafariEmpty('No trips yet. Start one from the Trips tab.', icon: Icons.groups_outlined)
+                  const SafariSectionTitle('Recent commission and gratuity'),
+                  if (transactions.isEmpty)
+                    const SafariEmpty('No commission or gratuity yet.', icon: Icons.receipt_long_outlined)
                   else
-                    ...trips.take(5).map((raw) {
-                      final t = Map<String, dynamic>.from(raw as Map);
+                    ...transactions.take(8).map((raw) {
+                      final row = Map<String, dynamic>.from(raw as Map);
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: SafariCard(
-                          onTap: () => SafariNav.push(context, SafariTripDetailScreen(id: t['id'])),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                  Text(t['label']?.toString() ?? 'Trip', style: const TextStyle(fontWeight: FontWeight.w800)),
-                                  Text('${t['guest_count'] ?? 0} guests', style: const TextStyle(color: SafariTheme.muted, fontSize: 13)),
-                                ]),
-                              ),
-                              SafariStatusChip('${t['state'] ?? ''}', tone: SafariChipTone.neutral),
-                            ],
-                          ),
+                        child: SafariLedgerCard(
+                          row: row,
+                          onTap: () => SafariNav.push(context, SafariLedgerDetailScreen(id: row['id'])),
                         ),
                       );
                     }),
+                  const SizedBox(height: 4),
+                  OutlinedButton(
+                    onPressed: () => SafariNav.push(context, const SafariTransactionsScreen()),
+                    child: const Text('More'),
+                  ),
                 ],
               ),
             ),

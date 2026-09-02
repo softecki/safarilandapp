@@ -237,4 +237,70 @@ String money(dynamic n) {
   return 'TZS ${v.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}';
 }
 
+String safariDate(dynamic v) {
+  if (v == null || '$v'.isEmpty) return '';
+  final dt = DateTime.tryParse(v.toString())?.toLocal();
+  if (dt == null) return '$v';
+  final d = dt.day.toString().padLeft(2, '0');
+  final m = dt.month.toString().padLeft(2, '0');
+  return '$d/$m/${dt.year}';
+}
+
+String ledgerTypeLabel(dynamic type) {
+  switch ('$type'.toUpperCase()) {
+    case 'COMMISSION':
+      return 'Commission';
+    case 'GRATUITY':
+      return 'Gratuity';
+    default:
+      return '$type';
+  }
+}
+
+class SafariLedgerCard extends StatelessWidget {
+  const SafariLedgerCard({super.key, required this.row, this.onTap});
+  final Map<String, dynamic> row;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final inbound = '${row['direction']}' == 'IN';
+    final type = ledgerTypeLabel(row['ledger_type']);
+    final note = row['note']?.toString() ?? row['reference']?.toString() ?? '';
+    final date = safariDate(row['created_at']);
+    return SafariCard(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(
+            inbound ? Icons.south_west_rounded : Icons.north_east_rounded,
+            color: inbound ? const Color(0xFF1F6B3A) : SafariTheme.maroon,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(type, style: const TextStyle(fontWeight: FontWeight.w800)),
+                if (note.isNotEmpty)
+                  Text(note, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
+                if (date.isNotEmpty)
+                  Text(date, style: const TextStyle(color: SafariTheme.muted, fontSize: 11)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '${inbound ? '+' : '−'} ${money(row['amount'])}',
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: inbound ? const Color(0xFF1F6B3A) : SafariTheme.maroon,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 enum SafariLogoVariant { wordmark, poster }
