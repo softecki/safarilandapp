@@ -234,7 +234,12 @@ Future<void> safariError(BuildContext context, Object e) async {
 
 String money(dynamic n) {
   final v = n is num ? n : int.tryParse('$n') ?? 0;
-  return 'TZS ${v.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}';
+  return 'TZS ${qtyFmt(v)}';
+}
+
+String qtyFmt(dynamic n) {
+  final v = n is num ? n.round() : int.tryParse('$n') ?? 0;
+  return v.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
 }
 
 String safariDate(dynamic v) {
