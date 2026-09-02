@@ -28,24 +28,70 @@ class _SafariShellState extends State<SafariShell> {
     return Scaffold(
       body: pages[index],
       bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            decoration: BoxDecoration(
-              color: SafariTheme.cream,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: const Color(0xFFE8DCCB)),
-            ),
-            child: Row(
-              children: [
-                _nav(0, Icons.home_rounded, 'Home'),
-                _nav(1, Icons.groups_rounded, 'Trips'),
-                _nav(2, Icons.qr_code_2_rounded, 'QR'),
-                _nav(3, Icons.account_balance_wallet_rounded, 'Wallet'),
-                _nav(4, Icons.person_rounded, 'Me'),
-              ],
-            ),
+        top: false,
+        child: SizedBox(
+          height: 92,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.bottomCenter,
+            children: [
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 10,
+                child: Container(
+                  height: 58,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  decoration: BoxDecoration(
+                    color: SafariTheme.cream,
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: const Color(0xFFE8DCCB)),
+                  ),
+                  child: Row(
+                    children: [
+                      _nav(0, Icons.home_rounded, 'Home'),
+                      _nav(1, Icons.groups_rounded, 'Trips'),
+                      const SizedBox(width: 68),
+                      _nav(3, Icons.account_balance_wallet_rounded, 'Wallet'),
+                      _nav(4, Icons.person_rounded, 'Me'),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 28,
+                child: GestureDetector(
+                  onTap: () => setState(() => index = 2),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    height: 68,
+                    width: 68,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: index == 2 ? SafariTheme.maroon : SafariTheme.maroonDark,
+                      border: Border.all(color: SafariTheme.gold, width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: SafariTheme.maroon.withValues(alpha: 0.28),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 28),
+                        Text(
+                          'QR',
+                          style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.6),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -58,28 +104,20 @@ class _SafariShellState extends State<SafariShell> {
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () => setState(() => index = i),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: on ? SafariTheme.maroon : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: on ? Colors.white : SafariTheme.muted, size: 22),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: on ? Colors.white : SafariTheme.muted,
-                ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: on ? SafariTheme.maroon : SafariTheme.muted, size: 22),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: on ? SafariTheme.maroon : SafariTheme.muted,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -57,18 +57,6 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
     final tier = _tierCategory(driver, wallet);
     final stars = (tier['stars'] is num) ? (tier['stars'] as num).toInt() : 1;
     return Scaffold(
-      appBar: AppBar(
-        title: const SafariLogo(height: 34),
-        actions: [
-          IconButton(
-            icon: Badge(
-              isLabelVisible: (home?['unread_notifications'] ?? 0) > 0,
-              child: const Icon(Icons.notifications_outlined),
-            ),
-            onPressed: () => SafariNav.push(context, const SafariNotificationsScreen()),
-          ),
-        ],
-      ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
@@ -78,15 +66,25 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                 await _load();
               },
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+                padding: EdgeInsets.fromLTRB(16, MediaQuery.paddingOf(context).top + 4, 16, 28),
                 children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      icon: Badge(
+                        isLabelVisible: (home?['unread_notifications'] ?? 0) > 0,
+                        child: const Icon(Icons.notifications_outlined),
+                      ),
+                      onPressed: () => SafariNav.push(context, const SafariNotificationsScreen()),
+                    ),
+                  ),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(28),
                     child: Stack(
                       children: [
                         Positioned.fill(
                           child: Image.asset(
-                            SafariBrand.posterAsset,
+                            SafariBrand.logoAsset,
                             fit: BoxFit.cover,
                             alignment: Alignment.center,
                             errorBuilder: (_, __, ___) => const ColoredBox(color: SafariTheme.maroon),
@@ -102,34 +100,46 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  '${tier['label'] ?? 'Silver'}',
-                                  style: const TextStyle(
-                                    color: SafariTheme.goldSoft,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 13,
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
                                 Row(
-                                  children: List.generate(
-                                    stars.clamp(1, 3),
-                                    (_) => const Padding(
-                                      padding: EdgeInsets.only(right: 2),
-                                      child: Icon(Icons.star_rounded, size: 16, color: SafariTheme.gold),
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Expanded(
+                                      child: Text(
+                                        'Welcome',
+                                        style: TextStyle(
+                                          color: SafariTheme.goldSoft,
+                                          letterSpacing: 1.4,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(height: 14),
-                                const Text(
-                                  'Welcome',
-                                  style: TextStyle(
-                                    color: SafariTheme.goldSoft,
-                                    letterSpacing: 1.4,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          '${tier['label'] ?? 'Silver'}',
+                                          style: const TextStyle(
+                                            color: SafariTheme.goldSoft,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 13,
+                                            letterSpacing: 1.2,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: List.generate(
+                                            stars.clamp(1, 3),
+                                            (_) => const Padding(
+                                              padding: EdgeInsets.only(left: 2),
+                                              child: Icon(Icons.star_rounded, size: 16, color: SafariTheme.gold),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
