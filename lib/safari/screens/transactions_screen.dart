@@ -6,7 +6,8 @@ import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/ledger_detail_screen.dart';
 
 class SafariTransactionsScreen extends StatefulWidget {
-  const SafariTransactionsScreen({super.key});
+  const SafariTransactionsScreen({super.key, this.ledgerType});
+  final String? ledgerType;
 
   @override
   State<SafariTransactionsScreen> createState() => _SafariTransactionsScreenState();
@@ -25,6 +26,7 @@ class _SafariTransactionsScreenState extends State<SafariTransactionsScreen> {
   @override
   void initState() {
     super.initState();
+    ledgerType = widget.ledgerType;
     _load(reset: true);
   }
 

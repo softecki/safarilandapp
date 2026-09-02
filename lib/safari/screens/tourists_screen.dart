@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:wicom/safari/safari_api.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
@@ -71,20 +72,27 @@ class _SafariTouristsScreenState extends State<SafariTouristsScreen> {
                 if (rows.isEmpty)
                   const SafariEmpty('No guests yet.')
                 else
-                  ...rows.map((r) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: SafariCard(
-                          child: Row(children: [
-                            Expanded(
-                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text('${r['guest']}', style: const TextStyle(fontWeight: FontWeight.w800)),
-                                Text('${r['pass_code']}', style: const TextStyle(color: SafariTheme.muted)),
-                              ]),
-                            ),
-                            SafariStatusChip('${r['status']}', tone: statusTone(r['status']?.toString())),
-                          ]),
-                        ),
-                      )),
+                  ...rows.map((raw) {
+                    final r = Map<String, dynamic>.from(raw as Map);
+                    final code = (r['token'] ?? r['pass_code'] ?? '').toString();
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: SafariCard(
+                        child: Row(children: [
+                          if (code.isNotEmpty)
+                            QrImageView(data: code, size: 72, backgroundColor: Colors.white),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text('${r['guest']}', style: const TextStyle(fontWeight: FontWeight.w800)),
+                              Text(code, style: const TextStyle(color: SafariTheme.muted, letterSpacing: 0.4)),
+                            ]),
+                          ),
+                          SafariStatusChip('${r['status']}', tone: statusTone(r['status']?.toString())),
+                        ]),
+                      ),
+                    );
+                  }),
               ],
             ),
     );

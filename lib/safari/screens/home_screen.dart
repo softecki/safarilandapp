@@ -53,7 +53,9 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
   Widget build(BuildContext context) {
     final driver = home?['driver'] as Map? ?? SafariApi.driver ?? {};
     final wallet = home?['wallet'] as Map? ?? {};
-    final transactions = (home?['recent_transactions'] as List?) ?? [];
+    final transactions = ((home?['recent_transactions'] as List?) ?? [])
+        .where((raw) => '${(raw as Map)['ledger_type']}'.toUpperCase() == 'COMMISSION')
+        .toList();
     final goals = (driver['goals'] as List?) ?? [];
     final tier = _tierCategory(driver, wallet);
     final stars = (tier['stars'] is num) ? (tier['stars'] as num).toInt() : 1;
@@ -200,9 +202,36 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                       ),
                     ),
                   ],
-                  const SafariSectionTitle('Recent commission and gratuity'),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8, top: 8),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Recent commissions',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: SafariTheme.black),
+                          ),
+                        ),
+                        if (transactions.isNotEmpty)
+                          TextButton(
+                            onPressed: () => SafariNav.push(
+                              context,
+                              const SafariTransactionsScreen(ledgerType: 'COMMISSION'),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              foregroundColor: SafariTheme.maroon,
+                              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                            ),
+                            child: const Text('More'),
+                          ),
+                      ],
+                    ),
+                  ),
                   if (transactions.isEmpty)
-                    const SafariEmpty('No commission or gratuity yet.', icon: Icons.receipt_long_outlined)
+                    const SafariEmpty('No commissions yet.', icon: Icons.receipt_long_outlined)
                   else
                     ...transactions.take(8).map((raw) {
                       final row = Map<String, dynamic>.from(raw as Map);
@@ -214,11 +243,6 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                         ),
                       );
                     }),
-                  const SizedBox(height: 4),
-                  OutlinedButton(
-                    onPressed: () => SafariNav.push(context, const SafariTransactionsScreen()),
-                    child: const Text('More'),
-                  ),
                 ],
               ),
             ),
