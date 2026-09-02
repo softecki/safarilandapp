@@ -38,8 +38,15 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
   @override
   Widget build(BuildContext context) {
     final b = data?['balances'] as Map? ?? {};
+    final rewards = Map<String, dynamic>.from(data?['rewards'] as Map? ?? {});
+    final amounts = Map<String, dynamic>.from(rewards['amounts'] as Map? ?? {});
+    final points = Map<String, dynamic>.from(rewards['points'] as Map? ?? {});
     final ledger = (data?['ledger'] as List?) ?? [];
     final withdrawals = (data?['withdrawals'] as List?) ?? [];
+    final loan = amounts['loan_tsh'];
+    final loanN = loan is num ? loan.toInt() : int.tryParse('$loan') ?? 0;
+    final net = amounts['net_tsh'];
+    final netN = net is num ? net.toInt() : int.tryParse('$net') ?? 0;
     return Scaffold(
       appBar: AppBar(title: const Text('Wallet')),
       body: loading
@@ -55,12 +62,52 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                 children: [
                   SafariHero(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      const Text('Available commission', style: TextStyle(color: SafariTheme.goldSoft, letterSpacing: 0.6)),
+                      Text(
+                        loanN > 0 ? 'Net amount' : 'Total amount',
+                        style: const TextStyle(color: SafariTheme.goldSoft, letterSpacing: 0.6),
+                      ),
                       const SizedBox(height: 8),
-                      Text(money(b['available']), style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800)),
+                      Text(
+                        money(amounts['net_tsh'] ?? 0),
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: netN < 0 ? const Color(0xFFFFB4AB) : Colors.white,
+                        ),
+                      ),
                       const SizedBox(height: 10),
-                      Text('Pending ${money(b['pending'])}  ·  Lifetime ${money(b['lifetime'])}', style: const TextStyle(color: Colors.white70)),
-                      Text('Gratuity ${money(b['gratuity_available'])}', style: const TextStyle(color: Colors.white70)),
+                      Text(
+                        loanN > 0
+                            ? 'Gross ${money(amounts['gross_tsh'])}  ·  Loan ${money(amounts['loan_tsh'])}'
+                            : 'Entry + Sales points in TZS',
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ]),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(children: [
+                    Expanded(child: SafariCard(child: _amountStat('Sales amount', money(amounts['sales_tsh']), '${qtyFmt(points['sales'])} pts'))),
+                    const SizedBox(width: 10),
+                    Expanded(child: SafariCard(child: _amountStat('Entry amount', money(amounts['entry_tsh']), '${qtyFmt(points['entry'])} pts'))),
+                  ]),
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    Expanded(child: SafariCard(child: _amountStat('Gross total', money(amounts['gross_tsh'])))),
+                    const SizedBox(width: 10),
+                    Expanded(child: SafariCard(child: _amountStat('Net withdrawable', money(amounts['net_tsh'])))),
+                  ]),
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    Expanded(child: SafariCard(child: _amountStat('Commission available', money(b['available'])))),
+                    const SizedBox(width: 10),
+                    Expanded(child: SafariCard(child: _amountStat('Commission pending', money(b['pending'])))),
+                  ]),
+                  const SizedBox(height: 8),
+                  SafariCard(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      _amountStat('Lifetime commission', money(b['lifetime'])),
+                      const SizedBox(height: 10),
+                      _amountStat('Gratuity available', money(b['gratuity_available'])),
                     ]),
                   ),
                   const SizedBox(height: 14),
@@ -122,5 +169,17 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
               ),
             ),
     );
+  }
+
+  Widget _amountStat(String label, String value, [String? sub]) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(label, style: const TextStyle(color: SafariTheme.muted, fontSize: 12, fontWeight: FontWeight.w600)),
+      const SizedBox(height: 6),
+      Text(value, style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon, fontSize: 16)),
+      if (sub != null && sub.isNotEmpty) ...[
+        const SizedBox(height: 4),
+        Text(sub, style: const TextStyle(color: SafariTheme.muted, fontSize: 11)),
+      ],
+    ]);
   }
 }

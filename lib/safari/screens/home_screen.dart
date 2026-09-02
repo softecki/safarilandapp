@@ -63,7 +63,10 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
     final currentTier = _map(tierInfo['current']);
     final nextTier = _map(tierInfo['next']);
     final promo = rewards['promo'] is Map ? _map(rewards['promo']) : <String, dynamic>{};
-    final tokens = (rewards['recent_tokens'] as List?) ?? [];
+    final tokens = ((rewards['recent_tokens'] as List?) ?? []).where((raw) {
+      final code = '${(raw as Map)['token']}'.toUpperCase();
+      return code.startsWith('AG-');
+    }).toList();
     final entries = (rewards['recent_entries'] as List?) ?? [];
     final transactions = ((home?['recent_transactions'] as List?) ?? [])
         .where((raw) => '${(raw as Map)['ledger_type']}'.toUpperCase() == 'COMMISSION')
@@ -263,7 +266,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                     ),
                     const SizedBox(height: 8),
                     Row(children: [
-                      Expanded(child: SafariCard(child: _miniStat('Tokens', qtyFmt(counts['tokens_used'])))),
+                      Expanded(child: SafariCard(child: _miniStat('Reward tokens', qtyFmt(counts['tokens_used'])))),
                       const SizedBox(width: 10),
                       Expanded(child: SafariCard(child: _miniStat('Entries', qtyFmt(counts['entries'])))),
                     ]),
@@ -284,12 +287,12 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                     const Padding(
                       padding: EdgeInsets.only(bottom: 8, top: 12),
                       child: Text(
-                        'Recent tokens',
+                        'Reward tokens',
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: SafariTheme.black),
                       ),
                     ),
                     if (tokens.isEmpty)
-                      const SafariEmpty('No used tokens yet.', icon: Icons.confirmation_number_outlined)
+                      const SafariEmpty('No reward tokens yet.', icon: Icons.confirmation_number_outlined)
                     else
                       ...tokens.take(8).map((raw) {
                         final row = _map(raw);
