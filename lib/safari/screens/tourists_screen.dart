@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 
 class SafariTouristsScreen extends StatefulWidget {
@@ -18,6 +19,12 @@ class _SafariTouristsScreenState extends State<SafariTouristsScreen> {
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    first.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -40,21 +47,44 @@ class _SafariTouristsScreenState extends State<SafariTouristsScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                TextField(controller: first, decoration: const InputDecoration(labelText: 'Guest first name')),
-                ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      await SafariApi.post('/passes', {'first_name': first.text.trim()});
-                      first.clear();
-                      await _load();
-                    } catch (e) {
-                      await safariError(context, e);
-                    }
-                  },
-                  child: const Text('Create shopping pass'),
+                SafariCard(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('Issue a shopping pass', style: TextStyle(fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 8),
+                    TextField(controller: first, decoration: const InputDecoration(labelText: 'Guest first name')),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          await SafariApi.post('/passes', {'first_name': first.text.trim()});
+                          first.clear();
+                          await _load();
+                        } catch (e) {
+                          await safariError(context, e);
+                        }
+                      },
+                      child: const Text('Create shopping pass'),
+                    ),
+                  ]),
                 ),
-                const SizedBox(height: 12),
-                ...rows.map((r) => SafariCard(child: Text('${r['guest']} · ${r['pass_code']} · ${r['status']}'))),
+                const SafariSectionTitle('Passes'),
+                if (rows.isEmpty)
+                  const SafariEmpty('No guests yet.')
+                else
+                  ...rows.map((r) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: SafariCard(
+                          child: Row(children: [
+                            Expanded(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text('${r['guest']}', style: const TextStyle(fontWeight: FontWeight.w800)),
+                                Text('${r['pass_code']}', style: const TextStyle(color: SafariTheme.muted)),
+                              ]),
+                            ),
+                            SafariStatusChip('${r['status']}', tone: statusTone(r['status']?.toString())),
+                          ]),
+                        ),
+                      )),
               ],
             ),
     );

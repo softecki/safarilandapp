@@ -17,6 +17,13 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
   bool loading = false;
 
   @override
+  void dispose() {
+    text.dispose();
+    title.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Safari Story')),
@@ -53,6 +60,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
           if (story != null) ...[
             const SizedBox(height: 12),
             SafariCard(child: Text((story!['variants'] as List?)?.cast<Map>().where((v) => v['kind'] == 'cleaned').map((v) => v['body']).join('\n') ?? story!['source_text']?.toString() ?? '')),
+            const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () async {
                 try {

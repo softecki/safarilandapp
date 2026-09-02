@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SafariTheme {
-  /// Deep maroon from the Safari Land brand artwork.
-  static const maroon = Color(0xFF800D12);
-  static const maroonDark = Color(0xFF5C090D);
-  static const black = Color(0xFF111111);
-  static const canvas = Color(0xFFF7F4F2);
-  static const muted = Color(0xFF6B6259);
+  static const maroon = Color(0xFF6E0B12);
+  static const maroonDark = Color(0xFF3F070B);
+  static const gold = Color(0xFFC6A15B);
+  static const goldSoft = Color(0xFFE8D5A3);
+  static const black = Color(0xFF1A1412);
+  static const canvas = Color(0xFFF6F0E8);
+  static const muted = Color(0xFF7A7066);
+  static const cream = Color(0xFFFFFBF6);
 
-  /// Legacy aliases used by older Safari widgets.
   static const green = maroon;
   static const greenDark = maroonDark;
   static const sand = canvas;
   static const earth = maroon;
-  static const gold = maroon;
   static const ink = black;
 
   static ThemeData material() {
@@ -23,84 +23,90 @@ class SafariTheme {
       colorScheme: const ColorScheme.light(
         primary: maroon,
         onPrimary: Colors.white,
-        secondary: black,
-        onSecondary: Colors.white,
-        surface: Colors.white,
+        secondary: gold,
+        onSecondary: maroonDark,
+        surface: cream,
         onSurface: black,
-        error: maroon,
+        error: Color(0xFFB3261E),
         onError: Colors.white,
       ),
       scaffoldBackgroundColor: canvas,
-      dividerColor: black,
+      dividerColor: const Color(0xFFE4D9CC),
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         foregroundColor: maroon,
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: TextStyle(
           color: black,
-          fontSize: 18,
+          fontSize: 20,
           fontWeight: FontWeight.w700,
-          letterSpacing: 1.2,
+          letterSpacing: 0.2,
         ),
         iconTheme: IconThemeData(color: maroon),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: cream,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4),
-          borderSide: const BorderSide(color: Color(0xFFDDD6D0)),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE4D9CC)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4),
-          borderSide: const BorderSide(color: Color(0xFFDDD6D0)),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE4D9CC)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4),
-          borderSide: const BorderSide(color: maroon, width: 1.4),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: gold, width: 1.6),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: maroon,
           foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size.fromHeight(54),
           elevation: 0,
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
-          textStyle: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1.1),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.4, fontSize: 15),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: maroon,
-          side: const BorderSide(color: maroon),
-          minimumSize: const Size.fromHeight(48),
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+          side: const BorderSide(color: gold, width: 1.2),
+          minimumSize: const Size.fromHeight(50),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: maroon,
         foregroundColor: Colors.white,
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(color: maroon),
-      checkboxTheme: CheckboxThemeData(
-        fillColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? maroon : null),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(color: gold),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: maroonDark,
+        contentTextStyle: const TextStyle(color: Colors.white),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-      snackBarTheme: const SnackBarThemeData(backgroundColor: maroon, contentTextStyle: TextStyle(color: Colors.white)),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         selectedItemColor: maroon,
         unselectedItemColor: muted,
-        backgroundColor: Colors.white,
+        backgroundColor: cream,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 0,
       ),
     );
     try {
       return base.copyWith(
-        textTheme: GoogleFonts.montserratTextTheme(base.textTheme).apply(bodyColor: black, displayColor: black),
+        textTheme: GoogleFonts.dmSansTextTheme(base.textTheme).copyWith(
+          displaySmall: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700, color: black, fontSize: 28),
+          headlineMedium: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700, color: black, fontSize: 22),
+          headlineSmall: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700, color: black, fontSize: 18),
+        ).apply(bodyColor: black, displayColor: black),
       );
     } catch (_) {
       return base;

@@ -4,6 +4,7 @@ import 'dart:ui' show PointerDeviceKind;
 import 'package:wicom/core/font_loader.dart';
 import 'package:wicom/safari/safari_api.dart';
 import 'package:wicom/safari/safari_brand.dart';
+import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_shell.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/screens/login_screen.dart';
@@ -20,7 +21,7 @@ void main() async {
     final nav = navigatorKey.currentState;
     if (nav == null) return;
     nav.pushAndRemoveUntil(
-      MaterialPageRoute<void>(builder: (_) => const SafariLoginScreen()),
+      SafariNav.fade<void>(const SafariLoginScreen()),
       (_) => false,
     );
   };
@@ -93,10 +94,7 @@ class _SafariSplashScreenState extends State<SafariSplashScreen> {
     }
     await Future<void>.delayed(const Duration(milliseconds: 700));
     if (!mounted) return;
-    Navigator.pushReplacement(context, PageRouteBuilder(
-      pageBuilder: (_, __, ___) => next,
-      transitionsBuilder: (_, a, __, c) => FadeTransition(opacity: a, child: c),
-    ));
+    Navigator.pushReplacement(context, SafariNav.fade(next));
   }
 
   @override

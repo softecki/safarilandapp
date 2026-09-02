@@ -16,6 +16,12 @@ class _SafariFarewellScreenState extends State<SafariFarewellScreen> {
   bool loading = false;
 
   @override
+  void dispose() {
+    text.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final id = widget.trip['id'];
     return Scaffold(
@@ -23,8 +29,9 @@ class _SafariFarewellScreenState extends State<SafariFarewellScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Private until you activate. Guests will not see drafts.'),
-          TextField(controller: text, maxLines: 5, decoration: const InputDecoration(labelText: 'Group farewell message')),
+          const SafariCard(child: Text('Private until you activate. Guests will not see drafts.')),
+          const SizedBox(height: 12),
+          TextField(controller: text, maxLines: 6, decoration: const InputDecoration(labelText: 'Group farewell message')),
           const SizedBox(height: 12),
           ElevatedButton(
             onPressed: loading
@@ -42,13 +49,14 @@ class _SafariFarewellScreenState extends State<SafariFarewellScreen> {
                       if (mounted) setState(() => loading = false);
                     }
                   },
-            child: const Text('Save & approve'),
+            child: Text(loading ? 'Saving…' : 'Save & approve'),
           ),
+          const SizedBox(height: 8),
           OutlinedButton(
             onPressed: () async {
               try {
                 await SafariApi.post('/trips/$id/farewells/activate');
-                final url = '${SafariApi.baseUrl.replaceAll('/api/v1', '')}/f/$id';
+                final url = '${SafariApi.guestBase()}/f/$id';
                 await Share.share('Safari Farewell: $url');
               } catch (e) {
                 await safariError(context, e);

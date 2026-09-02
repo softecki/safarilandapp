@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_nav.dart';
+import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/trip_detail_screen.dart';
 import 'package:wicom/safari/screens/trip_form_screen.dart';
@@ -38,27 +40,45 @@ class _SafariTripsScreenState extends State<SafariTripsScreen> {
       appBar: AppBar(title: const Text('Trips')),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await Navigator.push(context, MaterialPageRoute(builder: (_) => const SafariTripFormScreen()));
+          await SafariNav.push(context, const SafariTripFormScreen());
           _load();
         },
         child: const Icon(Icons.add),
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: trips.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (_, i) {
-                final t = trips[i] as Map;
-                return SafariCard(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SafariTripDetailScreen(id: t['id']))),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(t['label']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.w700)),
-                    Text('${t['state']} · ${t['guests_count'] ?? t['guest_count'] ?? 0} guests'),
-                  ]),
-                );
+          : RefreshIndicator(
+              color: SafariTheme.gold,
+              onRefresh: () async {
+                setState(() => loading = true);
+                await _load();
               },
+              child: trips.isEmpty
+                  ? ListView(children: const [SafariEmpty('No trips yet. Create your first group.', icon: Icons.groups_outlined)])
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+                      itemCount: trips.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (_, i) {
+                        final t = trips[i] as Map;
+                        return SafariCard(
+                          onTap: () async {
+                            await SafariNav.push(context, SafariTripDetailScreen(id: t['id']));
+                            _load();
+                          },
+                          child: Row(children: [
+                            Expanded(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text(t['label']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                                const SizedBox(height: 4),
+                                Text('${t['guests_count'] ?? t['guest_count'] ?? 0} guests', style: const TextStyle(color: SafariTheme.muted)),
+                              ]),
+                            ),
+                            SafariStatusChip('${t['state']}', tone: SafariChipTone.neutral),
+                          ]),
+                        );
+                      },
+                    ),
             ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/screens/home_screen.dart';
 import 'package:wicom/safari/screens/profile_screen.dart';
 import 'package:wicom/safari/screens/qr_screen.dart';
@@ -26,16 +27,60 @@ class _SafariShellState extends State<SafariShell> {
     ];
     return Scaffold(
       body: pages[index],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: index,
-        onTap: (i) => setState(() => index = i),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.groups_outlined), label: 'Trips'),
-          BottomNavigationBarItem(icon: Icon(Icons.qr_code_2), label: 'QR'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Wallet'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
-        ],
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            decoration: BoxDecoration(
+              color: SafariTheme.cream,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: const Color(0xFFE8DCCB)),
+            ),
+            child: Row(
+              children: [
+                _nav(0, Icons.home_rounded, 'Home'),
+                _nav(1, Icons.groups_rounded, 'Trips'),
+                _nav(2, Icons.qr_code_2_rounded, 'QR'),
+                _nav(3, Icons.account_balance_wallet_rounded, 'Wallet'),
+                _nav(4, Icons.person_rounded, 'Me'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _nav(int i, IconData icon, String label) {
+    final on = index == i;
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => setState(() => index = i),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: on ? SafariTheme.maroon : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: on ? Colors.white : SafariTheme.muted, size: 22),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: on ? Colors.white : SafariTheme.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

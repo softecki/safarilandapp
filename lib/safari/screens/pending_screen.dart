@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_shell.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
@@ -15,26 +16,35 @@ class SafariPendingScreen extends StatefulWidget {
 class _SafariPendingScreenState extends State<SafariPendingScreen> {
   Map<String, dynamic>? driver;
   bool loading = true;
+  bool checking = false;
 
   @override
   void initState() {
     super.initState();
-    _refresh();
+    _refresh(initial: true);
   }
 
-  Future<void> _refresh() async {
+  Future<void> _refresh({bool initial = false}) async {
+    if (initial) {
+      setState(() => loading = true);
+    } else {
+      setState(() => checking = true);
+    }
     try {
       final json = await SafariApi.get('/auth/me');
       driver = Map<String, dynamic>.from(SafariApi.data(json) as Map);
       SafariApi.driver = driver;
       if (driver?['status'] == 'ACTIVE' && mounted) {
-        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const SafariShell()), (_) => false);
+        SafariNav.reset(context, const SafariShell());
         return;
       }
     } catch (e) {
       await safariError(context, e);
     } finally {
-      if (mounted) setState(() => loading = false);
+      if (mounted) setState(() {
+        loading = false;
+        checking = false;
+      });
     }
   }
 
@@ -50,20 +60,22 @@ class _SafariPendingScreenState extends State<SafariPendingScreen> {
                 SafariHero(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(driver?['name']?.toString() ?? 'Guide', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 8),
-                    Text('Status: ${driver?['status'] ?? 'PENDING'}'),
+                    const SizedBox(height: 10),
+                    SafariStatusChip('${driver?['status'] ?? 'PENDING'}', tone: statusTone(driver?['status']?.toString())),
                   ]),
                 ),
                 const SizedBox(height: 16),
                 const SafariCard(child: Text('Safari Land Tanzania staff will review your profile. You will receive a permanent Driver ID when approved.')),
                 const SizedBox(height: 16),
-                ElevatedButton(onPressed: _refresh, child: const Text('Check status')),
+                SafariLoadingButton(label: 'Check status', loading: checking, onPressed: () => _refresh()),
                 TextButton(
                   onPressed: () async {
-                    await SafariApi.post('/auth/logout');
+                    try {
+                      await SafariApi.post('/auth/logout');
+                    } catch (_) {}
                     await SafariApi.clear();
                     if (!context.mounted) return;
-                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const SafariLoginScreen()), (_) => false);
+                    SafariNav.reset(context, const SafariLoginScreen());
                   },
                   child: const Text('Sign out', style: TextStyle(color: SafariTheme.muted)),
                 ),

@@ -98,7 +98,7 @@ class SafariApi {
       final streamed = await req.send().timeout(const Duration(seconds: 60));
       res = await http.Response.fromStream(streamed);
     } else {
-      final encoded = body == null ? null : jsonEncode(body);
+      final encoded = body == null ? null : jsonEncode(Map.from(body)..removeWhere((_, v) => v == null));
       if (encoded != null) headers['Content-Type'] = 'application/json';
       switch (method) {
         case 'GET':
@@ -129,6 +129,8 @@ class SafariApi {
     }
     return json;
   }
+
+  static String guestBase() => baseUrl.replaceAll(RegExp(r'/api/v1/?$'), '');
 
   static Future<Map<String, dynamic>> get(String path) => request('GET', path);
   static Future<Map<String, dynamic>> post(String path, [Map<String, dynamic>? body]) =>
