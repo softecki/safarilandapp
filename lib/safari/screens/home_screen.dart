@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_brand.dart';
 import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
@@ -37,12 +38,24 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
     }
   }
 
+  Map<String, dynamic> _tierCategory(Map driver, Map wallet) {
+    final fromApi = home?['tier_category'] as Map? ?? driver['tier_category'] as Map? ?? home?['loyalty'] as Map? ?? driver['loyalty'] as Map?;
+    if (fromApi != null) return Map<String, dynamic>.from(fromApi);
+    final lifetime = wallet['lifetime'];
+    final n = lifetime is num ? lifetime.toInt() : int.tryParse('$lifetime') ?? 0;
+    if (n >= 5000000) return {'key': 'PLATINUM', 'label': 'Platinum', 'stars': 3, 'level': 'Highest'};
+    if (n >= 1000000) return {'key': 'GOLD', 'label': 'Gold', 'stars': 2, 'level': 'Premium'};
+    return {'key': 'SILVER', 'label': 'Silver', 'stars': 1, 'level': 'Basic'};
+  }
+
   @override
   Widget build(BuildContext context) {
     final driver = home?['driver'] as Map? ?? SafariApi.driver ?? {};
     final wallet = home?['wallet'] as Map? ?? {};
     final trips = (home?['trips'] as List?) ?? [];
     final goals = (driver['goals'] as List?) ?? [];
+    final tier = _tierCategory(driver, wallet);
+    final stars = (tier['stars'] is num) ? (tier['stars'] as num).toInt() : 1;
     return Scaffold(
       appBar: AppBar(
         title: const SafariLogo(height: 34),
@@ -67,18 +80,72 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
                 children: [
-                  SafariHero(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      const Text('Welcome back', style: TextStyle(color: SafariTheme.goldSoft, letterSpacing: 1.4, fontSize: 12, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      Text(driver['name']?.toString() ?? 'Guide', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 8),
-                      Row(children: [
-                        SafariStatusChip(driver['member_no']?.toString() ?? 'Pending ID', tone: SafariChipTone.gold),
-                        const SizedBox(width: 8),
-                        SafariStatusChip('${driver['status'] ?? 'PENDING'}', tone: statusTone(driver['status']?.toString())),
-                      ]),
-                    ]),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(28),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: Image.asset(
+                            SafariBrand.posterAsset,
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            errorBuilder: (_, __, ___) => const ColoredBox(color: SafariTheme.maroon),
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: ColoredBox(color: SafariTheme.maroonDark.withValues(alpha: 0.58)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
+                          child: DefaultTextStyle.merge(
+                            style: const TextStyle(color: Colors.white),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${tier['label'] ?? 'Silver'}',
+                                  style: const TextStyle(
+                                    color: SafariTheme.goldSoft,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 13,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: List.generate(
+                                    stars.clamp(1, 3),
+                                    (_) => const Padding(
+                                      padding: EdgeInsets.only(right: 2),
+                                      child: Icon(Icons.star_rounded, size: 16, color: SafariTheme.gold),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                const Text(
+                                  'Welcome',
+                                  style: TextStyle(
+                                    color: SafariTheme.goldSoft,
+                                    letterSpacing: 1.4,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  driver['name']?.toString() ?? 'Guide',
+                                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+                                ),
+                                if ((driver['member_no'] ?? '').toString().isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  SafariStatusChip(driver['member_no'].toString(), tone: SafariChipTone.gold),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 14),
                   Row(children: [

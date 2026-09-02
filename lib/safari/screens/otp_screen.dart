@@ -33,12 +33,6 @@ class _SafariOtpScreenState extends State<SafariOtpScreen> {
   bool loading = false;
 
   @override
-  void initState() {
-    super.initState();
-    if (widget.debugCode != null) code.text = widget.debugCode!;
-  }
-
-  @override
   void dispose() {
     code.dispose();
     super.dispose();
@@ -95,8 +89,12 @@ class _SafariOtpScreenState extends State<SafariOtpScreen> {
             controller: code,
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
+            maxLength: 6,
             style: const TextStyle(fontSize: 28, letterSpacing: 10, fontWeight: FontWeight.w800),
-            decoration: const InputDecoration(labelText: 'OTP'),
+            decoration: const InputDecoration(
+              hintText: 'Enter OTP',
+              counterText: '',
+            ),
           ),
           const SizedBox(height: 20),
           SafariLoadingButton(label: 'Verify', loading: loading, onPressed: _verify),

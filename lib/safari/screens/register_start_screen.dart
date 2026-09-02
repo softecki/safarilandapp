@@ -71,15 +71,17 @@ class _SafariRegisterStartScreenState extends State<SafariRegisterStartScreen> {
           const SizedBox(height: 12),
           TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email')),
           const SizedBox(height: 16),
-          SafariCard(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: SwitchListTile(
-              value: isDriver,
-              onChanged: (v) => setState(() => isDriver = v),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-              title: const Text('I am a driver', style: TextStyle(fontWeight: FontWeight.w800)),
-              subtitle: const Text('On = driver-guide. Off = guest.', style: TextStyle(color: SafariTheme.muted, fontSize: 12)),
-            ),
+          Row(
+            children: [
+              SizedBox(
+                width: 22,
+                child: isDriver
+                    ? const Icon(Icons.check_circle, size: 18, color: Color(0xFF1F6B3A))
+                    : null,
+              ),
+              const Expanded(child: Text('I am a driver', style: TextStyle(fontWeight: FontWeight.w800))),
+              Switch(value: isDriver, onChanged: (v) => setState(() => isDriver = v)),
+            ],
           ),
           const SizedBox(height: 20),
           SafariLoadingButton(label: 'Send code', loading: loading, onPressed: _send),
