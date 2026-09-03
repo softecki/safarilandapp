@@ -63,7 +63,10 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
     final currentTier = _map(tierInfo['current']);
     final nextTier = _map(tierInfo['next']);
     final promo = rewards['promo'] is Map ? _map(rewards['promo']) : <String, dynamic>{};
-    final tokens = (rewards['recent_tokens'] as List?) ?? [];
+    final tokens = ((rewards['recent_tokens'] as List?) ?? []).where((raw) {
+      final code = '${(raw as Map)['token']}'.toUpperCase();
+      return code.startsWith('AG-') && !code.startsWith('AG-M-');
+    }).toList();
     final entries = (rewards['recent_entries'] as List?) ?? [];
     final transactions = ((home?['recent_transactions'] as List?) ?? [])
         .where((raw) => '${(raw as Map)['ledger_type']}'.toUpperCase() == 'COMMISSION')
