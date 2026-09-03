@@ -242,6 +242,39 @@ String qtyFmt(dynamic n) {
   return v.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
 }
 
+class SafariCountUp extends StatelessWidget {
+  const SafariCountUp(
+    this.value, {
+    super.key,
+    this.moneyFormat = false,
+    this.prefix = '',
+    this.suffix = '',
+    this.style,
+    this.duration = const Duration(milliseconds: 900),
+  });
+
+  final dynamic value;
+  final bool moneyFormat;
+  final String prefix;
+  final String suffix;
+  final TextStyle? style;
+  final Duration duration;
+
+  @override
+  Widget build(BuildContext context) {
+    final end = value is num ? value.toDouble() : (double.tryParse('$value') ?? 0);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: end),
+      duration: duration,
+      curve: Curves.easeOutCubic,
+      builder: (_, n, __) {
+        final core = moneyFormat ? money(n.round()) : qtyFmt(n.round());
+        return Text('$prefix$core$suffix', style: style);
+      },
+    );
+  }
+}
+
 String safariDate(dynamic v) {
   if (v == null || '$v'.isEmpty) return '';
   final dt = DateTime.tryParse(v.toString())?.toLocal();

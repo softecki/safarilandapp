@@ -38,7 +38,6 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final b = data?['balances'] as Map? ?? {};
     final rewards = Map<String, dynamic>.from(data?['rewards'] as Map? ?? {});
     final amounts = Map<String, dynamic>.from(rewards['amounts'] as Map? ?? {});
     final points = Map<String, dynamic>.from(rewards['points'] as Map? ?? {});
@@ -72,8 +71,9 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                         style: const TextStyle(color: SafariTheme.goldSoft, letterSpacing: 0.6),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        money(amounts['net_tsh'] ?? 0),
+                      SafariCountUp(
+                        amounts['net_tsh'] ?? 0,
+                        moneyFormat: true,
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w800,
@@ -91,60 +91,35 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                   ),
                   const SizedBox(height: 14),
                   Row(children: [
-                    Expanded(child: SafariCard(child: _amountStat('Sales amount', money(amounts['sales_tsh']), '${qtyFmt(points['sales'])} pts'))),
+                    Expanded(child: SafariCard(child: _amountStat('Sales amount', amounts['sales_tsh'], sub: points['sales'], pts: true))),
                     const SizedBox(width: 10),
-                    Expanded(child: SafariCard(child: _amountStat('Entry amount', money(amounts['entry_tsh']), '${qtyFmt(points['entry'])} pts'))),
+                    Expanded(child: SafariCard(child: _amountStat('Entry amount', amounts['entry_tsh'], sub: points['entry'], pts: true))),
                   ]),
                   const SizedBox(height: 8),
                   Row(children: [
-                    Expanded(child: SafariCard(child: _amountStat('Gross total', money(amounts['gross_tsh'])))),
+                    Expanded(child: SafariCard(child: _amountStat('Gross total', amounts['gross_tsh']))),
                     const SizedBox(width: 10),
-                    Expanded(child: SafariCard(child: _amountStat('Net withdrawable', money(amounts['net_tsh'])))),
+                    Expanded(child: SafariCard(child: _amountStat('Net withdrawable', amounts['net_tsh']))),
                   ]),
-                  const SizedBox(height: 8),
-                  Row(children: [
-                    Expanded(child: SafariCard(child: _amountStat('Commission available', money(b['available'])))),
-                    const SizedBox(width: 10),
-                    Expanded(child: SafariCard(child: _amountStat('Commission pending', money(b['pending'])))),
-                  ]),
-                  const SizedBox(height: 8),
-                  SafariCard(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      _amountStat('Lifetime commission', money(b['lifetime'])),
-                      const SizedBox(height: 10),
-                      _amountStat('Gratuity available', money(b['gratuity_available'])),
-                    ]),
-                  ),
                   const SizedBox(height: 14),
                   ElevatedButton(
                     onPressed: () async {
                       await SafariNav.pushUp(
                         context,
-                        SafariPointsWithdrawScreen(
-                          entryPoints: points['entry'] is num ? (points['entry'] as num).toInt() : int.tryParse('${points['entry']}') ?? 0,
-                          salesPoints: points['sales'] is num ? (points['sales'] as num).toInt() : int.tryParse('${points['sales']}') ?? 0,
-                          netTsh: amounts['net_tsh'] ?? 0,
+                        SafariWithdrawScreen(
+                          available: amounts['net_tsh'] ?? 0,
                           banks: banks,
                           mnos: mnos,
                         ),
                       );
                       _load();
                     },
-                    child: const Text('Withdraw points'),
+                    child: const Text('Withdrawal'),
                   ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await SafariNav.pushUp(context, SafariWithdrawScreen(available: b['available'] ?? 0));
-                      _load();
-                    },
-                    style: ElevatedButton.styleFrom(backgroundColor: SafariTheme.maroonDark),
-                    child: const Text('Request commission withdrawal'),
-                  ),
-                  const SafariSectionTitle('Points withdrawals'),
-                  if (pointsWithdrawals.isEmpty)
-                    const SafariEmpty('No points withdrawals yet.', icon: Icons.payments_outlined)
-                  else
+                  const SafariSectionTitle('Withdrawals'),
+                  if (pointsWithdrawals.isEmpty && withdrawals.isEmpty)
+                    const SafariEmpty('No withdrawals yet.', icon: Icons.payments_outlined)
+                  else ...[
                     ...pointsWithdrawals.map((raw) {
                       final row = Map<String, dynamic>.from(raw as Map);
                       return Padding(
@@ -154,7 +129,7 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                           child: Row(children: [
                             Expanded(
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text(money(row['amount']), style: const TextStyle(fontWeight: FontWeight.w800)),
+                                SafariCountUp(row['amount'], moneyFormat: true, style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon, fontSize: 16)),
                                 Text(
                                   '${row['payout_type'] == 'BANK' ? row['bank_name'] : row['mno_name']}',
                                   style: const TextStyle(color: SafariTheme.muted, fontSize: 12),
@@ -166,10 +141,6 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                         ),
                       );
                     }),
-                  const SafariSectionTitle('Commission withdrawals'),
-                  if (withdrawals.isEmpty)
-                    const SafariEmpty('No withdrawal requests yet.', icon: Icons.account_balance_outlined)
-                  else
                     ...withdrawals.map((raw) {
                       final row = Map<String, dynamic>.from(raw as Map);
                       return Padding(
@@ -180,7 +151,7 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                             Expanded(
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                 Text(row['request_no']?.toString() ?? 'Withdrawal', style: const TextStyle(fontWeight: FontWeight.w800)),
-                                Text(money(row['amount']), style: const TextStyle(color: SafariTheme.muted)),
+                                SafariCountUp(row['amount'], moneyFormat: true, style: const TextStyle(color: SafariTheme.muted, fontSize: 13)),
                               ]),
                             ),
                             SafariStatusChip('${row['status']}', tone: statusTone(row['status']?.toString())),
@@ -188,6 +159,7 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                         ),
                       );
                     }),
+                  ],
                   const SafariSectionTitle('Ledger'),
                   if (ledger.isEmpty)
                     const SafariEmpty('No wallet movements yet.', icon: Icons.receipt_long_outlined)
@@ -208,7 +180,7 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                                 Text(row['note']?.toString() ?? row['reference']?.toString() ?? '', style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
                               ]),
                             ),
-                            Text(money(row['amount']), style: const TextStyle(fontWeight: FontWeight.w800)),
+                            SafariCountUp(row['amount'], moneyFormat: true, style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon, fontSize: 16)),
                           ]),
                         ),
                       );
@@ -219,14 +191,14 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
     );
   }
 
-  Widget _amountStat(String label, String value, [String? sub]) {
+  Widget _amountStat(String label, dynamic value, {dynamic sub, bool pts = false}) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(label, style: const TextStyle(color: SafariTheme.muted, fontSize: 12, fontWeight: FontWeight.w600)),
       const SizedBox(height: 6),
-      Text(value, style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon, fontSize: 16)),
-      if (sub != null && sub.isNotEmpty) ...[
+      SafariCountUp(value, moneyFormat: true, style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon, fontSize: 16)),
+      if (sub != null) ...[
         const SizedBox(height: 4),
-        Text(sub, style: const TextStyle(color: SafariTheme.muted, fontSize: 11)),
+        SafariCountUp(sub, suffix: pts ? ' pts' : '', style: const TextStyle(color: SafariTheme.muted, fontSize: 11)),
       ],
     ]);
   }

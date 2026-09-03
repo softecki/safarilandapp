@@ -107,13 +107,6 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
                                 tone: SafariChipTone.gold,
                               ),
                             ]),
-                            if (permanent) ...[
-                              const SizedBox(height: 6),
-                              const Text(
-                                'Show this first at the gate. Scanning it awards entry points and opens SafariLand 360.',
-                                style: TextStyle(color: SafariTheme.muted, fontSize: 12),
-                              ),
-                            ],
                             const SizedBox(height: 12),
                             Center(
                               child: Container(
@@ -121,12 +114,12 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
                                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
                                 child: QrImageView(
                                   data: url,
-                                  size: permanent ? 240 : 168,
+                                  size: permanent ? 280 : 168,
                                   backgroundColor: Colors.white,
                                   errorCorrectionLevel: QrErrorCorrectLevel.H,
                                   embeddedImage: permanent ? const AssetImage(SafariBrand.logoAsset) : null,
                                   embeddedImageStyle: permanent
-                                      ? const QrEmbeddedImageStyle(size: Size(52, 52))
+                                      ? const QrEmbeddedImageStyle(size: Size(88, 88))
                                       : null,
                                 ),
                               ),

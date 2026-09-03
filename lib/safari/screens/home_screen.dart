@@ -63,14 +63,27 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
     final currentTier = _map(tierInfo['current']);
     final nextTier = _map(tierInfo['next']);
     final promo = rewards['promo'] is Map ? _map(rewards['promo']) : <String, dynamic>{};
-    final tokens = ((rewards['recent_tokens'] as List?) ?? []).where((raw) {
-      final code = '${(raw as Map)['token']}'.toUpperCase();
-      return code.startsWith('AG-');
-    }).toList();
+    final tokens = (rewards['recent_tokens'] as List?) ?? [];
     final entries = (rewards['recent_entries'] as List?) ?? [];
     final transactions = ((home?['recent_transactions'] as List?) ?? [])
         .where((raw) => '${(raw as Map)['ledger_type']}'.toUpperCase() == 'COMMISSION')
         .toList();
+    var commissions = ((home?['recent_commissions'] as List?) ?? []).toList();
+    if (commissions.isEmpty) {
+      commissions = tokens.where((raw) {
+        final row = raw as Map;
+        final used = row['is_used'] == true || row['is_used'] == 1 || '${row['is_used']}' == '1';
+        final n = row['sales_amount'] is num ? (row['sales_amount'] as num) : num.tryParse('${row['sales_amount']}') ?? 0;
+        return used && n > 0;
+      }).map((raw) {
+        final row = Map<String, dynamic>.from(raw as Map);
+        return {
+          'amount': row['sales_amount'],
+          'status': 'TOKEN SALE',
+          'created_at': row['day'],
+        };
+      }).toList();
+    }
     final goals = (driver['goals'] as List?) ?? [];
     final tier = _tierCategory(driver, wallet);
     final stars = (tier['stars'] is num) ? (tier['stars'] as num).toInt() : 1;
@@ -225,7 +238,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                     Row(children: [
                       Expanded(
                         child: SafariCard(
-                          child: _miniStat('Total points', qtyFmt(points['total']), sub: 'Entry + Sales'),
+                          child: _miniStat('Total points', points['total'], sub: 'Entry + Sales'),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -233,7 +246,8 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                         child: SafariCard(
                           child: _miniStat(
                             loanN > 0 ? 'Net amount' : 'Total amount',
-                            money(amounts['net_tsh']),
+                            amounts['net_tsh'],
+                            moneyFormat: true,
                             sub: loanN > 0 ? 'Gross ${money(amounts['gross_tsh'])}' : 'Tanzanian Shillings',
                             valueColor: netN < 0 ? const Color(0xFFB3261E) : SafariTheme.maroon,
                           ),
@@ -244,13 +258,13 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                     Row(children: [
                       Expanded(
                         child: SafariCard(
-                          child: _miniStat('Entry points', qtyFmt(points['entry']), sub: money(amounts['entry_tsh'])),
+                          child: _miniStat('Entry points', points['entry'], sub: money(amounts['entry_tsh'])),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: SafariCard(
-                          child: _miniStat('Sales points', qtyFmt(points['sales']), sub: money(amounts['sales_tsh'])),
+                          child: _miniStat('Sales points', points['sales'], sub: money(amounts['sales_tsh'])),
                         ),
                       ),
                     ]),
@@ -258,9 +272,9 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                     SafariCard(
                       child: Column(
                         children: [
-                          _breakdownRow('Gross total', money(amounts['gross_tsh'])),
-                          if (loanN > 0) _breakdownRow('Loan balance', '− ${money(amounts['loan_tsh'])}', danger: true),
-                          _breakdownRow('Net withdrawable', money(amounts['net_tsh']), bold: true),
+                          _breakdownRow('Gross total', amounts['gross_tsh'], moneyFormat: true),
+                          if (loanN > 0) _breakdownRow('Loan balance', amounts['loan_tsh'], moneyFormat: true, danger: true, prefix: '− '),
+                          _breakdownRow('Net withdrawable', amounts['net_tsh'], moneyFormat: true, bold: true),
                         ],
                       ),
                     ),
@@ -270,26 +284,26 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                         child: SafariCard(
                           child: _miniStat(
                             'Reward tokens',
-                            qtyFmt(counts['tokens_total'] ?? counts['tokens_used']),
+                            counts['tokens_total'] ?? counts['tokens_used'],
                             sub: '${qtyFmt(counts['tokens_used'])} used · ${qtyFmt(counts['tokens_unused'])} unused',
                           ),
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Expanded(child: SafariCard(child: _miniStat('Entries', qtyFmt(counts['entries'])))),
+                      Expanded(child: SafariCard(child: _miniStat('Entries', counts['entries']))),
                     ]),
                     const SizedBox(height: 8),
                     Row(children: [
-                      Expanded(child: SafariCard(child: _miniStat('Withdrawals', qtyFmt(counts['withdrawals'])))),
+                      Expanded(child: SafariCard(child: _miniStat('Withdrawals', counts['withdrawals']))),
                       const SizedBox(width: 10),
-                      Expanded(child: SafariCard(child: _miniStat('Loans', qtyFmt(counts['loans'])))),
+                      Expanded(child: SafariCard(child: _miniStat('Loans', counts['loans']))),
                     ]),
                     if ((counts['missed_tokens'] ?? 0) != 0 || (counts['missed_entries'] ?? 0) != 0) ...[
                       const SizedBox(height: 8),
                       Row(children: [
-                        Expanded(child: SafariCard(child: _miniStat('Missed tokens', qtyFmt(counts['missed_tokens'])))),
+                        Expanded(child: SafariCard(child: _miniStat('Missed tokens', counts['missed_tokens']))),
                         const SizedBox(width: 10),
-                        Expanded(child: SafariCard(child: _miniStat('Missed entries', qtyFmt(counts['missed_entries'])))),
+                        Expanded(child: SafariCard(child: _miniStat('Missed entries', counts['missed_entries']))),
                       ]),
                     ],
                     const Padding(
@@ -304,7 +318,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                     else
                       ...tokens.map((raw) {
                         final row = _map(raw);
-                        final used = '${row['is_used']}' == '1' || row['is_used'] == true;
+                        final used = row['is_used'] == true || row['is_used'] == 1 || '${row['is_used']}' == '1';
                         final sales = row['sales_amount'];
                         final salesN = sales is num ? sales : num.tryParse('$sales') ?? 0;
                         return Padding(
@@ -336,7 +350,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                                     ),
                                     if (used && salesN > 0) ...[
                                       const SizedBox(height: 6),
-                                      Text(money(salesN), style: const TextStyle(fontWeight: FontWeight.w800)),
+                                      SafariCountUp(salesN, moneyFormat: true, style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon, fontSize: 16)),
                                     ],
                                   ],
                                 ),
@@ -370,7 +384,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                                     style: const TextStyle(fontWeight: FontWeight.w700),
                                   ),
                                 ),
-                                Text('${qtyFmt(row['points'])} pts', style: const TextStyle(fontWeight: FontWeight.w800)),
+                                SafariCountUp(row['points'], suffix: ' pts', style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon, fontSize: 16)),
                               ],
                             ),
                           ),
@@ -380,9 +394,9 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                   ],
                   const SizedBox(height: 8),
                   Row(children: [
-                    Expanded(child: SafariCard(child: _miniStat('Commission available', money(wallet['available'])))),
+                    Expanded(child: SafariCard(child: _miniStat('Commission available', wallet['available'], moneyFormat: true))),
                     const SizedBox(width: 10),
-                    Expanded(child: SafariCard(child: _miniStat('Commission pending', money(wallet['pending'])))),
+                    Expanded(child: SafariCard(child: _miniStat('Commission pending', wallet['pending'], moneyFormat: true))),
                   ]),
                   const SizedBox(height: 8),
                   Row(children: [
@@ -430,7 +444,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                             style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: SafariTheme.black),
                           ),
                         ),
-                        if (transactions.isNotEmpty)
+                        if (commissions.isNotEmpty || transactions.isNotEmpty)
                           TextButton(
                             onPressed: () => SafariNav.push(
                               context,
@@ -448,8 +462,32 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                       ],
                     ),
                   ),
-                  if (transactions.isEmpty)
+                    if (commissions.isEmpty && transactions.isEmpty)
                     const SafariEmpty('No commissions yet.', icon: Icons.receipt_long_outlined)
+                  else if (commissions.isNotEmpty)
+                    ...commissions.take(8).map((raw) {
+                      final row = _map(raw);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: SafariCard(
+                          child: Row(children: [
+                            const Icon(Icons.payments_outlined, color: SafariTheme.gold),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                const Text('Commission', style: TextStyle(fontWeight: FontWeight.w800)),
+                                Text(safariDate(row['created_at'] ?? row['available_at']), style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
+                              ]),
+                            ),
+                            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                              SafariCountUp(row['amount'], moneyFormat: true, style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon, fontSize: 16)),
+                              const SizedBox(height: 4),
+                              SafariStatusChip('${row['status']}', tone: statusTone(row['status']?.toString())),
+                            ]),
+                          ]),
+                        ),
+                      );
+                    })
                   else
                     ...transactions.take(8).map((raw) {
                       final row = Map<String, dynamic>.from(raw as Map);
@@ -467,11 +505,16 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
     );
   }
 
-  Widget _miniStat(String label, String value, {String? sub, Color? valueColor}) {
+  Widget _miniStat(String label, dynamic value, {String? sub, Color? valueColor, bool moneyFormat = false, String suffix = ''}) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(label, style: const TextStyle(color: SafariTheme.muted, fontSize: 12, fontWeight: FontWeight.w600)),
       const SizedBox(height: 6),
-      Text(value, style: TextStyle(fontWeight: FontWeight.w800, color: valueColor ?? SafariTheme.maroon, fontSize: 16)),
+      SafariCountUp(
+        value,
+        moneyFormat: moneyFormat,
+        suffix: suffix,
+        style: TextStyle(fontWeight: FontWeight.w800, color: valueColor ?? SafariTheme.maroon, fontSize: 16),
+      ),
       if (sub != null && sub.isNotEmpty) ...[
         const SizedBox(height: 4),
         Text(sub, style: const TextStyle(color: SafariTheme.muted, fontSize: 11)),
@@ -479,7 +522,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
     ]);
   }
 
-  Widget _breakdownRow(String label, String value, {bool bold = false, bool danger = false}) {
+  Widget _breakdownRow(String label, dynamic value, {bool bold = false, bool danger = false, bool moneyFormat = false, String prefix = ''}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -493,8 +536,10 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
               ),
             ),
           ),
-          Text(
+          SafariCountUp(
             value,
+            moneyFormat: moneyFormat,
+            prefix: prefix,
             style: TextStyle(
               fontWeight: FontWeight.w800,
               color: danger ? const Color(0xFFB3261E) : SafariTheme.black,
