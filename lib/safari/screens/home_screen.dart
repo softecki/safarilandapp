@@ -266,7 +266,15 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                     ),
                     const SizedBox(height: 8),
                     Row(children: [
-                      Expanded(child: SafariCard(child: _miniStat('Reward tokens', qtyFmt(counts['tokens_used'])))),
+                      Expanded(
+                        child: SafariCard(
+                          child: _miniStat(
+                            'Reward tokens',
+                            qtyFmt(counts['tokens_total'] ?? counts['tokens_used']),
+                            sub: '${qtyFmt(counts['tokens_used'])} used · ${qtyFmt(counts['tokens_unused'])} unused',
+                          ),
+                        ),
+                      ),
                       const SizedBox(width: 10),
                       Expanded(child: SafariCard(child: _miniStat('Entries', qtyFmt(counts['entries'])))),
                     ]),
@@ -294,8 +302,11 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                     if (tokens.isEmpty)
                       const SafariEmpty('No reward tokens yet.', icon: Icons.confirmation_number_outlined)
                     else
-                      ...tokens.take(8).map((raw) {
+                      ...tokens.map((raw) {
                         final row = _map(raw);
+                        final used = '${row['is_used']}' == '1' || row['is_used'] == true;
+                        final sales = row['sales_amount'];
+                        final salesN = sales is num ? sales : num.tryParse('$sales') ?? 0;
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: SafariCard(
@@ -308,6 +319,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text('${row['token'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w800)),
+                                      const SizedBox(height: 4),
                                       Text(
                                         safariDate(row['day']),
                                         style: const TextStyle(color: SafariTheme.muted, fontSize: 12),
@@ -315,7 +327,19 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                                     ],
                                   ),
                                 ),
-                                Text(money(row['sales_amount']), style: const TextStyle(fontWeight: FontWeight.w800)),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    SafariStatusChip(
+                                      used ? 'Used' : 'Unused',
+                                      tone: used ? SafariChipTone.success : SafariChipTone.warn,
+                                    ),
+                                    if (used && salesN > 0) ...[
+                                      const SizedBox(height: 6),
+                                      Text(money(salesN), style: const TextStyle(fontWeight: FontWeight.w800)),
+                                    ],
+                                  ],
+                                ),
                               ],
                             ),
                           ),

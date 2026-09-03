@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_brand.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 
@@ -26,7 +27,13 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
   Future<void> _load() async {
     try {
       final json = await SafariApi.get('/referral-assets');
-      assets = (SafariApi.data(json)['assets'] as List?) ?? [];
+      assets = List.from((SafariApi.data(json)['assets'] as List?) ?? []);
+      assets.sort((a, b) {
+        final ap = a is Map && (a['is_permanent'] == true || a['is_permanent'] == 1);
+        final bp = b is Map && (b['is_permanent'] == true || b['is_permanent'] == 1);
+        if (ap == bp) return 0;
+        return ap ? -1 : 1;
+      });
     } catch (e) {
       await safariError(context, e);
     } finally {
@@ -85,18 +92,43 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
                       itemBuilder: (_, i) {
                         final a = assets[i] as Map;
                         final url = _url(a);
+                        final permanent = a['is_permanent'] == true || a['is_permanent'] == 1;
                         return SafariCard(
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             Row(children: [
-                              Expanded(child: Text('${a['label'] ?? a['source_type']}', style: const TextStyle(fontWeight: FontWeight.w800))),
-                              SafariStatusChip('${a['source_type']}', tone: SafariChipTone.gold),
+                              Expanded(
+                                child: Text(
+                                  permanent ? 'Permanent profile QR' : '${a['label'] ?? a['source_type']}',
+                                  style: const TextStyle(fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                              SafariStatusChip(
+                                permanent ? 'PERMANENT' : '${a['source_type']}',
+                                tone: SafariChipTone.gold,
+                              ),
                             ]),
+                            if (permanent) ...[
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Show this first at the gate. Scanning it awards entry points and opens SafariLand 360.',
+                                style: TextStyle(color: SafariTheme.muted, fontSize: 12),
+                              ),
+                            ],
                             const SizedBox(height: 12),
                             Center(
                               child: Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-                                child: QrImageView(data: url, size: 168, backgroundColor: Colors.white),
+                                child: QrImageView(
+                                  data: url,
+                                  size: permanent ? 240 : 168,
+                                  backgroundColor: Colors.white,
+                                  errorCorrectionLevel: QrErrorCorrectLevel.H,
+                                  embeddedImage: permanent ? const AssetImage(SafariBrand.logoAsset) : null,
+                                  embeddedImageStyle: permanent
+                                      ? const QrEmbeddedImageStyle(size: Size(52, 52))
+                                      : null,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 8),

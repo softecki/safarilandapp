@@ -6,6 +6,7 @@ import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/ledger_detail_screen.dart';
 import 'package:wicom/safari/screens/withdraw_screen.dart';
 import 'package:wicom/safari/screens/withdrawal_status_screen.dart';
+import 'package:wicom/safari/screens/points_withdraw_screen.dart';
 
 class SafariWalletScreen extends StatefulWidget {
   const SafariWalletScreen({super.key});
@@ -41,6 +42,10 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
     final rewards = Map<String, dynamic>.from(data?['rewards'] as Map? ?? {});
     final amounts = Map<String, dynamic>.from(rewards['amounts'] as Map? ?? {});
     final points = Map<String, dynamic>.from(rewards['points'] as Map? ?? {});
+    final pointsWithdrawals = (data?['points_withdrawals'] as List?) ?? [];
+    final payoutOpts = Map<String, dynamic>.from(data?['points_payout_options'] as Map? ?? {});
+    final banks = (payoutOpts['banks'] as List?) ?? [];
+    final mnos = (payoutOpts['mnos'] as List?) ?? [];
     final ledger = (data?['ledger'] as List?) ?? [];
     final withdrawals = (data?['withdrawals'] as List?) ?? [];
     final loan = amounts['loan_tsh'];
@@ -113,12 +118,55 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                   const SizedBox(height: 14),
                   ElevatedButton(
                     onPressed: () async {
+                      await SafariNav.pushUp(
+                        context,
+                        SafariPointsWithdrawScreen(
+                          entryPoints: points['entry'] is num ? (points['entry'] as num).toInt() : int.tryParse('${points['entry']}') ?? 0,
+                          salesPoints: points['sales'] is num ? (points['sales'] as num).toInt() : int.tryParse('${points['sales']}') ?? 0,
+                          netTsh: amounts['net_tsh'] ?? 0,
+                          banks: banks,
+                          mnos: mnos,
+                        ),
+                      );
+                      _load();
+                    },
+                    child: const Text('Withdraw points'),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () async {
                       await SafariNav.pushUp(context, SafariWithdrawScreen(available: b['available'] ?? 0));
                       _load();
                     },
-                    child: const Text('Request withdrawal'),
+                    style: ElevatedButton.styleFrom(backgroundColor: SafariTheme.maroonDark),
+                    child: const Text('Request commission withdrawal'),
                   ),
-                  const SafariSectionTitle('Withdrawals'),
+                  const SafariSectionTitle('Points withdrawals'),
+                  if (pointsWithdrawals.isEmpty)
+                    const SafariEmpty('No points withdrawals yet.', icon: Icons.payments_outlined)
+                  else
+                    ...pointsWithdrawals.map((raw) {
+                      final row = Map<String, dynamic>.from(raw as Map);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: SafariCard(
+                          onTap: () => SafariNav.push(context, SafariPointsWithdrawalStatusScreen(row: row)),
+                          child: Row(children: [
+                            Expanded(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text(money(row['amount']), style: const TextStyle(fontWeight: FontWeight.w800)),
+                                Text(
+                                  '${row['payout_type'] == 'BANK' ? row['bank_name'] : row['mno_name']}',
+                                  style: const TextStyle(color: SafariTheme.muted, fontSize: 12),
+                                ),
+                              ]),
+                            ),
+                            SafariStatusChip('${row['status']}', tone: statusTone(row['status']?.toString())),
+                          ]),
+                        ),
+                      );
+                    }),
+                  const SafariSectionTitle('Commission withdrawals'),
                   if (withdrawals.isEmpty)
                     const SafariEmpty('No withdrawal requests yet.', icon: Icons.account_balance_outlined)
                   else
