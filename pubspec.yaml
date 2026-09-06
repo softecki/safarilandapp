@@ -92,9 +92,14 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/safari_land_poster.png"
-  adaptive_icon_background: "#800D12"
-  adaptive_icon_foreground: "assets/images/safari_land_poster.png"
+  image_path: "assets/images/safari_land_logo.png"
+  adaptive_icon_background: "#F6F0E8"
+  adaptive_icon_foreground: "assets/images/safari_land_logo.png"
+  web:
+    generate: true
+    image_path: "assets/images/safari_land_logo.png"
+    background_color: "#F6F0E8"
+    theme_color: "#6E0B12"
 
 
 flutter:
