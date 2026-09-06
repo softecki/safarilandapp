@@ -125,11 +125,11 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Safari Story')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
         children: [
-          Text('Capture the moment', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 6),
-          const Text('Type the voice note, add up to 6 photos, then let AI clean the wording.', style: TextStyle(color: SafariTheme.muted)),
+          Text('Capture the moment', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 4),
+          const Text('Type the voice note, add up to 6 photos, then let AI clean the wording.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
           const SizedBox(height: 16),
           TextField(controller: title, decoration: const InputDecoration(labelText: 'Title')),
           const SizedBox(height: 12),
@@ -138,7 +138,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
           TextField(controller: location, decoration: const InputDecoration(labelText: 'Location', hintText: 'Serengeti, Ngorongoro, camp name…')),
           const SizedBox(height: 16),
           Row(children: [
-            const Expanded(child: Text('Photos', style: TextStyle(fontWeight: FontWeight.w800))),
+            const Expanded(child: Text('Photos', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
             Text('${photos.length}/6', style: const TextStyle(color: SafariTheme.muted)),
           ]),
           const SizedBox(height: 8),

@@ -184,7 +184,7 @@ class SafariPointsWithdrawalStatusScreen extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               SafariStatusChip('${row['status']}', tone: statusTone(row['status']?.toString())),
               const SizedBox(height: 10),
-              Text(money(row['amount']), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+              Text(money(row['amount']), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
               Text('Entry ${qtyFmt(row['entry_points'])} pts · Sales ${qtyFmt(row['sales_points'])} pts'),
               const SizedBox(height: 8),

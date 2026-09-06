@@ -79,17 +79,17 @@ class _SafariLoginScreenState extends State<SafariLoginScreen> {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
           children: [
-            const SizedBox(height: 36),
-            const Center(child: SafariLogo(height: 92)),
-            const SizedBox(height: 14),
-            const SafariTagline(),
-            const SizedBox(height: 36),
-            Text('Sign in', style: Theme.of(context).textTheme.displaySmall),
+            const SizedBox(height: 20),
+            const Center(child: SafariLogo(height: 64)),
             const SizedBox(height: 8),
-            const Text('Sign in with your phone and password, or request a one-time code.', style: TextStyle(color: SafariTheme.muted)),
-            const SizedBox(height: 24),
+            const SafariTagline(),
+            const SizedBox(height: 22),
+            Text('Sign in', style: Theme.of(context).textTheme.headlineMedium),
+            const SizedBox(height: 6),
+            const Text('Use your phone and password, or request a one-time code.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
+            const SizedBox(height: 16),
             TextField(
               controller: phone,
               keyboardType: TextInputType.phone,

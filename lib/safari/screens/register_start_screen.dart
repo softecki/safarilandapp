@@ -63,9 +63,9 @@ class _SafariRegisterStartScreenState extends State<SafariRegisterStartScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Create account')),
       body: ListView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(16),
         children: [
-          const Text('We will send a one-time code to your phone and email.', style: TextStyle(color: SafariTheme.muted)),
+          const Text('We will send a one-time code to your phone and email.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
           const SizedBox(height: 20),
           TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Mobile number', hintText: '07XXXXXXXX')),
           const SizedBox(height: 12),
@@ -79,7 +79,7 @@ class _SafariRegisterStartScreenState extends State<SafariRegisterStartScreen> {
                     ? const Icon(Icons.check_circle, size: 18, color: Color(0xFF1F6B3A))
                     : null,
               ),
-              const Expanded(child: Text('I am a driver', style: TextStyle(fontWeight: FontWeight.w800))),
+              const Expanded(child: Text('I am a driver', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14))),
               Switch(value: isDriver, onChanged: (v) => setState(() => isDriver = v)),
             ],
           ),

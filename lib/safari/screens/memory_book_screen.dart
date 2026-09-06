@@ -61,11 +61,11 @@ class _SafariMemoryBookScreenState extends State<SafariMemoryBookScreen> {
                 await _load();
               },
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
                 children: [
-                  Text(trip?['label']?.toString() ?? 'Memory Book', style: Theme.of(context).textTheme.headlineMedium),
-                  const SizedBox(height: 6),
-                  const Text('Approved stories stay with this safari. Guests see them after you share the Memory Book.', style: TextStyle(color: SafariTheme.muted)),
+                  Text(trip?['label']?.toString() ?? 'Memory Book', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 4),
+                  const Text('Approved stories stay with this safari. Guests see them after you share the Memory Book.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
                   const SizedBox(height: 16),
                   if (stories.isEmpty)
                     const SafariEmpty('No stories yet. Capture one from this trip.', icon: Icons.auto_stories_outlined)
@@ -79,7 +79,7 @@ class _SafariMemoryBookScreenState extends State<SafariMemoryBookScreen> {
                           goldEdge: true,
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             Row(children: [
-                              Expanded(child: Text(story['title']?.toString().isNotEmpty == true ? story['title'].toString() : 'Story', style: const TextStyle(fontWeight: FontWeight.w800))),
+                              Expanded(child: Text(story['title']?.toString().isNotEmpty == true ? story['title'].toString() : 'Story', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14))),
                               SafariStatusChip('${story['status']}', tone: statusTone('${story['status']}')),
                             ]),
                             if ((story['destination_label'] ?? '').toString().isNotEmpty) ...[

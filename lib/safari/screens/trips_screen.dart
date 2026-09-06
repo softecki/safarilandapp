@@ -61,10 +61,10 @@ class _SafariTripsScreenState extends State<SafariTripsScreen> {
                 await _load();
               },
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(18, 16, 18, 96),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 88),
                 children: [
                   Row(children: [
-                    Expanded(child: Text('Trips', style: Theme.of(context).textTheme.headlineMedium)),
+                    Expanded(child: Text('Trips', style: Theme.of(context).textTheme.titleLarge)),
                     TextButton(
                       onPressed: () async {
                         await SafariNav.push(context, const SafariTripFormScreen());
@@ -93,7 +93,7 @@ class _SafariTripsScreenState extends State<SafariTripsScreen> {
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             Row(children: [
                               Expanded(
-                                child: Text(t['label']?.toString() ?? 'Trip', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                                child: Text(t['label']?.toString() ?? 'Trip', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                               ),
                               SafariStatusChip('${t['state']}'.replaceAll('_', ' '), tone: SafariChipTone.gold),
                             ]),

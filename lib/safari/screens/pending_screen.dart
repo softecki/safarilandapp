@@ -59,7 +59,7 @@ class _SafariPendingScreenState extends State<SafariPendingScreen> {
               children: [
                 SafariHero(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(driver?['name']?.toString() ?? 'Guide', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                    Text(driver?['name']?.toString() ?? 'Guide', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 10),
                     SafariStatusChip('${driver?['status'] ?? 'PENDING'}', tone: statusTone(driver?['status']?.toString())),
                   ]),

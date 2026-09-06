@@ -112,10 +112,10 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
                 await _load();
               },
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(18, 16, 18, 96),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 88),
                 children: [
                   Row(children: [
-                    Expanded(child: Text('My QR', style: Theme.of(context).textTheme.headlineMedium)),
+                    Expanded(child: Text('My QR', style: Theme.of(context).textTheme.titleLarge)),
                     TextButton(onPressed: _add, child: const Text('Add source')),
                   ]),
                   const SizedBox(height: 8),
@@ -124,20 +124,20 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
                   else
                     SafariCard(
                       child: Column(children: [
-                        const Text('Permanent profile QR', style: TextStyle(fontWeight: FontWeight.w800)),
-                        const SizedBox(height: 4),
+                        const Text('Permanent profile QR', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                        const SizedBox(height: 2),
                         const Text('Share this with every guest. It never expires.', style: TextStyle(color: SafariTheme.muted, fontSize: 12)),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 10),
                         Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: SafariTheme.cardBorder)),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: SafariTheme.cardBorder)),
                           child: QrImageView(
                             data: _url(hero),
-                            size: 240,
+                            size: 180,
                             backgroundColor: Colors.white,
                             errorCorrectionLevel: QrErrorCorrectLevel.H,
                             embeddedImage: const AssetImage(SafariBrand.logoAsset),
-                            embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(72, 72)),
+                            embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(48, 48)),
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -163,14 +163,14 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
                       child: SafariCard(
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Row(children: [
-                            Expanded(child: Text('${a['label'] ?? a['source_type']}', style: const TextStyle(fontWeight: FontWeight.w800))),
+                            Expanded(child: Text('${a['label'] ?? a['source_type']}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
                             SafariStatusChip(_disabled(a) ? 'DISABLED' : '${a['source_type']}', tone: _disabled(a) ? SafariChipTone.danger : SafariChipTone.gold),
                           ]),
                           const SizedBox(height: 10),
                           Center(
                             child: Opacity(
                               opacity: _disabled(a) ? 0.35 : 1,
-                              child: QrImageView(data: url, size: 140, backgroundColor: Colors.white),
+                              child: QrImageView(data: url, size: 110, backgroundColor: Colors.white),
                             ),
                           ),
                           const SizedBox(height: 10),

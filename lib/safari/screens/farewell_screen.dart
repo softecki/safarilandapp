@@ -95,13 +95,13 @@ class _SafariFarewellScreenState extends State<SafariFarewellScreen> {
       body: fetching
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
               children: [
                 SafariFarewellHero(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(trip?['label']?.toString() ?? 'Farewell', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                    Text(trip?['label']?.toString() ?? 'Farewell', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 6),
-                    const Text('Private until you activate. Each guest can receive their own message.'),
+                    const Text('Private until you activate. Each guest can receive their own message.', style: TextStyle(fontSize: 13)),
                   ]),
                 ),
                 const SafariSectionTitle('Who is this for?'),

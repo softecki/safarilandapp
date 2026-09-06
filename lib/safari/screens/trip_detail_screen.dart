@@ -81,12 +81,12 @@ class _SafariTripDetailScreenState extends State<SafariTripDetailScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(trip!['label']?.toString() ?? 'Trip')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
         children: [
           SafariCard(
             goldEdge: state == 'ON_SAFARI',
             child: Row(children: [
-              const Expanded(child: Text('Trip state', style: TextStyle(fontWeight: FontWeight.w700))),
+              const Expanded(child: Text('Trip state', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
               SafariStatusChip(state.replaceAll('_', ' '), tone: SafariChipTone.gold),
             ]),
           ),

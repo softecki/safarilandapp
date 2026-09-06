@@ -4,6 +4,7 @@ import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/farewell_screen.dart';
+import 'package:wicom/safari/screens/notifications_screen.dart';
 import 'package:wicom/safari/screens/passport_screen.dart';
 import 'package:wicom/safari/screens/story_screen.dart';
 import 'package:wicom/safari/screens/tourists_screen.dart';
@@ -87,7 +88,14 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
 
     return Scaffold(
       body: loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Column(
+              children: [
+                SafariStickyHeader(
+                  onNotify: () => SafariNav.push(context, const SafariNotificationsScreen()),
+                ),
+                const Expanded(child: Center(child: CircularProgressIndicator())),
+              ],
+            )
           : RefreshIndicator(
               color: SafariTheme.gold,
               onRefresh: () async {
@@ -95,8 +103,16 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                 await _load();
               },
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(18, 16, 18, 96),
+                padding: EdgeInsets.zero,
                 children: [
+                  SafariStickyHeader(
+                    onNotify: () => SafariNav.push(context, const SafariNotificationsScreen()),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 88),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                   SafariWalletHero(
                     label: 'Available earnings',
                     amount: wallet['available'] ?? 0,
@@ -105,15 +121,12 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                       context,
                       SafariWithdrawScreen(available: wallet['available'] ?? 0, commissionMode: true),
                     ),
+                    stats: [
+                      ('Guests referred', qtyFmt(referred)),
+                      ('Lifetime', qtyFmt(wallet['lifetime'])),
+                      ('Points', qtyFmt(points['total'])),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  Row(children: [
-                    Expanded(child: SafariStatBox(value: qtyFmt(referred), label: 'Guests referred')),
-                    const SizedBox(width: 8),
-                    Expanded(child: SafariStatBox(value: qtyFmt(wallet['lifetime']), label: 'Lifetime')),
-                    const SizedBox(width: 8),
-                    Expanded(child: SafariStatBox(value: qtyFmt(points['total']), label: 'Points')),
-                  ]),
                   const SizedBox(height: 14),
                   SafariActionGrid(children: [
                     SafariActionTile(icon: Icons.person_add_alt_1, label: 'Add Guest', onTap: () => SafariNav.push(context, const SafariTouristsScreen())),
@@ -136,7 +149,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                           Text('${current['guest_count'] ?? current['guests_count'] ?? 0} guests', style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
                         ]),
                         const SizedBox(height: 10),
-                        Text(current['label']?.toString() ?? 'Trip', style: Theme.of(context).textTheme.headlineSmall),
+                        Text(current['label']?.toString() ?? 'Trip', style: Theme.of(context).textTheme.titleMedium),
                         if ((current['itinerary'] ?? current['primary_nationality'] ?? '').toString().isNotEmpty)
                           Text(
                             '${current['primary_nationality'] ?? ''} · ${current['primary_language'] ?? ''}',
@@ -158,7 +171,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                     physics: const NeverScrollableScrollPhysics(),
                     mainAxisSpacing: 9,
                     crossAxisSpacing: 9,
-                    childAspectRatio: 1.35,
+                    childAspectRatio: 1.75,
                     children: [
                       SafariFeatureTile(
                         title: 'Safari Story',
@@ -186,12 +199,15 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                           child: Row(children: [
                             const Icon(Icons.payments_outlined, color: SafariTheme.gold),
                             const SizedBox(width: 10),
-                            Expanded(child: Text(ledgerTypeLabel(row['ledger_type'] ?? 'COMMISSION'), style: const TextStyle(fontWeight: FontWeight.w800))),
-                            SafariCountUp(row['amount'], moneyFormat: true, prefix: '+', style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon)),
+                            Expanded(child: Text(ledgerTypeLabel(row['ledger_type'] ?? 'COMMISSION'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+                            SafariCountUp(row['amount'], moneyFormat: true, prefix: '+', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: SafariTheme.maroon)),
                           ]),
                         ),
                       );
                     }),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

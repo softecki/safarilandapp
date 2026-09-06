@@ -44,19 +44,19 @@ class _SafariPassportScreenState extends State<SafariPassportScreen> {
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
               children: [
                 SafariCard(
                   child: Column(children: [
                     CircleAvatar(
-                      radius: 36,
+                      radius: 26,
                       backgroundColor: SafariTheme.pillFill,
-                      child: Text(safariInitials(d['name']), style: const TextStyle(color: SafariTheme.maroon, fontWeight: FontWeight.w800, fontSize: 22)),
+                      child: Text(safariInitials(d['name']), style: const TextStyle(color: SafariTheme.maroon, fontWeight: FontWeight.w700, fontSize: 16)),
                     ),
-                    const SizedBox(height: 10),
-                    Text('${d['name'] ?? ''}', style: Theme.of(context).textTheme.headlineSmall),
-                    Text('${d['member_no'] ?? ''} · ${data?['verified_rating'] ?? '—'} / 5', style: const TextStyle(color: SafariTheme.gold, fontWeight: FontWeight.w700)),
-                    Text('${data?['verified_review_count'] ?? 0} verified reviews', style: const TextStyle(color: SafariTheme.muted)),
+                    const SizedBox(height: 8),
+                    Text('${d['name'] ?? ''}', style: Theme.of(context).textTheme.titleMedium),
+                    Text('${d['member_no'] ?? ''} · ${data?['verified_rating'] ?? '—'} / 5', style: const TextStyle(color: SafariTheme.gold, fontWeight: FontWeight.w600, fontSize: 12)),
+                    Text('${data?['verified_review_count'] ?? 0} verified reviews', style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
                     if (languages.isNotEmpty) ...[
                       const SizedBox(height: 10),
                       Wrap(spacing: 6, children: languages.map((l) => SafariStatusChip(l, tone: SafariChipTone.gold)).toList()),

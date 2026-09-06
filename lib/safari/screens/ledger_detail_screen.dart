@@ -45,7 +45,7 @@ class _SafariLedgerDetailScreenState extends State<SafariLedgerDetailScreen> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('${row?['ledger_type']} · ${row?['direction']}', style: const TextStyle(color: SafariTheme.goldSoft)),
                     const SizedBox(height: 8),
-                    Text(money(row?['amount']), style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800)),
+                    Text(money(row?['amount']), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
                   ]),
                 ),
                 const SizedBox(height: 16),

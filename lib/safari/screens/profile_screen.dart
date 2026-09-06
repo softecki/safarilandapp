@@ -39,28 +39,28 @@ class SafariProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: Navigator.canPop(context) ? AppBar(title: const Text('Profile')) : null,
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 16, 18, 96),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 88),
         children: [
           if (!Navigator.canPop(context))
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Text('Guide Passport', style: Theme.of(context).textTheme.headlineMedium),
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text('Guide Passport', style: Theme.of(context).textTheme.titleLarge),
             ),
           SafariCard(
             child: Column(children: [
               CircleAvatar(
-                radius: 36,
+                radius: 26,
                 backgroundColor: SafariTheme.pillFill,
                 backgroundImage: (d['photo_url']?.toString().isNotEmpty ?? false) ? NetworkImage(d['photo_url'].toString()) : null,
                 child: (d['photo_url']?.toString().isNotEmpty ?? false)
                     ? null
-                    : Text(safariInitials(name), style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon, fontSize: 22)),
+                    : Text(safariInitials(name), style: const TextStyle(fontWeight: FontWeight.w700, color: SafariTheme.maroon, fontSize: 16)),
               ),
-              const SizedBox(height: 12),
-              Text(name, style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 4),
-              Text(d['member_no']?.toString() ?? 'Pending ID', style: const TextStyle(color: SafariTheme.gold, fontWeight: FontWeight.w700)),
-              if (d['company'] != null) Text('${d['company']}', style: const TextStyle(color: SafariTheme.muted)),
+              const SizedBox(height: 8),
+              Text(name, style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 2),
+              Text(d['member_no']?.toString() ?? 'Pending ID', style: const TextStyle(color: SafariTheme.gold, fontWeight: FontWeight.w600, fontSize: 12)),
+              if (d['company'] != null) Text('${d['company']}', style: const TextStyle(color: SafariTheme.muted, fontSize: 13)),
               if ((d['licence_ref'] ?? '').toString().isNotEmpty)
                 Text('Licence ${d['licence_ref']}', style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
               const SizedBox(height: 10),
@@ -130,7 +130,7 @@ class SafariProfileScreen extends StatelessWidget {
         child: Row(children: [
           Icon(icon, color: SafariTheme.maroon),
           const SizedBox(width: 12),
-          Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700))),
+          Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
           const Icon(Icons.chevron_right, color: SafariTheme.muted),
         ]),
       ),

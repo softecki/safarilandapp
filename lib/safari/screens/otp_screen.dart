@@ -97,7 +97,7 @@ class _SafariOtpScreenState extends State<SafariOtpScreen> {
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             maxLength: 6,
-            style: const TextStyle(fontSize: 28, letterSpacing: 10, fontWeight: FontWeight.w800),
+            style: const TextStyle(fontSize: 20, letterSpacing: 8, fontWeight: FontWeight.w700),
             decoration: const InputDecoration(
               hintText: 'Enter OTP',
               counterText: '',

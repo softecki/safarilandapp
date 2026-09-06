@@ -18,7 +18,7 @@ class SafariGuestScreen extends StatelessWidget {
         children: [
           SafariHero(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(d['name']?.toString() ?? 'Guest', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+              Text(d['name']?.toString() ?? 'Guest', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
               const SafariStatusChip('GUEST', tone: SafariChipTone.gold),
             ]),

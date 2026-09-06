@@ -62,12 +62,12 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                 await _load();
               },
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(18, 16, 18, 96),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 88),
                 children: [
                   if (!Navigator.canPop(context))
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Text('Wallet', style: Theme.of(context).textTheme.headlineMedium),
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text('Wallet', style: Theme.of(context).textTheme.titleLarge),
                     ),
                   SafariWalletHero(
                     label: 'Available commission',
@@ -113,7 +113,7 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                           child: Row(children: [
                             Expanded(
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text(row['request_no']?.toString() ?? 'Commission', style: const TextStyle(fontWeight: FontWeight.w800)),
+                                Text(row['request_no']?.toString() ?? 'Commission', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                                 SafariCountUp(row['amount'], moneyFormat: true, style: const TextStyle(color: SafariTheme.muted, fontSize: 13)),
                               ]),
                             ),
@@ -131,7 +131,7 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                           child: Row(children: [
                             Expanded(
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                const Text('Points', style: TextStyle(fontWeight: FontWeight.w800)),
+                                const Text('Points', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                                 SafariCountUp(row['amount'], moneyFormat: true, style: const TextStyle(color: SafariTheme.muted, fontSize: 13)),
                               ]),
                             ),

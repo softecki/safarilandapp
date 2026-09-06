@@ -131,7 +131,7 @@ class _SafariWithdrawScreenState extends State<SafariWithdrawScreen> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Text('Available', style: TextStyle(color: SafariTheme.goldSoft)),
               const SizedBox(height: 6),
-              SafariCountUp(availableN, moneyFormat: true, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
+              SafariCountUp(availableN, moneyFormat: true, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
               const SizedBox(height: 10),
               Text('Remaining  ${money(remaining)}', style: TextStyle(color: over ? const Color(0xFFFFB4AB) : Colors.white70, fontWeight: FontWeight.w700)),
               if (typed > 0)

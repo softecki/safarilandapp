@@ -58,10 +58,11 @@ class _SafariShellState extends State<SafariShell> {
     return Scaffold(
       body: Column(
         children: [
-          SafariStickyHeader(
-            unread: unread,
-            onNotify: () => SafariNav.push(context, const SafariNotificationsScreen()),
-          ),
+          if (index != SafariTabs.home)
+            SafariStickyHeader(
+              unread: unread,
+              onNotify: () => SafariNav.push(context, const SafariNotificationsScreen()),
+            ),
           Expanded(child: IndexedStack(index: index, children: _pages)),
         ],
       ),
@@ -70,7 +71,7 @@ class _SafariShellState extends State<SafariShell> {
         onPressed: () => _go(SafariTabs.qr),
         backgroundColor: qrOn ? SafariTheme.gold : SafariTheme.maroon,
         foregroundColor: qrOn ? SafariTheme.maroonDark : Colors.white,
-        child: const Icon(Icons.qr_code_2, size: 28),
+        child: const Icon(Icons.qr_code_2, size: 24),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
@@ -81,7 +82,7 @@ class _SafariShellState extends State<SafariShell> {
         notchMargin: 8,
         padding: EdgeInsets.zero,
         child: SizedBox(
-          height: 64,
+          height: 58,
           child: Row(
             children: [
               _navItem(SafariTabs.home, Icons.home_outlined, Icons.home_rounded, 'Home'),
