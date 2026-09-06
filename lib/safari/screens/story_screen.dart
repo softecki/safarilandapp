@@ -19,6 +19,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
   final text = TextEditingController();
   final title = TextEditingController();
   final location = TextEditingController();
+  final whatsapp = TextEditingController();
   final photos = <XFile>[];
   Map<String, dynamic>? story;
   String? draft;
@@ -29,6 +30,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
     text.dispose();
     title.dispose();
     location.dispose();
+    whatsapp.dispose();
     super.dispose();
   }
 
@@ -59,6 +61,14 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
   }
 
   Future<void> _process() async {
+    if (text.text.trim().isEmpty) {
+      await safariError(context, 'Add a voice note or story text first.');
+      return;
+    }
+    if (safariWhatsAppDigits(whatsapp.text.trim()) == null) {
+      await safariError(context, 'Enter the guest WhatsApp number.');
+      return;
+    }
     setState(() => loading = true);
     try {
       final created = await SafariApi.post('/trips/${widget.tripId}/stories', {
@@ -67,6 +77,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
         'source_language': 'en',
         'destination_label': location.text.trim(),
         'visibility': 'PRIVATE',
+        'guest_whatsapp': whatsapp.text.trim(),
       });
       story = Map<String, dynamic>.from(SafariApi.data(created) as Map);
       for (final photo in photos) {
@@ -89,9 +100,9 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
       await safariSheet<void>(
         context,
         Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('AI draft', style: Theme.of(context).textTheme.headlineSmall),
+          Text('ChatGPT narration', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 10),
-          Text(draft!.isEmpty ? 'No draft yet. You can still save the original note.' : draft!, style: const TextStyle(height: 1.45)),
+          Text(draft!.isEmpty ? 'No narration yet. Check that an OpenAI API key is saved in admin → API Keys.' : draft!, style: const TextStyle(height: 1.45)),
           const SizedBox(height: 16),
           ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('Review & approve')),
         ]),
@@ -111,8 +122,10 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
         'publish': true,
         'public': false,
       });
+      final url = '${SafariApi.guestBase()}/m/${widget.tripId}';
+      final opened = await safariOpenWhatsApp(whatsapp.text.trim(), 'Safari Story from your guide: $url');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved to Memory Book')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(opened ? 'Saved. Opening WhatsApp…' : 'Saved to Memory Book')));
         Navigator.pop(context);
       }
     } catch (e) {
@@ -129,9 +142,11 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
         children: [
           Text('Capture the moment', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 4),
-          const Text('Type the voice note, add up to 6 photos, then let AI clean the wording.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
+          const Text('Type the voice note, add the guest WhatsApp, then ChatGPT writes the Memory Book narration.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
           const SizedBox(height: 16),
           TextField(controller: title, decoration: const InputDecoration(labelText: 'Title')),
+          const SizedBox(height: 12),
+          TextField(controller: whatsapp, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Guest WhatsApp', hintText: '07xx or +255…')),
           const SizedBox(height: 12),
           TextField(controller: text, maxLines: 6, decoration: const InputDecoration(labelText: 'Voice note', hintText: 'Say what happened, who was there, and why it mattered.')),
           const SizedBox(height: 12),
@@ -175,12 +190,18 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
             ],
           ),
           const SizedBox(height: 20),
-          SafariLoadingButton(label: loading ? 'Processing…' : 'Clean with AI', loading: loading, onPressed: _process),
+          SafariLoadingButton(label: loading ? 'Writing narration…' : 'Create narration', loading: loading, onPressed: _process),
           if (story != null) ...[
             const SizedBox(height: 16),
-            SafariCard(child: Text(draft?.isNotEmpty == true ? draft! : 'Original note saved. Approve to add it to the Memory Book.')),
+            SafariCard(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('ChatGPT narration', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                const SizedBox(height: 8),
+                Text(draft?.isNotEmpty == true ? draft! : 'No narration yet. Add a note and try again.'),
+              ]),
+            ),
             const SizedBox(height: 12),
-            SafariGoldButton(label: 'Approve for Memory Book', onPressed: _approve),
+            SafariGoldButton(label: 'Approve & send on WhatsApp', onPressed: _approve),
           ],
         ],
       ),

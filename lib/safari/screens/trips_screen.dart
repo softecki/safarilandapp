@@ -95,11 +95,13 @@ class _SafariTripsScreenState extends State<SafariTripsScreen> {
                               Expanded(
                                 child: Text(t['label']?.toString() ?? 'Trip', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                               ),
+                              SafariStatusChip('${safariGuestCount(t)} guests', tone: SafariChipTone.neutral),
+                              const SizedBox(width: 6),
                               SafariStatusChip('${t['state']}'.replaceAll('_', ' '), tone: SafariChipTone.gold),
                             ]),
                             const SizedBox(height: 6),
                             Text(
-                              '${t['guests_count'] ?? t['guest_count'] ?? guests.length} guests · ${t['primary_nationality'] ?? t['primary_language'] ?? 'Group'}',
+                              '${safariGuestCount(t)} guests · ${t['primary_nationality'] ?? t['primary_language'] ?? 'Group'}',
                               style: const TextStyle(color: SafariTheme.muted, fontSize: 13),
                             ),
                             if (guests.isNotEmpty) ...[

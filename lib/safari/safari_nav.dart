@@ -88,33 +88,6 @@ class SafariNav {
   }
 }
 
-class SafariLoadingButton extends StatelessWidget {
-  const SafariLoadingButton({
-    super.key,
-    required this.label,
-    required this.loading,
-    required this.onPressed,
-  });
-
-  final String label;
-  final bool loading;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: loading ? () {} : onPressed,
-      child: loading
-          ? const SizedBox(
-              height: 22,
-              width: 22,
-              child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
-            )
-          : Text(label),
-    );
-  }
-}
-
 class SafariPasswordField extends StatefulWidget {
   const SafariPasswordField({super.key, required this.controller, this.label = 'Password'});
   final TextEditingController controller;

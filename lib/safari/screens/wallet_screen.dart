@@ -3,11 +3,9 @@ import 'package:wicom/safari/safari_api.dart';
 import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
-import 'package:wicom/safari/screens/ledger_detail_screen.dart';
 import 'package:wicom/safari/screens/points_withdraw_screen.dart';
 import 'package:wicom/safari/screens/transactions_screen.dart';
 import 'package:wicom/safari/screens/withdraw_screen.dart';
-import 'package:wicom/safari/screens/withdrawal_status_screen.dart';
 
 class SafariWalletScreen extends StatefulWidget {
   const SafariWalletScreen({super.key});
@@ -47,9 +45,7 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
     final payoutOpts = Map<String, dynamic>.from(data?['points_payout_options'] as Map? ?? {});
     final banks = (payoutOpts['banks'] as List?) ?? [];
     final mnos = (payoutOpts['mnos'] as List?) ?? [];
-    final ledger = (data?['ledger'] as List?) ?? [];
-    final withdrawals = (data?['withdrawals'] as List?) ?? [];
-    final available = balances['available'] ?? amounts['net_tsh'] ?? 0;
+    final available = amounts['net_tsh'] ?? balances['available'] ?? 0;
 
     return Scaffold(
       appBar: Navigator.canPop(context) ? AppBar(title: const Text('Wallet')) : null,
@@ -70,58 +66,29 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                       child: Text('Wallet', style: Theme.of(context).textTheme.titleLarge),
                     ),
                   SafariWalletHero(
-                    label: 'Available commission',
+                    label: 'Available points',
                     amount: available,
-                    actionLabel: 'Withdraw commission',
+                    actionLabel: 'Withdraw points',
                     onAction: () async {
                       await SafariNav.pushUp(
                         context,
-                        SafariWithdrawScreen(available: available, banks: banks, mnos: mnos, commissionMode: true),
+                        SafariWithdrawScreen(available: available, banks: banks, mnos: mnos),
                       );
                       _load();
                     },
                   ),
                   const SizedBox(height: 12),
                   Row(children: [
-                    Expanded(child: SafariStatBox(value: money(balances['pending']), label: 'Pending')),
+                    Expanded(child: SafariStatBox(value: qtyFmt(points['entry']), label: 'Entry points')),
                     const SizedBox(width: 8),
-                    Expanded(child: SafariStatBox(value: money(balances['gratuity_available']), label: 'Gratuity')),
+                    Expanded(child: SafariStatBox(value: qtyFmt(points['sales']), label: 'Sales points')),
                     const SizedBox(width: 8),
-                    Expanded(child: SafariStatBox(value: qtyFmt(points['total']), label: 'Points')),
+                    Expanded(child: SafariStatBox(value: qtyFmt(points['total']), label: 'Total points')),
                   ]),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: () async {
-                      await SafariNav.pushUp(
-                        context,
-                        SafariWithdrawScreen(available: amounts['net_tsh'] ?? 0, banks: banks, mnos: mnos),
-                      );
-                      _load();
-                    },
-                    child: const Text('Withdraw points'),
-                  ),
-                  SafariSectionTitle('Withdrawals', action: 'All activity', onAction: () => SafariNav.push(context, const SafariTransactionsScreen())),
-                  if (pointsWithdrawals.isEmpty && withdrawals.isEmpty)
-                    const SafariEmpty('No withdrawals yet.', icon: Icons.payments_outlined)
+                  SafariSectionTitle('Points withdrawals', action: 'All activity', onAction: () => SafariNav.push(context, const SafariTransactionsScreen())),
+                  if (pointsWithdrawals.isEmpty)
+                    const SafariEmpty('No points withdrawals yet.', icon: Icons.payments_outlined)
                   else ...[
-                    ...withdrawals.map((raw) {
-                      final row = Map<String, dynamic>.from(raw as Map);
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: SafariCard(
-                          onTap: () => SafariNav.push(context, SafariWithdrawalStatusScreen(id: row['id'])),
-                          child: Row(children: [
-                            Expanded(
-                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text(row['request_no']?.toString() ?? 'Commission', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                                SafariCountUp(row['amount'], moneyFormat: true, style: const TextStyle(color: SafariTheme.muted, fontSize: 13)),
-                              ]),
-                            ),
-                            SafariStatusChip('${row['status']}', tone: statusTone(row['status']?.toString())),
-                          ]),
-                        ),
-                      );
-                    }),
                     ...pointsWithdrawals.map((raw) {
                       final row = Map<String, dynamic>.from(raw as Map);
                       return Padding(
@@ -141,20 +108,6 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                       );
                     }),
                   ],
-                  const SafariSectionTitle('Recent ledger'),
-                  if (ledger.isEmpty)
-                    const SafariEmpty('No wallet movements yet.', icon: Icons.receipt_long_outlined)
-                  else
-                    ...ledger.take(8).map((raw) {
-                      final row = Map<String, dynamic>.from(raw as Map);
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: SafariLedgerCard(
-                          row: row,
-                          onTap: () => SafariNav.push(context, SafariLedgerDetailScreen(id: row['id'])),
-                        ),
-                      );
-                    }),
                 ],
               ),
             ),

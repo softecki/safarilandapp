@@ -64,7 +64,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
     if (ok != true) return;
     try {
       await SafariApi.post('/trips/${trip['id']}/coming', {
-        'guest_count': int.tryParse(count.text) ?? trip['guest_count'] ?? 1,
+        'guest_count': int.tryParse(count.text) ?? safariGuestCount(trip),
         'eta_at': DateTime.now().add(const Duration(hours: 2)).toIso8601String(),
       });
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Safari Land notified')));
@@ -83,7 +83,9 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
           (t) => '${t['state']}' == 'ON_SAFARI',
           orElse: () => trips.isNotEmpty ? _map(trips.first) : <String, dynamic>{},
         );
-    final activity = ((home?['recent_transactions'] as List?) ?? (home?['recent_commissions'] as List?) ?? []).toList();
+    final amounts = _map(rewards['amounts']);
+    final availablePoints = amounts['net_tsh'] ?? wallet['available'] ?? 0;
+    final activity = ((home?['recent_points_withdrawals'] as List?) ?? (home?['recent_transactions'] as List?) ?? []).toList();
     final referred = home?['pass_count'] ?? 0;
 
     return Scaffold(
@@ -114,22 +116,22 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                   SafariWalletHero(
-                    label: 'Available earnings',
-                    amount: wallet['available'] ?? 0,
+                    label: 'Available points',
+                    amount: availablePoints,
                     actionLabel: 'Withdraw',
                     onAction: () => SafariNav.pushUp(
                       context,
-                      SafariWithdrawScreen(available: wallet['available'] ?? 0, commissionMode: true),
+                      SafariWithdrawScreen(available: availablePoints),
                     ),
                     stats: [
                       ('Guests referred', qtyFmt(referred)),
-                      ('Lifetime', qtyFmt(wallet['lifetime'])),
+                      ('Lifetime', qtyFmt(points['total'] ?? wallet['lifetime'])),
                       ('Points', qtyFmt(points['total'])),
                     ],
                   ),
                   const SizedBox(height: 14),
                   SafariActionGrid(children: [
-                    SafariActionTile(icon: Icons.person_add_alt_1, label: 'Add Guest', onTap: () => SafariNav.push(context, const SafariTouristsScreen())),
+                    SafariActionTile(icon: Icons.confirmation_number_outlined, label: 'Create Pass', onTap: () => SafariNav.push(context, const SafariTouristsScreen())),
                     SafariActionTile(icon: Icons.qr_code_2, label: 'My QR', onTap: () => SafariTabs.go(SafariTabs.qr)),
                     SafariActionTile(
                       icon: Icons.directions_car_outlined,
@@ -146,7 +148,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                         Row(children: [
                           SafariStatusChip('${current['state']}'.replaceAll('_', ' '), tone: SafariChipTone.gold),
                           const Spacer(),
-                          Text('${current['guest_count'] ?? current['guests_count'] ?? 0} guests', style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
+                          Text('${safariGuestCount(current)} guests', style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
                         ]),
                         const SizedBox(height: 10),
                         Text(current['label']?.toString() ?? 'Trip', style: Theme.of(context).textTheme.titleMedium),
@@ -184,12 +186,12 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                         onTap: current.isEmpty ? () => safariError(context, 'Create a trip first') : () => SafariNav.pushUp(context, SafariFarewellScreen(trip: current)),
                       ),
                       SafariFeatureTile(title: 'Guide Passport', subtitle: 'Profile & reputation', onTap: () => SafariNav.push(context, const SafariPassportScreen())),
-                      SafariFeatureTile(title: 'Wallet', subtitle: 'Commission & withdrawals', onTap: () => SafariTabs.go(SafariTabs.wallet)),
+                      SafariFeatureTile(title: 'Wallet', subtitle: 'Points & withdrawals', onTap: () => SafariTabs.go(SafariTabs.wallet)),
                     ],
                   ),
-                  SafariSectionTitle('Recent activity', action: 'More', onAction: () => SafariNav.push(context, const SafariTransactionsScreen(ledgerType: 'COMMISSION'))),
+                  SafariSectionTitle('Recent activity', action: 'More', onAction: () => SafariNav.push(context, const SafariTransactionsScreen())),
                   if (activity.isEmpty)
-                    const SafariEmpty('No commissions yet.', icon: Icons.receipt_long_outlined)
+                    const SafariEmpty('No points withdrawals yet.', icon: Icons.receipt_long_outlined)
                   else
                     ...activity.take(5).map((raw) {
                       final row = _map(raw);
@@ -199,8 +201,8 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                           child: Row(children: [
                             const Icon(Icons.payments_outlined, color: SafariTheme.gold),
                             const SizedBox(width: 10),
-                            Expanded(child: Text(ledgerTypeLabel(row['ledger_type'] ?? 'COMMISSION'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
-                            SafariCountUp(row['amount'], moneyFormat: true, prefix: '+', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: SafariTheme.maroon)),
+                            Expanded(child: Text(ledgerTypeLabel(row['ledger_type'] ?? 'POINTS'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+                            SafariCountUp(row['amount'], moneyFormat: true, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: SafariTheme.maroon)),
                           ]),
                         ),
                       );

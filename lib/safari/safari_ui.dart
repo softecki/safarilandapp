@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wicom/safari/safari_api.dart';
 import 'package:wicom/safari/safari_brand.dart';
 import 'package:wicom/safari/safari_theme.dart';
@@ -172,21 +173,44 @@ SafariChipTone statusTone(String? status) {
     case 'PAID':
     case 'AVAILABLE':
     case 'APPROVED':
+    case 'ARRIVED':
+    case 'PURCHASED':
       return SafariChipTone.success;
     case 'PENDING':
     case 'REQUESTED':
     case 'PROCESSING':
     case 'PENDING_PROVIDER':
     case 'INITIATED':
+    case 'CREATED':
       return SafariChipTone.warn;
     case 'FAILED':
     case 'REJECTED':
     case 'SUSPENDED':
     case 'CANCELLED':
+    case 'EXPIRED':
+    case 'DISPUTED':
       return SafariChipTone.danger;
     default:
       return SafariChipTone.neutral;
   }
+}
+
+int safariGuestCount(dynamic raw) {
+  if (raw is! Map) return 0;
+  final guests = raw['guests'];
+  final listed = guests is List ? guests.length : 0;
+  for (final key in ['guest_count', 'guests_count', 'eta_guest_count']) {
+    final n = raw[key];
+    final v = n is num ? n.toInt() : int.tryParse('$n') ?? 0;
+    if (v > 0) return v;
+  }
+  return listed;
+}
+
+String safariPassStatus(dynamic status) {
+  final s = '$status'.trim();
+  if (s.isEmpty || s == 'null') return 'Created';
+  return s.replaceAll('_', ' ');
 }
 
 class SafariEmpty extends StatelessWidget {
@@ -305,6 +329,34 @@ String safariGuestName(dynamic raw) {
       .toString();
 }
 
+String? safariGuestPhone(dynamic raw) {
+  if (raw is! Map) return null;
+  final tourist = raw['tourist'];
+  final value = raw['guest_whatsapp'] ??
+      raw['whatsapp'] ??
+      raw['phone'] ??
+      (tourist is Map ? (tourist['phone'] ?? tourist['whatsapp']) : null);
+  final text = value?.toString().trim() ?? '';
+  return text.isEmpty ? null : text;
+}
+
+String? safariWhatsAppDigits(String raw) {
+  var digits = raw.replaceAll(RegExp(r'\D'), '');
+  if (digits.isEmpty) return null;
+  if (digits.startsWith('00')) digits = digits.substring(2);
+  if (digits.startsWith('0') && digits.length == 10) return '255${digits.substring(1)}';
+  if (digits.length == 9 && (digits.startsWith('6') || digits.startsWith('7'))) return '255$digits';
+  if (digits.length >= 9 && digits.length <= 15) return digits;
+  return null;
+}
+
+Future<bool> safariOpenWhatsApp(String raw, String message) async {
+  final n = safariWhatsAppDigits(raw);
+  if (n == null) return false;
+  final uri = Uri.parse('https://wa.me/$n?text=${Uri.encodeComponent(message)}');
+  return launchUrl(uri, mode: LaunchMode.externalApplication);
+}
+
 List<String> safariCsv(dynamic raw) {
   if (raw is List) return raw.map((e) => '$e'.trim()).where((e) => e.isNotEmpty).toList();
   return '$raw'.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
@@ -322,7 +374,9 @@ String safariDate(dynamic v) {
 String ledgerTypeLabel(dynamic type) {
   switch ('$type'.toUpperCase()) {
     case 'COMMISSION':
-      return 'Commission';
+    case 'POINTS':
+    case 'POINTS_WITHDRAWAL':
+      return 'Points';
     case 'GRATUITY':
       return 'Gratuity';
     default:
@@ -703,6 +757,33 @@ class SafariFarewellHero extends StatelessWidget {
         gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [SafariTheme.maroonDark, SafariTheme.gold]),
       ),
       child: DefaultTextStyle.merge(style: const TextStyle(color: Colors.white), child: child),
+    );
+  }
+}
+
+class SafariLoadingButton extends StatelessWidget {
+  const SafariLoadingButton({
+    super.key,
+    required this.label,
+    required this.loading,
+    required this.onPressed,
+  });
+
+  final String label;
+  final bool loading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: loading ? () {} : onPressed,
+      child: loading
+          ? const SizedBox(
+              height: 22,
+              width: 22,
+              child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+            )
+          : Text(label),
     );
   }
 }

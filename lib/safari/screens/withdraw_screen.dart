@@ -123,7 +123,7 @@ class _SafariWithdrawScreenState extends State<SafariWithdrawScreen> {
   Widget build(BuildContext context) {
     final over = typed > availableN;
     return Scaffold(
-      appBar: AppBar(title: Text(widget.commissionMode ? 'Commission withdrawal' : 'Points withdrawal')),
+      appBar: AppBar(title: const Text('Points withdrawal')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [

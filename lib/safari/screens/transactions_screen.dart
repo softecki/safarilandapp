@@ -4,6 +4,7 @@ import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/ledger_detail_screen.dart';
+import 'package:wicom/safari/screens/points_withdraw_screen.dart';
 
 class SafariTransactionsScreen extends StatefulWidget {
   const SafariTransactionsScreen({super.key, this.ledgerType});
@@ -51,11 +52,28 @@ class _SafariTransactionsScreenState extends State<SafariTransactionsScreen> {
     if (ledgerType != null) params['ledger_type'] = ledgerType!;
     final q = params.entries.map((e) => '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}').join('&');
     try {
-      final json = await SafariApi.get('/wallet/ledger?$q');
-      final data = SafariApi.data(json) as Map? ?? {};
-      final next = (data['items'] as List?) ?? [];
-      lastPage = (data['last_page'] is num) ? (data['last_page'] as num).toInt() : 1;
-      items = reset ? List.from(next) : [...items, ...next];
+      if (ledgerType == 'GRATUITY') {
+        final json = await SafariApi.get('/wallet/ledger?$q');
+        final data = SafariApi.data(json) as Map? ?? {};
+        final next = (data['items'] as List?) ?? [];
+        lastPage = (data['last_page'] is num) ? (data['last_page'] as num).toInt() : 1;
+        items = reset ? List.from(next) : [...items, ...next];
+      } else {
+        final json = await SafariApi.get('/points/withdrawals');
+        var next = (SafariApi.data(json) as List?) ?? [];
+        if (from != null || to != null) {
+          next = next.where((raw) {
+            final created = DateTime.tryParse('${(raw as Map)['created_at'] ?? ''}');
+            if (created == null) return true;
+            final day = DateTime(created.year, created.month, created.day);
+            if (from != null && day.isBefore(DateTime(from!.year, from!.month, from!.day))) return false;
+            if (to != null && day.isAfter(DateTime(to!.year, to!.month, to!.day))) return false;
+            return true;
+          }).toList();
+        }
+        lastPage = 1;
+        items = List.from(next);
+      }
     } catch (e) {
       await safariError(context, e);
     } finally {
@@ -149,7 +167,7 @@ class _SafariTransactionsScreenState extends State<SafariTransactionsScreen> {
                     spacing: 8,
                     children: [
                       _typeChip('All', null),
-                      _typeChip('Commission', 'COMMISSION'),
+                      _typeChip('Points', 'POINTS'),
                       _typeChip('Gratuity', 'GRATUITY'),
                     ],
                   ),
@@ -166,7 +184,7 @@ class _SafariTransactionsScreenState extends State<SafariTransactionsScreen> {
                     child: items.isEmpty
                         ? ListView(
                             children: const [
-                              SafariEmpty('No commission or gratuity in this period.', icon: Icons.receipt_long_outlined),
+                              SafariEmpty('No points withdrawals in this period.', icon: Icons.receipt_long_outlined),
                             ],
                           )
                         : ListView.separated(
@@ -186,9 +204,23 @@ class _SafariTransactionsScreenState extends State<SafariTransactionsScreen> {
                                 );
                               }
                               final row = Map<String, dynamic>.from(items[i] as Map);
-                              return SafariLedgerCard(
-                                row: row,
-                                onTap: () => SafariNav.push(context, SafariLedgerDetailScreen(id: row['id'])),
+                              if (ledgerType == 'GRATUITY') {
+                                return SafariLedgerCard(
+                                  row: row,
+                                  onTap: () => SafariNav.push(context, SafariLedgerDetailScreen(id: row['id'])),
+                                );
+                              }
+                              return SafariCard(
+                                onTap: () => SafariNav.push(context, SafariPointsWithdrawalStatusScreen(row: row)),
+                                child: Row(children: [
+                                  Expanded(
+                                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                      const Text('Points withdrawal', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                                      SafariCountUp(row['amount'], moneyFormat: true, style: const TextStyle(color: SafariTheme.muted, fontSize: 13)),
+                                    ]),
+                                  ),
+                                  SafariStatusChip('${row['status']}', tone: statusTone(row['status']?.toString())),
+                                ]),
                               );
                             },
                           ),

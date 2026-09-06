@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
 import 'package:wicom/safari/safari_nav.dart';
+import 'package:wicom/safari/safari_passes.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/farewell_screen.dart';
@@ -78,6 +79,7 @@ class _SafariTripDetailScreenState extends State<SafariTripDetailScreen> {
     final guests = (trip!['guests'] as List?) ?? [];
     final state = '${trip!['state']}';
     final next = _nextStates[state] ?? const <String>[];
+    final guestCount = safariGuestCount(trip);
     return Scaffold(
       appBar: AppBar(title: Text(trip!['label']?.toString() ?? 'Trip')),
       body: ListView(
@@ -85,9 +87,16 @@ class _SafariTripDetailScreenState extends State<SafariTripDetailScreen> {
         children: [
           SafariCard(
             goldEdge: state == 'ON_SAFARI',
-            child: Row(children: [
-              const Expanded(child: Text('Trip state', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
-              SafariStatusChip(state.replaceAll('_', ' '), tone: SafariChipTone.gold),
+            child: Column(children: [
+              Row(children: [
+                const Expanded(child: Text('Trip state', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+                SafariStatusChip(state.replaceAll('_', ' '), tone: SafariChipTone.gold),
+              ]),
+              const SizedBox(height: 10),
+              Row(children: [
+                const Expanded(child: Text('Guest count', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+                Text('$guestCount guests', style: const TextStyle(fontWeight: FontWeight.w700, color: SafariTheme.maroon)),
+              ]),
             ]),
           ),
           const SizedBox(height: 12),
@@ -129,12 +138,16 @@ class _SafariTripDetailScreenState extends State<SafariTripDetailScreen> {
             const SizedBox(height: 8),
             OutlinedButton(onPressed: () => _advance(s), child: Text(_stateLabels[s] ?? s)),
           ],
-          const SafariSectionTitle('Guests'),
+          SafariSectionTitle('Passes · $guestCount guests'),
           if (guests.isEmpty)
-            const SafariEmpty('Add the people on this safari.', icon: Icons.person_add_alt_1)
+            const SafariEmpty('Create a pass for this safari.', icon: Icons.confirmation_number_outlined)
           else
             ...guests.map((g) {
-              final name = safariGuestName(g);
+              final row = Map<String, dynamic>.from(g as Map);
+              final name = safariGuestName(row);
+              final pass = Map<String, dynamic>.from(row['pass'] as Map? ?? {});
+              final status = safariPassStatus(pass['status'] ?? row['status']);
+              final code = (pass['pass_code'] ?? '').toString();
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: SafariCard(
@@ -145,23 +158,34 @@ class _SafariTripDetailScreenState extends State<SafariTripDetailScreen> {
                       child: Text(safariInitials(name), style: const TextStyle(color: SafariTheme.maroon, fontWeight: FontWeight.w800)),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(child: Text(name, style: const TextStyle(fontWeight: FontWeight.w700))),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                        if (code.isNotEmpty)
+                          Text(code, style: const TextStyle(color: SafariTheme.muted, fontSize: 12, letterSpacing: 0.4)),
+                      ]),
+                    ),
+                    SafariStatusChip(status, tone: statusTone(pass['status']?.toString() ?? row['status']?.toString())),
                   ]),
                 ),
               );
             }),
-          TextField(controller: guestName, decoration: const InputDecoration(labelText: 'Add guest first name')),
+          TextField(controller: guestName, decoration: const InputDecoration(labelText: 'Optional guest name')),
           TextButton(
             onPressed: () async {
               try {
-                await SafariApi.post('/trips/${widget.id}/guests', {'first_name': guestName.text.trim()});
+                await SafariPasses.addPassToTrip(
+                  widget.id,
+                  firstName: guestName.text.trim(),
+                  groupName: trip!['label']?.toString(),
+                );
                 guestName.clear();
                 await _load();
               } catch (e) {
                 await safariError(context, e);
               }
             },
-            child: const Text('Add guest'),
+            child: const Text('Create Pass'),
           ),
         ],
       ),
