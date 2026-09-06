@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:wicom/safari/safari_api.dart';
@@ -57,14 +56,6 @@ class _SafariTouristsScreenState extends State<SafariTouristsScreen> {
     }
     final guest = '${r['guest'] ?? 'your guest'}';
     await Share.share('Safari Land shopping pass for $guest: $url');
-  }
-
-  Future<void> _copy(Map r) async {
-    final url = _passUrl(r);
-    if (url.isEmpty) return;
-    await Clipboard.setData(ClipboardData(text: url));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shopping pass link copied')));
   }
 
   Future<void> _create() async {
@@ -139,26 +130,30 @@ class _SafariTouristsScreenState extends State<SafariTouristsScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text('${r['guest']}', style: const TextStyle(fontWeight: FontWeight.w800)),
+                                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Expanded(
+                                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                      Text('${r['guest']}', style: const TextStyle(fontWeight: FontWeight.w800)),
+                                      Text(code, style: const TextStyle(color: SafariTheme.muted, letterSpacing: 0.4, fontSize: 12)),
+                                    ]),
+                                  ),
+                                  TextButton.icon(
+                                    onPressed: url.isEmpty ? null : () => _share(r),
+                                    icon: const Icon(Icons.ios_share, size: 16),
+                                    label: const Text('Share'),
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ),
+                                ]),
                                 if ((r['trip_label'] ?? '').toString().isNotEmpty)
                                   Text('${r['trip_label']}', style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
-                                Text(code, style: const TextStyle(color: SafariTheme.muted, letterSpacing: 0.4, fontSize: 12)),
                                 const SizedBox(height: 8),
                                 SafariStatusChip(status, tone: statusTone(r['status']?.toString())),
                               ]),
-                            ),
-                          ]),
-                          const SizedBox(height: 4),
-                          Row(children: [
-                            TextButton.icon(
-                              onPressed: url.isEmpty ? null : () => _share(r),
-                              icon: const Icon(Icons.ios_share, size: 16),
-                              label: const Text('Share'),
-                            ),
-                            TextButton.icon(
-                              onPressed: url.isEmpty ? null : () => _copy(r),
-                              icon: const Icon(Icons.copy, size: 16),
-                              label: const Text('Copy link'),
                             ),
                           ]),
                         ]),

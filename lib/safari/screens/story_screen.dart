@@ -20,6 +20,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
   final title = TextEditingController();
   final location = TextEditingController();
   final whatsapp = TextEditingController();
+  final email = TextEditingController();
   final photos = <XFile>[];
   Map<String, dynamic>? story;
   String? draft;
@@ -31,6 +32,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
     title.dispose();
     location.dispose();
     whatsapp.dispose();
+    email.dispose();
     super.dispose();
   }
 
@@ -65,6 +67,10 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
       await safariError(context, 'Add a voice note or story text first.');
       return;
     }
+    if (email.text.trim().isEmpty || !email.text.contains('@')) {
+      await safariError(context, 'Enter the guest email.');
+      return;
+    }
     if (safariWhatsAppDigits(whatsapp.text.trim()) == null) {
       await safariError(context, 'Enter the guest WhatsApp number.');
       return;
@@ -78,6 +84,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
         'destination_label': location.text.trim(),
         'visibility': 'PRIVATE',
         'guest_whatsapp': whatsapp.text.trim(),
+        'guest_email': email.text.trim(),
       });
       story = Map<String, dynamic>.from(SafariApi.data(created) as Map);
       for (final photo in photos) {
@@ -142,9 +149,11 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
         children: [
           Text('Capture the moment', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 4),
-          const Text('Type the voice note, add the guest WhatsApp, then ChatGPT writes the Memory Book narration.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
+          const Text('Add the guest email and WhatsApp, then ChatGPT writes the Memory Book narration.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
           const SizedBox(height: 16),
           TextField(controller: title, decoration: const InputDecoration(labelText: 'Title')),
+          const SizedBox(height: 12),
+          TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Guest email')),
           const SizedBox(height: 12),
           TextField(controller: whatsapp, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Guest WhatsApp', hintText: '07xx or +255…')),
           const SizedBox(height: 12),
@@ -201,7 +210,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
               ]),
             ),
             const SizedBox(height: 12),
-            SafariGoldButton(label: 'Approve & send on WhatsApp', onPressed: _approve),
+            SafariGoldButton(label: 'Approve, email & WhatsApp', onPressed: _approve),
           ],
         ],
       ),
