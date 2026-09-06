@@ -15,7 +15,12 @@ class _SafariProfileEditScreenState extends State<SafariProfileEditScreen> {
   late final name = TextEditingController(text: '${SafariApi.driver?['name'] ?? ''}');
   late final bio = TextEditingController(text: '${SafariApi.driver?['bio'] ?? ''}');
   late final company = TextEditingController(text: '${SafariApi.driver?['company'] ?? ''}');
-  late final goals = TextEditingController(text: ((SafariApi.driver?['goals'] as List?) ?? []).join(', '));
+  late final licence = TextEditingController(text: '${SafariApi.driver?['licence_ref'] ?? ''}');
+  late final languages = TextEditingController(text: safariCsv(SafariApi.driver?['languages']).join(', '));
+  late final destinations = TextEditingController(text: safariCsv(SafariApi.driver?['destinations']).join(', '));
+  late final specialties = TextEditingController(text: safariCsv(SafariApi.driver?['specialties']).join(', '));
+  late final experience = TextEditingController(text: '${SafariApi.driver?['experience_years'] ?? ''}');
+  late final goals = TextEditingController(text: safariCsv(SafariApi.driver?['goals']).join(', '));
   late final account = TextEditingController(text: '${SafariApi.driver?['payout_account'] ?? ''}');
   String method = '${SafariApi.driver?['payout_method'] ?? 'MPESA'}';
   bool loading = false;
@@ -25,6 +30,11 @@ class _SafariProfileEditScreenState extends State<SafariProfileEditScreen> {
     name.dispose();
     bio.dispose();
     company.dispose();
+    licence.dispose();
+    languages.dispose();
+    destinations.dispose();
+    specialties.dispose();
+    experience.dispose();
     goals.dispose();
     account.dispose();
     super.dispose();
@@ -37,7 +47,12 @@ class _SafariProfileEditScreenState extends State<SafariProfileEditScreen> {
         'name': name.text.trim(),
         'bio': bio.text.trim(),
         'company': company.text.trim(),
-        'goals': goals.text.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList(),
+        'licence_ref': licence.text.trim(),
+        'languages': safariCsv(languages.text),
+        'destinations': safariCsv(destinations.text),
+        'specialties': safariCsv(specialties.text),
+        'experience_years': int.tryParse(experience.text.trim()),
+        'goals': safariCsv(goals.text),
         'payout_method': method,
         'payout_account': account.text.trim(),
       });
@@ -67,9 +82,19 @@ class _SafariProfileEditScreenState extends State<SafariProfileEditScreen> {
           const SizedBox(height: 12),
           TextField(controller: company, decoration: const InputDecoration(labelText: 'Company / operator')),
           const SizedBox(height: 12),
+          TextField(controller: licence, decoration: const InputDecoration(labelText: 'Guide licence / TALA ref')),
+          const SizedBox(height: 12),
+          TextField(controller: experience, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Years of experience')),
+          const SizedBox(height: 12),
+          TextField(controller: languages, decoration: const InputDecoration(labelText: 'Languages', hintText: 'English, Swahili, French')),
+          const SizedBox(height: 12),
+          TextField(controller: destinations, decoration: const InputDecoration(labelText: 'Destinations', hintText: 'Serengeti, Ngorongoro, Tarangire')),
+          const SizedBox(height: 12),
+          TextField(controller: specialties, decoration: const InputDecoration(labelText: 'Specialties', hintText: 'Birding, photography, family groups')),
+          const SizedBox(height: 12),
           TextField(controller: bio, maxLines: 4, decoration: const InputDecoration(labelText: 'Bio')),
           const SizedBox(height: 12),
-          TextField(controller: goals, maxLines: 2, decoration: const InputDecoration(labelText: 'Goals (comma separated)')),
+          TextField(controller: goals, maxLines: 2, decoration: const InputDecoration(labelText: 'Dreams & goals (comma separated)')),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: ['MPESA', 'TIGOPESA', 'AIRTEL', 'BANK'].contains(method) ? method : 'MPESA',

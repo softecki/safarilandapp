@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
-import 'package:wicom/safari/safari_brand.dart';
 import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
-import 'package:wicom/safari/screens/ledger_detail_screen.dart';
-import 'package:wicom/safari/screens/notifications_screen.dart';
+import 'package:wicom/safari/screens/farewell_screen.dart';
 import 'package:wicom/safari/screens/passport_screen.dart';
+import 'package:wicom/safari/screens/story_screen.dart';
 import 'package:wicom/safari/screens/tourists_screen.dart';
 import 'package:wicom/safari/screens/transactions_screen.dart';
+import 'package:wicom/safari/screens/trip_detail_screen.dart';
+import 'package:wicom/safari/screens/withdraw_screen.dart';
 
 class SafariHomeScreen extends StatefulWidget {
   const SafariHomeScreen({super.key});
@@ -32,6 +33,10 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
       final json = await SafariApi.get('/home');
       home = Map<String, dynamic>.from(SafariApi.data(json) as Map);
       SafariApi.driver = Map<String, dynamic>.from(home?['driver'] as Map? ?? SafariApi.driver ?? {});
+      final token = SafariApi.token;
+      if (token != null && SafariApi.driver != null) {
+        await SafariApi.saveAuth(token, SafariApi.driver!);
+      }
     } catch (e) {
       await safariError(context, e);
     } finally {
@@ -39,65 +44,46 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
     }
   }
 
-  Map<String, dynamic> _tierCategory(Map driver, Map wallet) {
-    final fromApi = home?['tier_category'] as Map? ?? driver['tier_category'] as Map? ?? home?['loyalty'] as Map? ?? driver['loyalty'] as Map?;
-    if (fromApi != null) return Map<String, dynamic>.from(fromApi);
-    final lifetime = wallet['lifetime'];
-    final n = lifetime is num ? lifetime.toInt() : int.tryParse('$lifetime') ?? 0;
-    if (n >= 5000000) return {'key': 'PLATINUM', 'label': 'Platinum', 'stars': 3, 'level': 'Highest'};
-    if (n >= 1000000) return {'key': 'GOLD', 'label': 'Gold', 'stars': 2, 'level': 'Premium'};
-    return {'key': 'SILVER', 'label': 'Silver', 'stars': 1, 'level': 'Basic'};
-  }
-
   Map<String, dynamic> _map(dynamic raw) => Map<String, dynamic>.from(raw as Map? ?? {});
+
+  Future<void> _coming(Map trip) async {
+    final count = TextEditingController(text: '${trip['guest_count'] ?? trip['guests_count'] ?? 1}');
+    final ok = await safariSheet<bool>(
+      context,
+      Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text("I'm Coming to Safari Land", style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 12),
+        Text(trip['label']?.toString() ?? 'Current trip', style: const TextStyle(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 12),
+        TextField(controller: count, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Guest count')),
+        const SizedBox(height: 16),
+        ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Notify Safari Land')),
+      ]),
+    );
+    if (ok != true) return;
+    try {
+      await SafariApi.post('/trips/${trip['id']}/coming', {
+        'guest_count': int.tryParse(count.text) ?? trip['guest_count'] ?? 1,
+        'eta_at': DateTime.now().add(const Duration(hours: 2)).toIso8601String(),
+      });
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Safari Land notified')));
+    } catch (e) {
+      await safariError(context, e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final driver = home?['driver'] as Map? ?? SafariApi.driver ?? {};
     final wallet = home?['wallet'] as Map? ?? {};
     final rewards = _map(home?['rewards']);
     final points = _map(rewards['points']);
-    final amounts = _map(rewards['amounts']);
-    final counts = _map(rewards['counts']);
-    final tierInfo = _map(rewards['tier']);
-    final currentTier = _map(tierInfo['current']);
-    final nextTier = _map(tierInfo['next']);
-    final promo = rewards['promo'] is Map ? _map(rewards['promo']) : <String, dynamic>{};
-    final tokens = ((rewards['recent_tokens'] as List?) ?? []).where((raw) {
-      final code = '${(raw as Map)['token']}'.toUpperCase();
-      return code.startsWith('AG-') && !code.startsWith('AG-M-');
-    }).toList();
-    final entries = (rewards['recent_entries'] as List?) ?? [];
-    final transactions = ((home?['recent_transactions'] as List?) ?? [])
-        .where((raw) => '${(raw as Map)['ledger_type']}'.toUpperCase() == 'COMMISSION')
-        .toList();
-    var commissions = ((home?['recent_commissions'] as List?) ?? []).toList();
-    if (commissions.isEmpty) {
-      commissions = tokens.where((raw) {
-        final row = raw as Map;
-        final used = row['is_used'] == true || row['is_used'] == 1 || '${row['is_used']}' == '1';
-        final n = row['sales_amount'] is num ? (row['sales_amount'] as num) : num.tryParse('${row['sales_amount']}') ?? 0;
-        return used && n > 0;
-      }).map((raw) {
-        final row = Map<String, dynamic>.from(raw as Map);
-        return {
-          'amount': row['sales_amount'],
-          'status': 'TOKEN SALE',
-          'created_at': row['day'],
-        };
-      }).toList();
-    }
-    final goals = (driver['goals'] as List?) ?? [];
-    final tier = _tierCategory(driver, wallet);
-    final stars = (tier['stars'] is num) ? (tier['stars'] as num).toInt() : 1;
-    final hasRewards = rewards.isNotEmpty;
-    final loan = amounts['loan_tsh'];
-    final loanN = loan is num ? loan.toInt() : int.tryParse('$loan') ?? 0;
-    final net = amounts['net_tsh'];
-    final netN = net is num ? net.toInt() : int.tryParse('$net') ?? 0;
-    final tierName = (currentTier['name'] ?? '').toString();
-    final heroTier = tierName.isNotEmpty ? tierName : '${tier['label'] ?? 'Silver'}';
-    final progress = (tierInfo['progress'] is num) ? (tierInfo['progress'] as num).toDouble() : 0;
+    final trips = (home?['trips'] as List?) ?? [];
+    final current = trips.cast<dynamic>().map((e) => _map(e)).firstWhere(
+          (t) => '${t['state']}' == 'ON_SAFARI',
+          orElse: () => trips.isNotEmpty ? _map(trips.first) : <String, dynamic>{},
+        );
+    final activity = ((home?['recent_transactions'] as List?) ?? (home?['recent_commissions'] as List?) ?? []).toList();
+    final referred = home?['pass_count'] ?? 0;
 
     return Scaffold(
       body: loading
@@ -109,366 +95,90 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                 await _load();
               },
               child: ListView(
-                padding: EdgeInsets.fromLTRB(16, MediaQuery.paddingOf(context).top + 4, 16, 96),
+                padding: const EdgeInsets.fromLTRB(18, 16, 18, 96),
                 children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      icon: Badge(
-                        isLabelVisible: (home?['unread_notifications'] ?? 0) > 0,
-                        child: const Icon(Icons.notifications_outlined),
-                      ),
-                      onPressed: () => SafariNav.push(context, const SafariNotificationsScreen()),
+                  SafariWalletHero(
+                    label: 'Available earnings',
+                    amount: wallet['available'] ?? 0,
+                    actionLabel: 'Withdraw',
+                    onAction: () => SafariNav.pushUp(
+                      context,
+                      SafariWithdrawScreen(available: wallet['available'] ?? 0, commissionMode: true),
                     ),
                   ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(28),
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: Image.asset(
-                            SafariBrand.logoAsset,
-                            fit: BoxFit.cover,
-                            alignment: Alignment.center,
-                            errorBuilder: (_, __, ___) => const ColoredBox(color: SafariTheme.maroon),
-                          ),
-                        ),
-                        Positioned.fill(
-                          child: ColoredBox(color: SafariTheme.maroonDark.withValues(alpha: 0.58)),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
-                          child: DefaultTextStyle.merge(
-                            style: const TextStyle(color: Colors.white),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Expanded(
-                                      child: Text(
-                                        'Welcome',
-                                        style: TextStyle(
-                                          color: SafariTheme.goldSoft,
-                                          letterSpacing: 1.4,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          heroTier,
-                                          style: const TextStyle(
-                                            color: SafariTheme.goldSoft,
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 13,
-                                            letterSpacing: 1.2,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: List.generate(
-                                            stars.clamp(1, 3),
-                                            (_) => const Padding(
-                                              padding: EdgeInsets.only(left: 2),
-                                              child: Icon(Icons.star_rounded, size: 16, color: SafariTheme.gold),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  driver['name']?.toString() ?? 'Guide',
-                                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
-                                ),
-                                if ((driver['member_no'] ?? rewards['card_number'] ?? '').toString().isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  SafariStatusChip(
-                                    (driver['member_no'] ?? rewards['card_number']).toString(),
-                                    tone: SafariChipTone.gold,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 12),
+                  Row(children: [
+                    Expanded(child: SafariStatBox(value: qtyFmt(referred), label: 'Guests referred')),
+                    const SizedBox(width: 8),
+                    Expanded(child: SafariStatBox(value: qtyFmt(wallet['lifetime']), label: 'Lifetime')),
+                    const SizedBox(width: 8),
+                    Expanded(child: SafariStatBox(value: qtyFmt(points['total']), label: 'Points')),
+                  ]),
+                  const SizedBox(height: 14),
+                  SafariActionGrid(children: [
+                    SafariActionTile(icon: Icons.person_add_alt_1, label: 'Add Guest', onTap: () => SafariNav.push(context, const SafariTouristsScreen())),
+                    SafariActionTile(icon: Icons.qr_code_2, label: 'My QR', onTap: () => SafariTabs.go(SafariTabs.qr)),
+                    SafariActionTile(
+                      icon: Icons.directions_car_outlined,
+                      label: "I'm Coming",
+                      onTap: current.isEmpty ? () => safariError(context, 'Create a trip first') : () => _coming(current),
                     ),
-                  ),
-                  if (hasRewards) ...[
-                    if (tierName.isNotEmpty && (nextTier['name'] ?? '').toString().isNotEmpty) ...[
-                      const SizedBox(height: 14),
-                      SafariCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${qtyFmt(tierInfo['points_needed'])} points to ${nextTier['name']}',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: LinearProgressIndicator(
-                                value: (progress / 100).clamp(0, 1),
-                                minHeight: 8,
-                                color: SafariTheme.gold,
-                                backgroundColor: const Color(0xFFE4D9CC),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    if (promo.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      SafariCard(
-                        child: Text(
-                          '+${qtyFmt(promo['bonus_points'])} bonus pts from ${qtyFmt(promo['application_count'])} promo application(s)',
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 14),
-                    Row(children: [
-                      Expanded(
-                        child: SafariCard(
-                          child: _miniStat('Total points', points['total'], sub: 'Entry + Sales'),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: SafariCard(
-                          child: _miniStat(
-                            loanN > 0 ? 'Net amount' : 'Total amount',
-                            amounts['net_tsh'],
-                            moneyFormat: true,
-                            sub: loanN > 0 ? 'Gross ${money(amounts['gross_tsh'])}' : 'Tanzanian Shillings',
-                            valueColor: netN < 0 ? const Color(0xFFB3261E) : SafariTheme.maroon,
-                          ),
-                        ),
-                      ),
-                    ]),
-                    const SizedBox(height: 8),
-                    Row(children: [
-                      Expanded(
-                        child: SafariCard(
-                          child: _miniStat('Entry points', points['entry'], sub: money(amounts['entry_tsh'])),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: SafariCard(
-                          child: _miniStat('Sales points', points['sales'], sub: money(amounts['sales_tsh'])),
-                        ),
-                      ),
-                    ]),
-                    const SizedBox(height: 8),
+                  ]),
+                  if (current.isNotEmpty) ...[
+                    SafariSectionTitle('Current Safari', action: 'View trip', onAction: () => SafariNav.push(context, SafariTripDetailScreen(id: current['id']))),
                     SafariCard(
-                      child: Column(
-                        children: [
-                          _breakdownRow('Gross total', amounts['gross_tsh'], moneyFormat: true),
-                          if (loanN > 0) _breakdownRow('Loan balance', amounts['loan_tsh'], moneyFormat: true, danger: true, prefix: '− '),
-                          _breakdownRow('Net withdrawable', amounts['net_tsh'], moneyFormat: true, bold: true),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(children: [
-                      Expanded(
-                        child: SafariCard(
-                          child: _miniStat(
-                            'Reward tokens',
-                            counts['tokens_total'] ?? counts['tokens_used'],
-                            sub: '${qtyFmt(counts['tokens_used'])} used · ${qtyFmt(counts['tokens_unused'])} unused',
+                      goldEdge: true,
+                      onTap: () => SafariNav.push(context, SafariTripDetailScreen(id: current['id'])),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Row(children: [
+                          SafariStatusChip('${current['state']}'.replaceAll('_', ' '), tone: SafariChipTone.gold),
+                          const Spacer(),
+                          Text('${current['guest_count'] ?? current['guests_count'] ?? 0} guests', style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
+                        ]),
+                        const SizedBox(height: 10),
+                        Text(current['label']?.toString() ?? 'Trip', style: Theme.of(context).textTheme.headlineSmall),
+                        if ((current['itinerary'] ?? current['primary_nationality'] ?? '').toString().isNotEmpty)
+                          Text(
+                            '${current['primary_nationality'] ?? ''} · ${current['primary_language'] ?? ''}',
+                            style: const TextStyle(color: SafariTheme.muted),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(child: SafariCard(child: _miniStat('Entries', counts['entries']))),
-                    ]),
-                    const SizedBox(height: 8),
-                    Row(children: [
-                      Expanded(child: SafariCard(child: _miniStat('Withdrawals', counts['withdrawals']))),
-                      const SizedBox(width: 10),
-                      Expanded(child: SafariCard(child: _miniStat('Loans', counts['loans']))),
-                    ]),
-                    if ((counts['missed_tokens'] ?? 0) != 0 || (counts['missed_entries'] ?? 0) != 0) ...[
-                      const SizedBox(height: 8),
-                      Row(children: [
-                        Expanded(child: SafariCard(child: _miniStat('Missed tokens', counts['missed_tokens']))),
-                        const SizedBox(width: 10),
-                        Expanded(child: SafariCard(child: _miniStat('Missed entries', counts['missed_entries']))),
+                        const SizedBox(height: 12),
+                        Row(children: [
+                          Expanded(child: SafariAltButton(label: 'Capture Story', onPressed: () => SafariNav.push(context, SafariStoryScreen(tripId: current['id'])))),
+                          const SizedBox(width: 8),
+                          Expanded(child: SafariGoldButton(label: 'Farewell', onPressed: () => SafariNav.pushUp(context, SafariFarewellScreen(trip: current)))),
+                        ]),
                       ]),
+                    ),
+                  ],
+                  const SafariSectionTitle('Quick tools'),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 9,
+                    crossAxisSpacing: 9,
+                    childAspectRatio: 1.35,
+                    children: [
+                      SafariFeatureTile(
+                        title: 'Safari Story',
+                        subtitle: 'Voice, photos, AI polish',
+                        onTap: current.isEmpty ? () => safariError(context, 'Create a trip first') : () => SafariNav.push(context, SafariStoryScreen(tripId: current['id'])),
+                      ),
+                      SafariFeatureTile(
+                        title: 'Farewell Studio',
+                        subtitle: 'Private messages for guests',
+                        onTap: current.isEmpty ? () => safariError(context, 'Create a trip first') : () => SafariNav.pushUp(context, SafariFarewellScreen(trip: current)),
+                      ),
+                      SafariFeatureTile(title: 'Guide Passport', subtitle: 'Profile & reputation', onTap: () => SafariNav.push(context, const SafariPassportScreen())),
+                      SafariFeatureTile(title: 'Wallet', subtitle: 'Commission & withdrawals', onTap: () => SafariTabs.go(SafariTabs.wallet)),
                     ],
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 8, top: 12),
-                      child: Text(
-                        'Reward tokens',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: SafariTheme.black),
-                      ),
-                    ),
-                    if (tokens.isEmpty)
-                      const SafariEmpty('No reward tokens yet.', icon: Icons.confirmation_number_outlined)
-                    else
-                      ...tokens.map((raw) {
-                        final row = _map(raw);
-                        final used = row['is_used'] == true || row['is_used'] == 1 || '${row['is_used']}' == '1';
-                        final sales = row['sales_amount'];
-                        final salesN = sales is num ? sales : num.tryParse('$sales') ?? 0;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: SafariCard(
-                            child: Row(
-                              children: [
-                                const Icon(Icons.qr_code_2, color: SafariTheme.gold),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('${row['token'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w800)),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        safariDate(row['day']),
-                                        style: const TextStyle(color: SafariTheme.muted, fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    SafariStatusChip(
-                                      used ? 'Used' : 'Unused',
-                                      tone: used ? SafariChipTone.success : SafariChipTone.warn,
-                                    ),
-                                    if (used && salesN > 0) ...[
-                                      const SizedBox(height: 6),
-                                      SafariCountUp(salesN, moneyFormat: true, style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon, fontSize: 16)),
-                                    ],
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 8, top: 4),
-                      child: Text(
-                        'Recent entries',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: SafariTheme.black),
-                      ),
-                    ),
-                    if (entries.isEmpty)
-                      const SafariEmpty('No entries yet.', icon: Icons.login_outlined)
-                    else
-                      ...entries.take(8).map((raw) {
-                        final row = _map(raw);
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: SafariCard(
-                            child: Row(
-                              children: [
-                                const Icon(Icons.login, color: SafariTheme.maroon),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    safariDate(row['day']),
-                                    style: const TextStyle(fontWeight: FontWeight.w700),
-                                  ),
-                                ),
-                                SafariCountUp(row['points'], suffix: ' pts', style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon, fontSize: 16)),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
-                    const SizedBox(height: 6),
-                  ],
-                  const SizedBox(height: 8),
-                  Row(children: [
-                    Expanded(child: SafariCard(child: _miniStat('Commission available', wallet['available'], moneyFormat: true))),
-                    const SizedBox(width: 10),
-                    Expanded(child: SafariCard(child: _miniStat('Commission pending', wallet['pending'], moneyFormat: true))),
-                  ]),
-                  const SizedBox(height: 8),
-                  Row(children: [
-                    Expanded(
-                      child: SafariActionTile(
-                        icon: Icons.confirmation_number_outlined,
-                        label: 'Passes',
-                        onTap: () => SafariNav.push(context, const SafariTouristsScreen()),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: SafariActionTile(
-                        icon: Icons.menu_book_outlined,
-                        label: 'Passport',
-                        onTap: () => SafariNav.push(context, const SafariPassportScreen()),
-                      ),
-                    ),
-                  ]),
-                  if (goals.isNotEmpty) ...[
-                    const SafariSectionTitle('Goals'),
-                    SafariCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: goals
-                            .map((g) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: Row(children: [
-                                    const Icon(Icons.flag_outlined, size: 16, color: SafariTheme.gold),
-                                    const SizedBox(width: 8),
-                                    Expanded(child: Text('$g')),
-                                  ]),
-                                ))
-                            .toList(),
-                      ),
-                    ),
-                  ],
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8, top: 8),
-                    child: Row(
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            'Recent commissions',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: SafariTheme.black),
-                          ),
-                        ),
-                        if (commissions.isNotEmpty || transactions.isNotEmpty)
-                          TextButton(
-                            onPressed: () => SafariNav.push(
-                              context,
-                              const SafariTransactionsScreen(ledgerType: 'COMMISSION'),
-                            ),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              foregroundColor: SafariTheme.maroon,
-                              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                            ),
-                            child: const Text('More'),
-                          ),
-                      ],
-                    ),
                   ),
-                    if (commissions.isEmpty && transactions.isEmpty)
+                  SafariSectionTitle('Recent activity', action: 'More', onAction: () => SafariNav.push(context, const SafariTransactionsScreen(ledgerType: 'COMMISSION'))),
+                  if (activity.isEmpty)
                     const SafariEmpty('No commissions yet.', icon: Icons.receipt_long_outlined)
-                  else if (commissions.isNotEmpty)
-                    ...commissions.take(8).map((raw) {
+                  else
+                    ...activity.take(5).map((raw) {
                       final row = _map(raw);
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
@@ -476,80 +186,15 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                           child: Row(children: [
                             const Icon(Icons.payments_outlined, color: SafariTheme.gold),
                             const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                const Text('Commission', style: TextStyle(fontWeight: FontWeight.w800)),
-                                Text(safariDate(row['created_at'] ?? row['available_at']), style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
-                              ]),
-                            ),
-                            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                              SafariCountUp(row['amount'], moneyFormat: true, style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon, fontSize: 16)),
-                              const SizedBox(height: 4),
-                              SafariStatusChip('${row['status']}', tone: statusTone(row['status']?.toString())),
-                            ]),
+                            Expanded(child: Text(ledgerTypeLabel(row['ledger_type'] ?? 'COMMISSION'), style: const TextStyle(fontWeight: FontWeight.w800))),
+                            SafariCountUp(row['amount'], moneyFormat: true, prefix: '+', style: const TextStyle(fontWeight: FontWeight.w800, color: SafariTheme.maroon)),
                           ]),
-                        ),
-                      );
-                    })
-                  else
-                    ...transactions.take(8).map((raw) {
-                      final row = Map<String, dynamic>.from(raw as Map);
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: SafariLedgerCard(
-                          row: row,
-                          onTap: () => SafariNav.push(context, SafariLedgerDetailScreen(id: row['id'])),
                         ),
                       );
                     }),
                 ],
               ),
             ),
-    );
-  }
-
-  Widget _miniStat(String label, dynamic value, {String? sub, Color? valueColor, bool moneyFormat = false, String suffix = ''}) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: const TextStyle(color: SafariTheme.muted, fontSize: 12, fontWeight: FontWeight.w600)),
-      const SizedBox(height: 6),
-      SafariCountUp(
-        value,
-        moneyFormat: moneyFormat,
-        suffix: suffix,
-        style: TextStyle(fontWeight: FontWeight.w800, color: valueColor ?? SafariTheme.maroon, fontSize: 16),
-      ),
-      if (sub != null && sub.isNotEmpty) ...[
-        const SizedBox(height: 4),
-        Text(sub, style: const TextStyle(color: SafariTheme.muted, fontSize: 11)),
-      ],
-    ]);
-  }
-
-  Widget _breakdownRow(String label, dynamic value, {bool bold = false, bool danger = false, bool moneyFormat = false, String prefix = ''}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
-                fontSize: bold ? 14 : 13,
-              ),
-            ),
-          ),
-          SafariCountUp(
-            value,
-            moneyFormat: moneyFormat,
-            prefix: prefix,
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: danger ? const Color(0xFFB3261E) : SafariTheme.black,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/forgot_password_screen.dart';
+import 'package:wicom/safari/screens/otp_screen.dart';
 import 'package:wicom/safari/screens/register_start_screen.dart';
 
 class SafariLoginScreen extends StatefulWidget {
@@ -24,6 +25,35 @@ class _SafariLoginScreenState extends State<SafariLoginScreen> {
     phone.dispose();
     password.dispose();
     super.dispose();
+  }
+
+  Future<void> _otp() async {
+    if (phone.text.trim().isEmpty) {
+      await safariError(context, 'Enter your mobile number first');
+      return;
+    }
+    setState(() => loading = true);
+    try {
+      final json = await SafariApi.post('/auth/otp/request', {
+        'phone': phone.text.trim(),
+        'purpose': 'login',
+      });
+      final data = Map<String, dynamic>.from(SafariApi.data(json) as Map);
+      if (!mounted) return;
+      await SafariNav.push(
+        context,
+        SafariOtpScreen(
+          phone: phone.text.trim(),
+          purpose: 'login',
+          debugCode: data['debug_code']?.toString(),
+          sentTo: (data['sent_to'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+        ),
+      );
+    } catch (e) {
+      await safariError(context, e);
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
   }
 
   Future<void> _login() async {
@@ -58,7 +88,7 @@ class _SafariLoginScreenState extends State<SafariLoginScreen> {
             const SizedBox(height: 36),
             Text('Sign in', style: Theme.of(context).textTheme.displaySmall),
             const SizedBox(height: 8),
-            const Text('Use your phone number and password.', style: TextStyle(color: SafariTheme.muted)),
+            const Text('Sign in with your phone and password, or request a one-time code.', style: TextStyle(color: SafariTheme.muted)),
             const SizedBox(height: 24),
             TextField(
               controller: phone,
@@ -76,6 +106,8 @@ class _SafariLoginScreenState extends State<SafariLoginScreen> {
               ),
             ),
             SafariLoadingButton(label: 'Sign in', loading: loading, onPressed: _login),
+            const SizedBox(height: 8),
+            OutlinedButton(onPressed: loading ? null : _otp, child: const Text('Sign in with OTP')),
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => SafariNav.push(context, const SafariRegisterStartScreen()),

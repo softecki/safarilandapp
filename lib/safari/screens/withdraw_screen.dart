@@ -4,6 +4,7 @@ import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/points_withdraw_screen.dart';
+import 'package:wicom/safari/screens/withdrawal_status_screen.dart';
 
 class SafariWithdrawScreen extends StatefulWidget {
   const SafariWithdrawScreen({
@@ -11,10 +12,12 @@ class SafariWithdrawScreen extends StatefulWidget {
     required this.available,
     this.banks = const [],
     this.mnos = const [],
+    this.commissionMode = false,
   });
   final dynamic available;
   final List banks;
   final List mnos;
+  final bool commissionMode;
 
   @override
   State<SafariWithdrawScreen> createState() => _SafariWithdrawScreenState();
@@ -76,6 +79,24 @@ class _SafariWithdrawScreenState extends State<SafariWithdrawScreen> {
     }
     setState(() => loading = true);
     try {
+      if (widget.commissionMode) {
+        final method = payout == 'BANK'
+            ? 'BANK'
+            : switch (mno) {
+                'Tigo Pesa' => 'TIGOPESA',
+                'Airtel Money' => 'AIRTEL',
+                _ => 'MPESA',
+              };
+        final json = await SafariApi.post('/wallet/withdrawals', {
+          'amount': typed,
+          'payout_method': method,
+          'payout_account': payout == 'BANK' ? account.text.trim() : mobile.text.trim(),
+        });
+        final row = Map<String, dynamic>.from(SafariApi.data(json) as Map);
+        if (!mounted) return;
+        await SafariNav.replace(context, SafariWithdrawalStatusScreen(id: row['id'], initial: row));
+        return;
+      }
       final json = await SafariApi.post('/points/withdrawals', {
         'amount': typed,
         'payout_type': payout,
@@ -102,7 +123,7 @@ class _SafariWithdrawScreenState extends State<SafariWithdrawScreen> {
   Widget build(BuildContext context) {
     final over = typed > availableN;
     return Scaffold(
-      appBar: AppBar(title: const Text('Withdrawal')),
+      appBar: AppBar(title: Text(widget.commissionMode ? 'Commission withdrawal' : 'Points withdrawal')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [

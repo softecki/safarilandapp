@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
+import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/home_screen.dart';
+import 'package:wicom/safari/screens/notifications_screen.dart';
 import 'package:wicom/safari/screens/profile_screen.dart';
 import 'package:wicom/safari/screens/qr_screen.dart';
 import 'package:wicom/safari/screens/trips_screen.dart';
@@ -15,6 +18,31 @@ class SafariShell extends StatefulWidget {
 
 class _SafariShellState extends State<SafariShell> {
   int index = 0;
+  int unread = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    index = SafariTabs.index.value;
+    SafariTabs.index.addListener(_onTab);
+  }
+
+  @override
+  void dispose() {
+    SafariTabs.index.removeListener(_onTab);
+    super.dispose();
+  }
+
+  void _onTab() {
+    if (!mounted) return;
+    final next = SafariTabs.index.value;
+    if (next != index) setState(() => index = next);
+  }
+
+  void _go(int i) {
+    SafariTabs.go(i);
+    setState(() => index = i);
+  }
 
   static const _pages = [
     SafariHomeScreen(),
@@ -26,42 +54,41 @@ class _SafariShellState extends State<SafariShell> {
 
   @override
   Widget build(BuildContext context) {
-    final inset = MediaQuery.paddingOf(context).bottom;
-    final qrSelected = index == 2;
+    final qrOn = index == SafariTabs.qr;
     return Scaffold(
-      extendBody: true,
-      body: IndexedStack(index: index, children: _pages),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      body: Column(
+        children: [
+          SafariStickyHeader(
+            unread: unread,
+            onNotify: () => SafariNav.push(context, const SafariNotificationsScreen()),
+          ),
+          Expanded(child: IndexedStack(index: index, children: _pages)),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'safari-qr-fab',
-        onPressed: () => setState(() => index = 2),
-        backgroundColor: qrSelected ? SafariTheme.maroon : SafariTheme.maroonDark,
-        foregroundColor: Colors.white,
-        elevation: 8,
-        highlightElevation: 12,
-        shape: const CircleBorder(
-          side: BorderSide(color: SafariTheme.gold, width: 3),
-        ),
-        child: const Icon(Icons.qr_code_2_rounded, size: 30),
+        onPressed: () => _go(SafariTabs.qr),
+        backgroundColor: qrOn ? SafariTheme.gold : SafariTheme.maroon,
+        foregroundColor: qrOn ? SafariTheme.maroonDark : Colors.white,
+        child: const Icon(Icons.qr_code_2, size: 28),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
-        color: SafariTheme.cream,
-        surfaceTintColor: Colors.transparent,
+        color: Colors.white,
         elevation: 10,
-        shadowColor: Colors.black26,
-        padding: EdgeInsets.zero,
-        height: 56 + inset,
+        shadowColor: SafariTheme.maroon.withValues(alpha: 0.16),
         shape: const CircularNotchedRectangle(),
         notchMargin: 8,
-        child: Padding(
-          padding: EdgeInsets.only(bottom: inset),
+        padding: EdgeInsets.zero,
+        child: SizedBox(
+          height: 64,
           child: Row(
             children: [
-              _nav(0, Icons.home_rounded, 'Home'),
-              _nav(1, Icons.groups_rounded, 'Trips'),
+              _navItem(SafariTabs.home, Icons.home_outlined, Icons.home_rounded, 'Home'),
+              _navItem(SafariTabs.trips, Icons.groups_outlined, Icons.groups_rounded, 'Trips'),
               const SizedBox(width: 72),
-              _nav(3, Icons.account_balance_wallet_rounded, 'Wallet'),
-              _nav(4, Icons.person_rounded, 'Me'),
+              _navItem(SafariTabs.wallet, Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, 'Wallet'),
+              _navItem(SafariTabs.profile, Icons.person_outline, Icons.person_rounded, 'Profile'),
             ],
           ),
         ),
@@ -69,15 +96,15 @@ class _SafariShellState extends State<SafariShell> {
     );
   }
 
-  Widget _nav(int i, IconData icon, String label) {
+  Widget _navItem(int i, IconData icon, IconData active, String label) {
     final on = index == i;
     return Expanded(
       child: InkWell(
-        onTap: () => setState(() => index = i),
+        onTap: () => _go(i),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: on ? SafariTheme.maroon : SafariTheme.muted, size: 22),
+            Icon(on ? active : icon, color: on ? SafariTheme.maroon : SafariTheme.muted),
             const SizedBox(height: 2),
             Text(
               label,

@@ -47,15 +47,24 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
     return '${SafariApi.guestBase()}/g/${a['public_code']}';
   }
 
+  bool _permanent(Map a) => a['is_permanent'] == true || a['is_permanent'] == 1;
+  bool _disabled(Map a) => '${a['status']}'.toUpperCase() == 'DISABLED';
+
   Future<void> _add() async {
     const sources = ['VEHICLE', 'WHATSAPP', 'MOBILE', 'BUSINESS_CARD', 'HOTEL', 'FLYER', 'OTHER'];
-    final source = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: SafariTheme.cream,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => ListView(
-        children: sources.map((s) => ListTile(title: Text(s.replaceAll('_', ' ')), onTap: () => Navigator.pop(ctx, s))).toList(),
-      ),
+    final source = await safariSheet<String>(
+      context,
+      Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('New referral QR', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 8),
+        const Text('Create a source-specific code. The permanent profile QR stays active.', style: TextStyle(color: SafariTheme.muted)),
+        const SizedBox(height: 12),
+        ...sources.map((s) => ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(s.replaceAll('_', ' ')),
+              onTap: () => Navigator.pop(context, s),
+            )),
+      ]),
     );
     if (source == null) return;
     try {
@@ -66,15 +75,34 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
     }
   }
 
+  Future<void> _disable(Map a) async {
+    final ok = await safariSheet<bool>(
+      context,
+      Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Disable this QR?', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 8),
+        const Text('Guests will no longer be able to open a shopping pass from this code. Your permanent QR stays active.', style: TextStyle(color: SafariTheme.muted)),
+        const SizedBox(height: 16),
+        ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Disable QR')),
+      ]),
+    );
+    if (ok != true) return;
+    try {
+      await SafariApi.post('/referral-assets/${a['id']}/disable');
+      await _load();
+    } catch (e) {
+      await safariError(context, e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final permanent = assets.cast<dynamic>().whereType<Map>().cast<Map>().where(_permanent).toList();
+    final others = assets.cast<dynamic>().whereType<Map>().cast<Map>().where((a) => !_permanent(a)).toList();
+    final hero = permanent.isNotEmpty ? permanent.first : (others.isNotEmpty ? others.first : null);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My QR'),
-        actions: [
-          IconButton(onPressed: _add, icon: const Icon(Icons.add_rounded)),
-        ],
-      ),
+      appBar: Navigator.canPop(context) ? AppBar(title: const Text('My QR')) : null,
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
@@ -83,57 +111,86 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
                 setState(() => loading = true);
                 await _load();
               },
-              child: assets.isEmpty
-                  ? ListView(children: const [SafariEmpty('Create a QR so guests can open a shopping pass.', icon: Icons.qr_code_2)])
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
-                      itemCount: assets.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (_, i) {
-                        final a = assets[i] as Map;
-                        final url = _url(a);
-                        final permanent = a['is_permanent'] == true || a['is_permanent'] == 1;
-                        return SafariCard(
-                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Row(children: [
-                              Expanded(
-                                child: Text(
-                                  permanent ? 'Permanent profile QR' : '${a['label'] ?? a['source_type']}',
-                                  style: const TextStyle(fontWeight: FontWeight.w800),
-                                ),
-                              ),
-                              SafariStatusChip(
-                                permanent ? 'PERMANENT' : '${a['source_type']}',
-                                tone: SafariChipTone.gold,
-                              ),
-                            ]),
-                            const SizedBox(height: 12),
-                            Center(
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-                                child: QrImageView(
-                                  data: url,
-                                  size: permanent ? 280 : 168,
-                                  backgroundColor: Colors.white,
-                                  errorCorrectionLevel: QrErrorCorrectLevel.H,
-                                  embeddedImage: permanent ? const AssetImage(SafariBrand.logoAsset) : null,
-                                  embeddedImageStyle: permanent
-                                      ? const QrEmbeddedImageStyle(size: Size(88, 88))
-                                      : null,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(url, style: const TextStyle(fontSize: 12, color: SafariTheme.muted)),
-                            Row(children: [
-                              TextButton(onPressed: () => Clipboard.setData(ClipboardData(text: url)), child: const Text('Copy')),
-                              TextButton(onPressed: () => Share.share(url), child: const Text('Share')),
-                            ]),
-                          ]),
-                        );
-                      },
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(18, 16, 18, 96),
+                children: [
+                  Row(children: [
+                    Expanded(child: Text('My QR', style: Theme.of(context).textTheme.headlineMedium)),
+                    TextButton(onPressed: _add, child: const Text('Add source')),
+                  ]),
+                  const SizedBox(height: 8),
+                  if (hero == null)
+                    const SafariEmpty('Create a QR so guests can open a shopping pass.', icon: Icons.qr_code_2)
+                  else
+                    SafariCard(
+                      child: Column(children: [
+                        const Text('Permanent profile QR', style: TextStyle(fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 4),
+                        const Text('Share this with every guest. It never expires.', style: TextStyle(color: SafariTheme.muted, fontSize: 12)),
+                        const SizedBox(height: 14),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: SafariTheme.cardBorder)),
+                          child: QrImageView(
+                            data: _url(hero),
+                            size: 240,
+                            backgroundColor: Colors.white,
+                            errorCorrectionLevel: QrErrorCorrectLevel.H,
+                            embeddedImage: const AssetImage(SafariBrand.logoAsset),
+                            embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(72, 72)),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(_url(hero), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, color: SafariTheme.muted)),
+                        const SizedBox(height: 8),
+                        Row(children: [
+                          Expanded(child: SafariStatBox(value: qtyFmt(hero['scans']), label: 'Scans')),
+                          const SizedBox(width: 8),
+                          Expanded(child: SafariStatBox(value: qtyFmt(hero['pass_conversions']), label: 'Passes')),
+                        ]),
+                        const SizedBox(height: 8),
+                        Row(children: [
+                          TextButton(onPressed: () => Clipboard.setData(ClipboardData(text: _url(hero))), child: const Text('Copy')),
+                          TextButton(onPressed: () => Share.share(_url(hero)), child: const Text('Share')),
+                        ]),
+                      ]),
                     ),
+                  if (others.isNotEmpty) const SafariSectionTitle('Source QR codes'),
+                  ...others.map((a) {
+                    final url = _url(a);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: SafariCard(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Row(children: [
+                            Expanded(child: Text('${a['label'] ?? a['source_type']}', style: const TextStyle(fontWeight: FontWeight.w800))),
+                            SafariStatusChip(_disabled(a) ? 'DISABLED' : '${a['source_type']}', tone: _disabled(a) ? SafariChipTone.danger : SafariChipTone.gold),
+                          ]),
+                          const SizedBox(height: 10),
+                          Center(
+                            child: Opacity(
+                              opacity: _disabled(a) ? 0.35 : 1,
+                              child: QrImageView(data: url, size: 140, backgroundColor: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(children: [
+                            Expanded(child: SafariStatBox(value: qtyFmt(a['scans']), label: 'Scans')),
+                            const SizedBox(width: 8),
+                            Expanded(child: SafariStatBox(value: qtyFmt(a['pass_conversions']), label: 'Passes')),
+                          ]),
+                          Row(children: [
+                            TextButton(onPressed: () => Clipboard.setData(ClipboardData(text: url)), child: const Text('Copy')),
+                            TextButton(onPressed: () => Share.share(url), child: const Text('Share')),
+                            if (!_disabled(a))
+                              TextButton(onPressed: () => _disable(a), child: const Text('Disable')),
+                          ]),
+                        ]),
+                      ),
+                    );
+                  }),
+                ],
+              ),
             ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:wicom/safari/safari_api.dart';
 import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
+import 'package:wicom/safari/safari_gate.dart';
 import 'package:wicom/safari/screens/register_screen.dart';
 import 'package:wicom/safari/screens/reset_password_screen.dart';
 
@@ -56,6 +57,12 @@ class _SafariOtpScreenState extends State<SafariOtpScreen> {
       });
       final data = SafariApi.data(json) as Map<String, dynamic>;
       if (!mounted) return;
+      if (widget.purpose == 'login') {
+        await SafariApi.saveAuth(data['token'].toString(), Map<String, dynamic>.from(data['driver'] as Map));
+        if (!mounted) return;
+        SafariNav.reset(context, SafariGate.home());
+        return;
+      }
       if (widget.purpose == 'reset') {
         await SafariNav.replace(context, SafariResetPasswordScreen(resetToken: data['reset_token'].toString()));
         return;

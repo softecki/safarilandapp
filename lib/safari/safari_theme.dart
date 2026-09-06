@@ -10,6 +10,14 @@ class SafariTheme {
   static const canvas = Color(0xFFF6F0E8);
   static const muted = Color(0xFF7A7066);
   static const cream = Color(0xFFFFFBF6);
+  static const cardBorder = Color(0xFFEEE5D6);
+  static const statFill = Color(0xFFFAF5F0);
+  static const altFill = Color(0xFFF0E8DC);
+  static const pillFill = Color(0xFFF5E8EA);
+  static const iconFill = Color(0xFFF3EBED);
+  static const shellPadding = 18.0;
+  static const cardRadius = 20.0;
+  static const cardGap = 14.0;
 
   static const green = maroon;
   static const greenDark = maroonDark;
@@ -69,7 +77,7 @@ class SafariTheme {
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(54),
           elevation: 0,
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
           textStyle: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.4, fontSize: 15),
         ),
       ),
@@ -78,7 +86,7 @@ class SafariTheme {
           foregroundColor: maroon,
           side: const BorderSide(color: gold, width: 1.2),
           minimumSize: const Size.fromHeight(50),
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -96,7 +104,7 @@ class SafariTheme {
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         selectedItemColor: maroon,
         unselectedItemColor: muted,
-        backgroundColor: cream,
+        backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),

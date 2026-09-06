@@ -35,33 +35,51 @@ class _SafariPassportScreenState extends State<SafariPassportScreen> {
   @override
   Widget build(BuildContext context) {
     final d = data?['driver'] as Map? ?? {};
-    final goals = (data?['goals'] as List?) ?? (d['goals'] as List?) ?? [];
+    final goals = safariCsv(data?['goals'] ?? d['goals']);
+    final languages = safariCsv(d['languages']);
+    final destinations = safariCsv(d['destinations']);
+    final stories = (data?['stories'] as List?) ?? [];
     return Scaffold(
       appBar: AppBar(title: const Text('Guide Passport')),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
               children: [
-                SafariHero(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('${d['name'] ?? ''}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 6),
-                    Text('${d['member_no'] ?? ''} · ${data?['verified_rating'] ?? '—'} / 5', style: const TextStyle(color: SafariTheme.goldSoft)),
-                    Text('${data?['verified_review_count'] ?? 0} verified reviews', style: const TextStyle(color: Colors.white70)),
+                SafariCard(
+                  child: Column(children: [
+                    CircleAvatar(
+                      radius: 36,
+                      backgroundColor: SafariTheme.pillFill,
+                      child: Text(safariInitials(d['name']), style: const TextStyle(color: SafariTheme.maroon, fontWeight: FontWeight.w800, fontSize: 22)),
+                    ),
+                    const SizedBox(height: 10),
+                    Text('${d['name'] ?? ''}', style: Theme.of(context).textTheme.headlineSmall),
+                    Text('${d['member_no'] ?? ''} · ${data?['verified_rating'] ?? '—'} / 5', style: const TextStyle(color: SafariTheme.gold, fontWeight: FontWeight.w700)),
+                    Text('${data?['verified_review_count'] ?? 0} verified reviews', style: const TextStyle(color: SafariTheme.muted)),
+                    if (languages.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Wrap(spacing: 6, children: languages.map((l) => SafariStatusChip(l, tone: SafariChipTone.gold)).toList()),
+                    ],
                   ]),
                 ),
                 if (goals.isNotEmpty) ...[
-                  const SafariSectionTitle('Goals'),
-                  SafariCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: goals.map((g) => Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Text('• $g'),
-                      )).toList(),
-                    ),
-                  ),
+                  const SizedBox(height: 12),
+                  SafariDreamCard(title: goals.first, body: goals.length > 1 ? goals.skip(1).join(' · ') : 'The next chapter guests can celebrate with you.'),
+                ],
+                if (destinations.isNotEmpty) ...[
+                  const SafariSectionTitle('Destinations'),
+                  SafariCard(child: Text(destinations.join(' · '))),
+                ],
+                if (stories.isNotEmpty) ...[
+                  const SafariSectionTitle('Public stories'),
+                  ...stories.take(4).map((raw) {
+                    final story = Map<String, dynamic>.from(raw as Map);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: SafariCard(child: Text(story['title']?.toString() ?? 'Story', style: const TextStyle(fontWeight: FontWeight.w700))),
+                    );
+                  }),
                 ],
                 const SizedBox(height: 12),
                 if (d['public_url'] != null)

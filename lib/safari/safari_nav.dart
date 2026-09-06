@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_theme.dart';
 
+class SafariTabs {
+  static const home = 0;
+  static const trips = 1;
+  static const qr = 2;
+  static const wallet = 3;
+  static const profile = 4;
+  static final ValueNotifier<int> index = ValueNotifier(0);
+
+  static void go(int i) => index.value = i;
+}
+
 class SafariNav {
   static Route<T> slide<T>(Widget page) {
     return PageRouteBuilder<T>(

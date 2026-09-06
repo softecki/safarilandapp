@@ -1,0 +1,756 @@
+SAFARI LAND
+DRIVER-GUIDE PARTNER PLATFORM
+MVP FUNCTIONAL & TECHNICAL SPECIFICATION
+Developer-Ready Product Requirements, Workflows, Data Model, Integration Rules and Acceptance Criteria
+Document Code
+SL-DGP-MVP-FSD-001
+Version
+1.0
+Date
+19 August 2026
+Status
+Implementation Baseline
+Classification
+Product / Technical Specification
+Purpose
+This document defines the minimum viable product implementation baseline for the Safari Land Driver-Guide Partner Platform. It is written for product, UI/UX, mobile, web, backend, POS/integration, AI, QA, security, finance and operations teams.
+Document Control
+Field
+Definition
+Product
+Safari Land Driver-Guide Partner Platform
+Primary channel
+Driver-guide mobile application
+Guest channel
+Responsive mobile web / PWA
+Staff channel
+Safari Land staff / POS web interface
+Administrative channel
+Safari Land administration and finance portal
+MVP objective
+Digitally identify driver referrals, create guest value before/during/after safari, attribute purchases, manage commissions, capture memories and farewell, collect verified feedback, support optional gratuity, and establish a shareable professional guide identity.
+Technical posture
+API-first, vendor-neutral, multilingual, auditable, privacy-aware and integration-ready.
+Table of Contents
+1. Executive Summary
+2. Product Scope and Principles
+3. Actors, Roles and Permissions
+4. Solution Architecture
+5. Driver Identity, Registration and Verification
+6. QR, Referral Assets and Attribution
+7. Tourist Experience and Shopping Pass
+8. Trip, Group and Guest Management
+9. Safari Stories and Memory Book
+10. Safari Farewell, Reviews and Appreciation
+11. Multilingual and AI Content Services
+12. Guide Passport, Public Profile and Guide Directory
+13. Commerce, Commission, Wallet and Withdrawal
+14. Staff, Admin, Finance and Content Operations
+15. Data Model, APIs, Integrations and Notifications
+16. Security, Privacy, Audit and Non-Functional Requirements
+17. MVP Acceptance, QA and Implementation Appendices
+1. Executive Summary
+Safari Land Driver-Guide Partner Platform converts the traditional paper sales coupon into a broader digital relationship and commerce platform. A verified driver-guide receives a permanent Safari Land identity and trackable referral assets. Guests can verify the guide, access multilingual safari stories and memories, receive a shopping pass and benefit, participate in a trip-specific farewell, submit verified feedback, optionally provide gratuity, preserve the relationship after travel, and share the guide profile or stories. Safari Land can attribute visits and purchases to the correct guide, calculate commission, manage payouts, and build a trusted directory of professional Tanzania guides.
+MVP commercial loopVerified Driver → Referral Asset → Guest → Shopping Pass → Verified Visit → POS Sale → Commission → Wallet → Withdrawal.
+MVP relationship loopTrip → Guide Stories → Personal Farewell → Guest Response → Verified Review → Optional Appreciation → Saved Memory → Shareable Guide Reputation.
+Figure 1. Safari Land MVP ecosystem and primary application surfaces.
+1.1 MVP Success Conditions
+Every qualifying guest can be attributed to a verified driver and referral source.
+Every qualifying POS sale can resolve the guest, driver, discount rule and commission rule.
+The guide can create trip stories and farewell content without professional writing skills.
+Guests can consume content and respond in a preferred supported language.
+Reviews are tied to verified trips and cannot be selectively suppressed by the guide.
+Gratuity is optional, separated from commission, and available only within configured rules.
+The guide has a shareable professional profile based on verified and clearly marked self-declared data.
+Administrative users have complete auditability over identity, referrals, sales, commissions, withdrawals, content and moderation.
+2. Product Scope and Principles
+2.1 MVP Functional Domains
+Domain
+MVP Capability
+Identity
+Driver registration, OTP login, verification, permanent member ID, profile and status.
+Referral
+Permanent and channel-specific QR/link assets, scan/click tracking and attribution.
+Guest commerce
+Driver profile landing, guest registration, shopping pass, discount entitlement and POS verification.
+Trips
+Group creation, guests, arrival notification, trip state and trip-specific QR/session.
+Memories
+Voice/text capture, photo attachment, AI-assisted story cleanup, approval and multilingual presentation.
+Farewell
+Private message preparation, activation, guest replies, reviews, testimonial consent and save-for-later.
+Appreciation
+Optional digital gratuity intent/payment integration, personal gratitude option and separate ledger.
+Professional identity
+Guide Passport, verified reviews, public stories, shareable profile, goals and basic directory listing.
+Commerce
+Commission engine, wallet, withdrawal request, finance processing and transaction history.
+Administration
+Driver, referral, trip, sale, commission, payment, content, moderation, analytics and audit controls.
+2.2 Product Principles
+One driver identity; many trackable referral assets.
+One guest pass per referral context; no sensitive data embedded directly in QR codes.
+The backend is the authoritative source for identity, attribution, money and status.
+The guide gives value before asking the guest for feedback or optional appreciation.
+AI assists expression and translation but does not invent memories, wildlife facts, credentials or guest statements.
+Original content is preserved; cleaned and translated variants are versioned.
+Guest-facing journeys must not require installation of a mobile application.
+Private trip content and public professional content are distinct visibility classes.
+Verified facts and self-declared facts must be visibly distinguishable.
+Financial ledgers for sales commission and gratuity remain separate.
+3. Actors, Roles and Permissions
+Role
+Primary permissions
+Driver-Guide
+Manage own profile; create referral assets; create trips/groups/guests; capture stories; prepare/activate farewell; view own reviews, earnings and wallet; request withdrawal; share public profile.
+Tourist / Guest
+View guide profile; create pass; access trip memories; choose language; reply to farewell; review; grant testimonial permission; optionally provide gratuity; save/share approved content.
+Reception / Sales Staff
+Search/scan guest passes; verify visit; view active discount/referral; record arrival; resolve exceptions within assigned permissions.
+Cashier / POS
+Validate shopping pass; attach sale; apply configured discount; finalize transaction; trigger commission event.
+Operations Admin
+Verify/suspend drivers; manage trip/referral exceptions; manage discount/commission configurations within authority.
+Finance Admin
+Approve/reverse commission; process withdrawals; reconcile payout references; review gratuity/payment states.
+Content / Trust Admin
+Moderate public stories/testimonials; manage reported content; protect sensitive wildlife/location data.
+System Admin
+Roles, configuration, integrations, security controls, audit access and system-level settings.
+4. Solution Architecture
+Figure 2. Logical integration architecture and service boundaries.
+4.1 Application Surfaces
+Surface
+Technology expectation
+Authentication
+Driver App
+iOS/Android mobile application or cross-platform equivalent; offline-tolerant capture queue for drafts.
+Phone + OTP; session/token security; optional biometric re-entry.
+Tourist Web / PWA
+Responsive browser experience launched by QR/link; no mandatory app installation.
+Anonymous session initially; lightweight guest identity when pass/farewell is saved.
+Staff/POS Portal
+Tablet/desktop responsive interface or POS embedded component.
+Staff SSO/account with role-based permissions.
+Admin Portal
+Desktop-first web application.
+Strong authenticated admin session; MFA for privileged roles.
+Backend/API
+Central API and service layer.
+OAuth/JWT or equivalent signed token model; service-to-service credentials.
+AI Service Layer
+Speech-to-text, cleanup, translation and safety/quality checks.
+Server-side only; no provider keys in client apps.
+4.2 Authoritative Systems
+Driver identity and status: Safari Land backend.
+Referral attribution: Safari Land referral service.
+Trip state and guest relationship: Safari Land trip service.
+Sale amount and transaction finality: POS/ERP or designated sales system.
+Commission status and wallet: Safari Land commerce ledger.
+Withdrawal/payout status: Safari Land finance ledger plus payment provider/reference.
+Public content status: Safari Land content/trust service.
+5. Driver Identity, Registration and Verification
+FR-DRV-001 — Driver registration
+The platform shall allow a prospective driver-guide to create an account using mobile number and OTP and submit a verification profile.
+Acceptance criteria:
+Required fields include full name, mobile number, WhatsApp number, profile photo and acceptance of terms.
+Email, current company, guide licence/reference, languages and payment information may be collected as configured.
+New registrations remain Pending until approved by authorized Safari Land staff.
+FR-DRV-002 — Permanent Safari Land Driver ID
+Upon approval the backend shall issue a non-reusable permanent identifier such as SL-DG-002851. The identifier remains stable when company, vehicle or contact details change.
+FR-DRV-003 — Driver account states
+Supported states shall include Pending, Active, Suspended, Rejected and Deactivated. Suspended/deactivated accounts shall not create new qualifying referrals or withdrawals.
+FR-DRV-004 — Driver profile
+The driver shall maintain permitted profile fields while protected fields such as member ID, verification state, commission configuration and system audit fields remain administrator-controlled.
+Figure 3. Parent driver identity with multiple referral assets and one attribution destination.
+6. QR, Referral Assets and Attribution
+FR-QR-001 — Permanent profile QR
+Each active driver shall receive a permanent QR that resolves to a secure Safari Land referral URL/token and opens the driver public/guest landing experience.
+FR-QR-002 — Channel-specific referral assets
+A driver may create or receive multiple child referral assets tagged by source such as Mobile, Vehicle, WhatsApp, Website, LinkedIn/Social, Business Card, Hotel/Flyer or Other. Each asset shall have a unique referral_asset_id and opaque token.
+FR-QR-003 — Unlimited copies
+Multiple printed or digital copies of the same referral asset shall resolve to the same asset ID. Separate assets are required only when separate performance tracking is required.
+FR-QR-004 — Referral event
+Each scan or click shall create a referral event/session containing driver ID, referral asset ID, source, timestamp, session identifier, device/browser metadata permitted by privacy policy and subsequent conversion state.
+FR-QR-005 — Attribution rule engine
+The backend shall apply configurable attribution validity and conflict rules. Overrides shall require authorized staff and an audit reason.
+FR-QR-006 — QR security
+QR codes shall not expose driver phone numbers, payment details, internal database keys or guest personal data. Tokens shall be opaque, revocable where applicable and validated server-side.
+Figure 4. End-to-end tourist referral, sale attribution and commission flow.
+6.1 Referral Analytics
+Metric
+Definition
+Scans / clicks
+Total valid referral asset opens.
+Pass conversion
+Referral sessions that create a Shopping Pass.
+Visit conversion
+Passes verified as Arrived.
+Purchase conversion
+Verified visits with qualifying sale.
+Revenue by source
+Qualifying sales grouped by referral asset/source.
+Commission by source
+Commission generated from each source while always credited to the parent driver.
+7. Tourist Experience and Shopping Pass
+FR-GST-001 — Guide verification landing
+A guest opening a driver referral shall see driver name, photo, verified Safari Land status, member ID or public member reference, applicable guest benefit and actions to obtain a Shopping Pass or explore Safari Land.
+FR-GST-002 — Guest registration
+The pass flow shall minimize friction. First name is mandatory; nationality/country is strongly structured; additional contact fields are configurable and consent-based.
+FR-GST-003 — Individual Shopping Pass
+The system shall issue a unique pass ID and QR linked to the guest, driver, referral asset/session, discount entitlement, creation time, expiry and status.
+FR-GST-004 — Driver-created pass
+The driver may create a pass for a guest who cannot or does not scan, using the same backend attribution rules.
+FR-GST-005 — Pass retrieval
+Guests shall be able to keep the pass via screenshot, saved web link or configured messaging/email delivery without mandatory app installation.
+FR-GST-006 — Staff verification
+Staff shall locate a pass by QR scan, pass code, guest name or driver and mark arrival subject to permissions.
+FR-GST-007 — Safari Land discovery
+The guest landing experience shall expose configurable Safari Land categories, selected products/offers, store information and guest benefit. Full e-commerce checkout is outside the MVP baseline.
+7.1 Shopping Pass States
+State
+Meaning
+CREATED
+Valid pass issued.
+ARRIVED
+Guest visit verified.
+PURCHASED
+At least one qualifying sale linked.
+EXPIRED
+Validity elapsed without qualifying override.
+CANCELLED
+Pass invalidated by authorized rule/action.
+DISPUTED
+Attribution exception requires resolution.
+8. Trip, Group and Guest Management
+FR-TRP-001 — Create trip/group
+A driver shall create a trip/group with name/label, start/end dates, guest count, primary nationality/language where known, and optional itinerary context.
+FR-TRP-002 — Guest roster
+The driver may add named guests and family/group relationships using minimal data. Guest profiles inside a trip are private by default.
+FR-TRP-003 — Arrival notification
+The driver shall notify Safari Land of an expected visit using guest count and ETA. Staff shall see incoming groups in an operations queue.
+FR-TRP-004 — Trip state
+The trip shall use controlled states: Upcoming, On Safari, Farewell Preparation, Farewell Ready, Appreciation Open, Completed and Archived.
+FR-TRP-005 — Trip QR/session
+A trip may have a trip-specific QR/link. Its destination shall be context-aware based on trip state and guest authorization.
+Figure 5. Trip lifecycle and state-controlled Farewell activation.
+9. Safari Stories and Memory Book
+FR-MEM-001 — Capture Safari Story
+The driver shall create a Safari Story using voice or text and attach up to six photos in the MVP. A story is linked to a trip and optionally to a public guide portfolio.
+FR-MEM-002 — Voice capture
+Voice recordings shall be uploaded securely with progress/retry behavior. The original audio shall be preserved as the source artifact.
+FR-MEM-003 — AI professional cleanup
+AI shall transcribe and improve grammar, structure and readability while preserving the driver’s meaning and not inventing facts. The output shall remain Draft until guide approval.
+FR-MEM-004 — Story controls
+The guide may edit, regenerate, save draft, approve, publish or unpublish own content subject to moderation and retention rules.
+FR-MEM-005 — Memory Book
+A trip shall present approved stories and selected memories chronologically. Private trip memories and public portfolio stories shall be distinct visibility modes.
+FR-MEM-006 — Content limits
+MVP limits shall support a configurable maximum of 3 minutes of source audio, 6 photos and approximately 300–500 words of approved story output per story. Daily publishing limits shall be configurable.
+FR-MEM-007 — Sensitive location protection
+Public content shall not expose precise sensitive wildlife locations where prohibited by Safari Land policy; generalized destination labels shall be supported.
+Figure 6. AI-assisted Safari Story capture, approval and publication workflow.
+10. Safari Farewell, Reviews and Appreciation
+10.1 Farewell Preparation
+FR-FAR-001 — Private farewell workspace
+During an active trip, the guide shall privately capture memories and draft individual or group farewell messages. Guests shall not see draft content before activation.
+FR-FAR-002 — Personalized messages
+Farewell messages may be associated with a specific guest or the whole group and may include approved trip photos or memories.
+FR-FAR-003 — AI wording assistance
+AI may clean grammar, preserve humor and tone, shorten repetition and improve clarity. The guide remains the author and must approve the final message.
+FR-FAR-004 — Farewell readiness
+The app shall show completion status for planned individual/group messages and require final review before activation.
+FR-FAR-005 — Activate Safari Farewell
+Only the guide or authorized staff may activate Farewell for the trip. Activation changes the trip state and enables the guest-facing Farewell journey.
+Figure 7. Safari Farewell from private guide preparation to saved guest relationship.
+10.2 Guest Farewell Experience
+FR-FAR-006 — Guest identification
+A group Farewell may ask the guest to select or securely resolve their identity before revealing a personal message. One guest shall not gain unauthorized access to another guest’s private message.
+FR-FAR-007 — Guest response
+After viewing the guide message, the guest may write a reply, record a short voice message, add an allowed photo or choose Maybe Later.
+FR-FAR-008 — Experience review
+The guest may submit an overall guide rating and configured categories such as Knowledge, Professionalism, Hospitality, Communication and Safety & Care, plus whether they would travel with the guide again.
+FR-FAR-009 — Verified review
+A review linked to a valid trip shall be marked Verified Trip. The guide cannot delete or suppress unfavorable verified reviews. Moderation is controlled by Safari Land.
+FR-FAR-010 — Testimonial consent
+The system shall separately ask whether the guest permits a response/testimonial to appear publicly on the guide profile. Private messages remain private unless explicit permission is granted.
+FR-FAR-011 — Save for later
+The guest shall be able to preserve secure access to the Farewell and Memory Book for later viewing through a durable link/account mechanism consistent with privacy rules.
+10.3 Safari Appreciation / Gratuity
+FR-GRA-001 — Professional positioning
+Gratuity shall appear only after the guest has received the Farewell and completed or skipped response/review steps. The interface shall clearly state that gratuity is optional.
+FR-GRA-002 — Guest choices
+The guest shall be offered: Leave Digital Gratuity, I’ll Give It Personally, or Finish/No Thank You. Selecting personal gratitude shall not request or disclose an intended cash amount.
+FR-GRA-003 — Digital amount
+Digital gratuity shall support configured fixed suggestions plus Other Amount, subject to currency, provider and policy limits. Restaurant-style percentage prompts are not required.
+FR-GRA-004 — Gratuity window
+Digital gratuity availability shall be controlled by a configurable post-trip window. Farewell content may remain available after the gratuity window closes.
+FR-GRA-005 — Separate ledger
+Gratuity transactions shall be recorded separately from Safari Land sales commission and shall have independent payment, fee, refund/reversal and reconciliation states.
+FR-GRA-006 — Payment integration boundary
+The MVP shall expose a payment-provider integration interface. Where live payment integration is not enabled, the gratuity action shall be feature-flagged or limited to configured supported methods; the system shall never simulate a successful payment.
+Figure 8. Professional appreciation flow with optional gratuity as the final step.
+11. Multilingual and AI Content Services
+FR-AI-001 — Language selection
+Guest-facing profile, story, memory, farewell, review prompts and Safari Land discovery content shall support a language selector and persist guest language preference where consent/session permits.
+FR-AI-002 — Create once, deliver multilingual
+The guide may create source content in a supported language. The system shall produce approved cleaned source text and translated presentation variants for configured guest languages.
+FR-AI-003 — Original preservation
+The platform shall store original audio/text, detected/source language, transcription, cleaned approved version, translation variants, model/provider metadata and version/status separately.
+FR-AI-004 — Guest-to-guide translation
+Guest replies/reviews may be written or recorded in the guest language. The guide shall be able to view the original plus a translated version in the guide’s preferred language.
+FR-AI-005 — Human approval
+AI-generated guide stories and farewell messages shall not publish without guide approval. AI-polished guest testimonials shall not publish without guest approval/consent.
+FR-AI-006 — No factual invention
+AI prompts and validation shall explicitly prohibit fabrication of wildlife events, locations, credentials, guest statements, dates, distances, ratings or achievements.
+FR-AI-007 — Translation labeling
+Where translated audio is introduced later, it shall be clearly labeled as AI-translated. MVP may provide original guide audio with translated text.
+Figure 9. Multilingual content pipeline preserving the original and approved variants.
+12. Guide Passport, Public Profile and Guide Directory
+FR-PRO-001 — Guide Passport
+Each active guide shall have a structured professional profile containing identity, verified status, experience, languages, specialties, destinations, approved public stories, verified reviews, recommendations and permitted credentials.
+FR-PRO-002 — Verification labels
+Profile data shall distinguish Verified, Safari Land Verified Activity and Self-Declared fields. Unverified claims shall not receive verified badges.
+FR-PRO-003 — Public sharing
+The guide shall share the profile through a stable public URL and supported share actions including WhatsApp, LinkedIn/social, email and copy link.
+FR-PRO-004 — Story sharing
+Approved public Safari Stories shall have individual shareable URLs that link back to the guide profile and Safari Land discovery experience.
+FR-PRO-005 — Dreams & Goals
+The guide may publish structured professional goals such as starting a tour business, seeking mentorship, partnerships, training, travel-industry opportunities or international exchange. Financial investment solicitation is not part of the MVP transaction flow.
+FR-PRO-006 — Guide Directory
+Safari Land shall provide a searchable/listable guide directory with configurable filters such as destination, language, specialty, experience, rating and verified status.
+FR-PRO-007 — Professional discovery
+A public profile may expose actions such as Recommend, Share Profile, Contact/Enquire, Work With Guide or Request Guide Again, subject to privacy and anti-spam controls.
+FR-PRO-008 — Reputation metrics
+Public reputation may include verified rating, verified guest count, recommendation rate, countries represented in aggregate, public stories and verified skills. Public gratuity totals and private financial information shall never be displayed.
+Figure 10. Guide Passport and professional opportunity pathway.
+12.1 Guide Directory Minimum Search Fields
+Field
+Type / behavior
+Guide name
+Text search
+Destination / circuit
+Multi-select taxonomy
+Language
+Multi-select
+Specialty
+Multi-select
+Experience band
+Configured range
+Verified rating
+Numeric filter
+Verification status
+Verified only / all
+Availability / enquiry
+Optional profile flag; not a booking guarantee
+13. Commerce, Commission, Wallet and Withdrawal
+FR-COM-001 — POS sale attribution
+A finalized qualifying sale shall reference the Shopping Pass/referral context and therefore resolve the credited driver. Manual reassignment requires privileged override and audit reason.
+FR-COM-002 — Discount engine
+Guest discount shall be resolved from configured driver/tier/campaign rules. The applied rule and amount shall be stored with the sale attribution record.
+FR-COM-003 — Commission engine
+Commission shall be calculated server-side using configurable eligible amount, rate, exclusions, tax treatment, returns and rounding rules. The client app shall never be authoritative for commission.
+FR-COM-004 — Commission states
+Commission states shall include Pending, Approved, Available, Withdrawal Requested, Paid, Reversed and Disputed as applicable.
+FR-COM-005 — Driver wallet
+The driver wallet shall show Available, Pending and Lifetime commission, transaction history and withdrawal status. Gratuity shall be displayed as a distinct balance/ledger category if enabled.
+FR-COM-006 — Withdrawal request
+The driver shall request withdrawal against available funds, choose an approved payout method/account and receive a unique request/reference ID.
+FR-COM-007 — Manual finance MVP
+The finance portal shall support manual payout processing: review → approve → pay externally → enter provider/reference → mark paid. Payment APIs may replace the external step without changing ledger semantics.
+FR-COM-008 — Reversal
+Voided/refunded qualifying sales shall generate commission reversal or adjustment according to configured business rules and preserve the audit trail.
+13.1 Example Calculation Record
+Field
+Example
+Gross sale
+TZS 1,000,000
+Guest discount
+5% = TZS 50,000
+Qualifying net amount
+TZS 950,000
+Driver commission rate
+20%
+Commission
+TZS 190,000
+Initial commission state
+Pending
+Implementation ruleThe example demonstrates data flow only. Production eligibility, tax basis, excluded products, discount stacking, refund treatment and rounding must be configuration-driven and stored with each calculation version.
+14. Staff, Admin, Finance and Content Operations
+Figure 11. Administrative control domains and separation of duties.
+14.1 Operations Dashboard
+Incoming groups and ETA.
+Passes created, arrivals, purchasers and conversion.
+Driver search and account state.
+Referral/pass lookup and attribution exception queue.
+Current Safari Land offers/discount rules visible to authorized staff.
+14.2 Finance Dashboard
+Pending/approved/available/reversed commissions.
+Withdrawal queue with driver, amount, method, account, approval and payment reference.
+Separate gratuity/payment reconciliation where enabled.
+Exportable reconciliation and audit records.
+14.3 Content and Trust Dashboard
+Public story moderation and reported content.
+Review moderation without guide-controlled suppression.
+Testimonial consent state.
+Sensitive location protection and content visibility changes.
+AI content/version inspection for authorized support cases.
+14.4 Core Management KPIs
+KPI
+Definition
+Active drivers
+Drivers in Active state with qualifying activity in period.
+Referral sessions
+Valid QR/link opens.
+Shopping passes
+Passes created.
+Verified arrivals
+Passes marked Arrived.
+Purchasers
+Guests with qualifying sale.
+Visit-to-purchase conversion
+Purchasers ÷ verified arrivals.
+Driver-attributed sales
+Qualifying sales linked to drivers.
+Commission generated
+Commission created in period.
+Commission outstanding
+Approved/available but unpaid amount.
+Farewell response rate
+Guests who respond/review after opening Farewell.
+Verified guide rating
+Aggregate of verified trip reviews.
+Story engagement
+Views/shares of approved public stories.
+15. Data Model, APIs, Integrations and Notifications
+Figure 12. Core data relationships from driver identity through commerce and appreciation.
+15.1 Core Entities
+Entity
+Minimum logical fields
+Driver
+driver_id, member_no, identity fields, verification/status, preferences, default language, timestamps
+ReferralAsset
+asset_id, driver_id, source_type, label, token_hash/reference, status, created_at
+ReferralSession
+session_id, asset_id, driver_id, source, timestamps, conversion state
+Tourist
+tourist_id, minimal identity/contact, language, country, consent flags
+ShoppingPass
+pass_id, tourist_id, driver_id, referral_session_id, benefit rule, expiry, status
+Trip
+trip_id, driver_id, label, dates, state, group metadata, visibility
+TripGuest
+trip_guest_id, trip_id, tourist_id/guest alias, relationship label, private access mapping
+Story
+story_id, trip_id, driver_id, source media, approved text version, visibility, moderation state
+ContentVariant
+variant_id, parent content, language, type, version, approval/status, AI metadata
+Farewell
+farewell_id, trip_id, guest target, source/approved content, activation/status
+Review
+review_id, trip_id, guest_id, driver_id, ratings, recommendation, verified flag, moderation state
+TestimonialConsent
+review/response reference, public permission, timestamp, withdrawal state
+Visit
+visit_id, pass_id, location/store, arrival time, verifier
+SaleAttribution
+sale_id/POS ref, pass_id, driver_id, amounts, discount rule, eligibility snapshot
+Commission
+commission_id, sale attribution, rate, amount, calculation version, state
+WalletLedger
+ledger_entry_id, driver_id, ledger_type, amount, direction, source reference, balance impact
+Withdrawal
+withdrawal_id, driver_id, amount, payout method, state, external reference
+Gratuity
+gratuity_id, trip/driver, guest reference, currency, amount, provider, state, privacy controls
+AuditEvent
+actor, action, entity, before/after reference, timestamp, reason, channel
+15.2 Minimum API Groups
+API Group
+Representative operations
+/auth
+request OTP, verify OTP, refresh/revoke session
+/drivers
+register, read/update profile, verification status, public profile
+/referral-assets
+create/list/disable asset, resolve token, analytics
+/referrals
+create session, convert session, attribution lookup
+/passes
+create, retrieve, validate, expire/cancel
+/trips
+create/update trip, guests, state transition, arrival notification
+/stories
+create draft, upload media, AI process, approve, publish, translate
+/farewells
+draft, target guest/group, approve, activate, guest access
+/reviews
+submit verified review, consent, moderation
+/gratuities
+create payment intent, status/webhook, ledger record
+/sales
+POS attribution lookup, sale event, refund/void event
+/commissions
+calculate, approve, reverse, query
+/wallet
+balances, ledger history, withdrawal request
+/admin
+verification, exceptions, moderation, finance, configuration, audit
+/notifications
+device token, preference, event dispatch
+15.3 Integration Requirements
+Integration
+Direction
+MVP requirement
+POS / Sales System
+Bi-directional
+Validate pass/referral; receive finalized sale and void/refund events; return transaction reference and eligible amounts.
+AI Services
+Backend outbound
+Speech transcription, language detection, professional cleanup, translation; store version metadata.
+Push Notification
+Backend outbound
+Driver account, referral, arrival, sale, commission, withdrawal and Farewell events.
+Messaging / Email
+Backend outbound
+Optional pass/Farewell save links and configured transactional communications.
+Payment Provider
+Bi-directional
+Digital gratuity and/or future payouts using payment intents, signed callbacks/webhooks and reconciliation references.
+Analytics
+Backend/event stream
+Product and commercial events with privacy-minimized identifiers.
+15.4 Event and Notification Matrix
+Event
+Driver
+Guest
+Staff/Admin
+Driver approved
+Push/in-app
+—
+Audit
+Guest pass created
+In-app
+Pass screen/link
+Operations metric
+Incoming group
+Confirmation
+—
+Incoming queue
+Guest arrived
+Push/in-app
+Optional
+Visit record
+Sale completed
+Commission notification
+Receipt handled by POS
+Sales/commission record
+Commission approved
+Push/in-app
+—
+Finance audit
+Withdrawal paid
+Push/in-app
+—
+Payment reference
+Farewell activated
+In-app status
+Link/QR available
+Trip status
+Guest review submitted
+Summary notification
+Confirmation
+Moderation/analytics
+Gratuity paid
+Private wallet notification
+Payment confirmation
+Finance/payment record
+16. Security, Privacy, Audit and Non-Functional Requirements
+16.1 Security Requirements
+All network traffic shall use TLS.
+Sensitive tokens shall be opaque and validated server-side.
+Admin and finance privileges shall use least-privilege RBAC; privileged accounts shall support MFA.
+Payment card data shall not be stored by Safari Land unless the selected architecture is explicitly compliant; tokenized/provider-hosted payment methods are preferred.
+Passwords, secrets and provider keys shall not be embedded in mobile/web clients.
+Rate limiting and abuse controls shall protect OTP, QR resolution, review, contact and payment endpoints.
+Financial and attribution overrides shall require reason capture and immutable audit events.
+Uploaded media shall be scanned/validated for file type, size and malicious content.
+16.2 Privacy and Consent Requirements
+Guest data collection shall be minimized to the purpose of the journey.
+Private trip messages are visible only to authorized trip participants and staff with support need.
+Public testimonial publication requires explicit guest permission distinct from review submission.
+Guest photos containing identifiable persons shall follow configured consent rules before public publication.
+Public profiles shall not expose driver payout details, private phone numbers unless deliberately published, gratuity totals or private guest information.
+Guests shall be able to withdraw public testimonial permission subject to retention/audit policy.
+Aggregate country maps/metrics shall not reveal individual guest identities.
+16.3 Non-Functional Requirements
+Area
+Requirement
+Availability
+Core referral/pass validation and POS attribution services designed for high availability during store operating periods.
+Performance
+Typical QR landing and pass lookup responses should be perceived as near-instant on normal mobile connectivity; API targets shall be defined and monitored.
+Offline tolerance
+Driver story/farewell drafts may queue locally and synchronize when connectivity returns; financial/identity actions require server confirmation.
+Scalability
+Identifiers, services and data partitions shall support growth from one store/region to multiple Safari Land locations without redesigning driver identity.
+Localization
+UI strings separated from code; locale-aware dates, numbers and currencies; right-to-left readiness where required.
+Accessibility
+Guest and staff interfaces shall support readable contrast, scalable text, semantic controls and keyboard/screen-reader compatible web behavior.
+Observability
+Central logs, metrics, tracing/error correlation and business event monitoring.
+Backup/Recovery
+Database backup, media durability and tested restoration procedures; recovery objectives documented by operations.
+Versioning
+API and AI content versions shall be traceable; configuration changes shall be auditable.
+17. MVP Acceptance, QA and Implementation Appendices
+17.1 End-to-End MVP Acceptance Scenario
+An administrator approves Jerome and the system issues a permanent Driver ID.
+Jerome displays a Vehicle referral QR; Daniel scans it.
+The backend records Jerome + Vehicle source and opens Jerome’s multilingual guest profile.
+Daniel creates a Shopping Pass and saves it.
+Jerome creates the Wilson Family trip and adds Daniel to the trip.
+During the safari Jerome records a story; AI transcribes/cleans it; Jerome approves it; Daniel views it in his chosen language.
+Jerome prepares Daniel’s personal Farewell message and activates Farewell at trip end.
+Daniel opens the Farewell, replies, submits a verified review and grants or declines public testimonial permission.
+Daniel optionally chooses digital gratuity, personal gratitude or Finish.
+At Safari Land, staff scan Daniel’s Shopping Pass and mark Arrived.
+A qualifying POS sale is finalized and linked to the pass.
+The backend calculates commission and posts it Pending.
+Authorized finance approves the commission; it becomes Available.
+Jerome requests withdrawal; finance records the payout reference and marks Paid.
+Admin analytics show the complete chain from Vehicle QR → Daniel → trip → visit → sale → commission, while private Farewell content remains protected.
+17.2 Priority Matrix
+Priority
+Capability
+P0
+Driver registration, OTP, verification and permanent ID
+P0
+Referral assets, QR resolution and source attribution
+P0
+Guest landing, Shopping Pass and staff verification
+P0
+POS sale attribution, discount and commission engine
+P0
+Wallet, withdrawal and finance processing
+P0
+Trip/group/guest model and state machine
+P0
+Safari Story voice/text capture, AI cleanup and guide approval
+P0
+Multilingual guest presentation and guest-to-guide translation
+P0
+Farewell preparation, activation, guest reply and verified review
+P0
+Testimonial consent and privacy controls
+P0
+Optional gratuity integration boundary and separate ledger
+P0
+Guide Passport and shareable public profile
+P1
+Guide directory search/filter
+P1
+Basic Dreams & Goals / opportunity intent
+P1
+Advanced referral analytics by channel
+P1
+Points/tier display if commercial rules are finalized
+P2
+Automated payouts, advanced rewards marketplace, full opportunity marketplace, translated synthetic audio, full e-commerce
+17.3 QA Test Families
+Test family
+Coverage
+Identity
+OTP, duplicate phone, approval, suspension, profile permissions.
+QR/referral
+Valid/invalid/revoked token, source tracking, duplicate scans, attribution conflicts.
+Pass
+Creation, expiry, lookup, duplicate guest, driver-created pass, offline screenshot.
+Trip
+State transitions, roster privacy, guest access isolation, arrival notification.
+AI/content
+Audio upload, transcription, cleanup, no-fabrication prompts, approval gating, translation fallback, version history.
+Farewell
+Private draft protection, activation, guest identity resolution, reply, review, consent, save-for-later.
+Commerce
+POS lookup, discount, commission calculation, excluded items, void/refund, rounding, reversal.
+Wallet
+Pending/available balances, withdrawal limits, duplicate request, payment reference, reversal.
+Gratuity
+Optional flow, payment success/failure/cancel/webhook replay, expiry window, separate ledger.
+Admin/security
+RBAC, MFA, audit logs, override reasons, content moderation, rate limiting.
+Localization
+Language switch, long translated strings, RTL readiness, currency/date formatting.
+Performance
+QR landing load, pass validation, POS event processing, notification latency under target load.
+Appendix A — Screen Inventory
+Surface
+Minimum screens / states
+Driver App
+Splash; Login/OTP; Registration; Pending; Home; My QR/Referral Assets; Add Tourist; Tourist Pass; My Tourists; Create Group/Trip; Trip Detail; I’m Coming; Capture Story; Story Draft/Approval; Memory Book; Farewell Workspace; Farewell Preview/Activate; Reviews; Guide Passport; Public Profile Preview; Wallet; Transaction Detail; Withdraw; Withdrawal Status; Notifications; Profile/Settings.
+Tourist Web
+Driver Profile Landing; Language Selector; Get Pass; Guest Details; Shopping Pass; Explore Safari Land; Trip Memory Book; Story Detail; Farewell Entry; Personal Farewell; Reply; Review; Testimonial Consent; Optional Appreciation; Payment/Confirmation; Save Farewell; Guide Public Profile; Share Story/Profile.
+Staff/POS
+Login; Incoming Groups; Scan/Search Pass; Guest Verification; Arrival; Sale Attribution; Exception/Override.
+Admin/Finance
+Dashboard; Driver Queue; Driver Detail; Referral/Pass Search; Trips; Sales Attribution; Commission Queue; Wallet/Withdrawal; Gratuity Reconciliation; Content Moderation; Reviews; Directory/Profile Controls; Reports; Audit; Configuration.
+Appendix B — Status Enumerations
+Object
+Required states
+Driver
+PENDING, ACTIVE, SUSPENDED, REJECTED, DEACTIVATED
+Referral Asset
+ACTIVE, DISABLED, REVOKED
+Shopping Pass
+CREATED, ARRIVED, PURCHASED, EXPIRED, CANCELLED, DISPUTED
+Trip
+UPCOMING, ON_SAFARI, FAREWELL_PREPARATION, FAREWELL_READY, APPRECIATION_OPEN, COMPLETED, ARCHIVED
+Story
+DRAFT, AI_PROCESSING, REVIEW_REQUIRED, APPROVED, PUBLISHED, UNPUBLISHED, MODERATION_HOLD
+Review
+SUBMITTED, PUBLISHED, MODERATION_HOLD, REMOVED_BY_POLICY
+Commission
+PENDING, APPROVED, AVAILABLE, WITHDRAWAL_REQUESTED, PAID, REVERSED, DISPUTED
+Withdrawal
+REQUESTED, APPROVED, PROCESSING, PAID, REJECTED, FAILED, CANCELLED
+Gratuity
+INITIATED, PENDING_PROVIDER, PAID, FAILED, CANCELLED, REFUNDED, REVERSED, EXPIRED
+Appendix C — Business Rule Configuration Registry
+Configuration
+Examples of controlled values
+Guest discount
+Default %, tier %, campaign %, excluded categories, stacking.
+Commission
+Rate, eligible base, taxes, exclusions, refund behavior, approval delay.
+Attribution
+Validity window, first/last active referral rule, override authority.
+Pass
+Expiry, store/location validity, duplicate behavior.
+Story
+Audio length, photo count, word range, daily publish limit.
+Farewell
+Activation authority, access duration, review window.
+Gratuity
+Availability window, currencies, fixed suggestions, min/max, provider, fee handling.
+Directory
+Public fields, searchable filters, contact/enquiry rules.
+AI
+Supported languages, provider/model version, moderation thresholds, retry/fallback.
+Notifications
+Channels, templates, quiet hours, event preferences.
+Appendix D — Definition of Done
+All P0 functional requirements implemented and mapped to test cases.
+All financial calculations executed server-side and reconciled against test POS transactions.
+All QR/referral tokens are secure, revocable where required and traceable to source.
+All private/public content visibility paths pass authorization tests.
+AI content cannot publish without required human approval.
+Multilingual content preserves originals and correct language/version metadata.
+Verified review integrity and testimonial consent are enforced.
+Gratuity is optional, separated from commission and never represented as paid without provider/finance confirmation.
+Role-based admin permissions and audit trails are operational.
+Critical mobile web journeys pass on representative iOS/Android browsers and poor-network conditions.
+Production monitoring, backup, error handling and operational runbooks are available before launch.
+Implementation Reference — Integrated MVP Journey
+Figure 13. Integrated MVP journey combining relationship, reputation and commerce.
