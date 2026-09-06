@@ -77,7 +77,10 @@ class _SafariReviewsScreenState extends State<SafariReviewsScreen> {
                               SafariStatusChip(_source(r), tone: SafariChipTone.gold),
                             ]),
                             const SizedBox(height: 6),
-                            Text('$stars / 5', style: const TextStyle(color: SafariTheme.gold, fontWeight: FontWeight.w700)),
+                            Text(
+                              '${List.filled(stars.clamp(0, 5), '★').join()}${List.filled((5 - stars).clamp(0, 5), '☆').join()}  $stars/5',
+                              style: const TextStyle(color: SafariTheme.gold, fontWeight: FontWeight.w700, letterSpacing: 0.6),
+                            ),
                             if ((r['comment'] ?? '').toString().isNotEmpty) ...[
                               const SizedBox(height: 6),
                               Text(r['comment'].toString()),

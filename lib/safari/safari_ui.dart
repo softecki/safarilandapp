@@ -321,12 +321,53 @@ String safariInitials(dynamic name) {
 String safariGuestName(dynamic raw) {
   if (raw is! Map) return 'Guest';
   final tourist = raw['tourist'];
-  return (raw['alias'] ??
+  return (raw['guest_label'] ??
+          raw['alias'] ??
           (tourist is Map ? tourist['first_name'] : null) ??
           raw['first_name'] ??
           raw['name'] ??
+          raw['guest'] ??
           'Guest')
       .toString();
+}
+
+int safariPassGuestNumber(Map row, [int fallback = 1]) {
+  final n = row['guest_number'];
+  if (n is num && n > 0) return n.toInt();
+  for (final key in ['guest_label', 'alias', 'first_name', 'guest']) {
+    final match = RegExp(r'Guest\s+(\d+)', caseSensitive: false).firstMatch('${row[key] ?? ''}');
+    if (match != null) return int.parse(match.group(1)!);
+  }
+  final tourist = row['tourist'];
+  if (tourist is Map) {
+    final match = RegExp(r'Guest\s+(\d+)', caseSensitive: false).firstMatch('${tourist['first_name'] ?? ''}');
+    if (match != null) return int.parse(match.group(1)!);
+  }
+  return fallback;
+}
+
+String safariPassGuestSign(Map row, [int fallback = 1]) => 'Guest ${safariPassGuestNumber(row, fallback)}';
+
+List<int> safariPassGuestNumbers(List rows) {
+  final nos = List<int>.filled(rows.length, 1);
+  final byTrip = <String, List<int>>{};
+  for (var i = 0; i < rows.length; i++) {
+    final row = rows[i] as Map;
+    final key = '${row['trip_label'] ?? row['trip_id'] ?? 'pass-$i'}';
+    byTrip.putIfAbsent(key, () => []).add(i);
+  }
+  for (final indexes in byTrip.values) {
+    indexes.sort((a, b) {
+      final da = DateTime.tryParse('${(rows[a] as Map)['created_at'] ?? ''}');
+      final db = DateTime.tryParse('${(rows[b] as Map)['created_at'] ?? ''}');
+      if (da != null && db != null) return da.compareTo(db);
+      return a.compareTo(b);
+    });
+    for (var n = 0; n < indexes.length; n++) {
+      nos[indexes[n]] = safariPassGuestNumber(rows[indexes[n]] as Map, n + 1);
+    }
+  }
+  return nos;
 }
 
 String? safariGuestPhone(dynamic raw) {
@@ -369,6 +410,20 @@ String safariDate(dynamic v) {
   final d = dt.day.toString().padLeft(2, '0');
   final m = dt.month.toString().padLeft(2, '0');
   return '$d/$m/${dt.year}';
+}
+
+String safariDateTime(dynamic v) {
+  if (v == null || '$v'.isEmpty) return '';
+  final dt = DateTime.tryParse(v.toString())?.toLocal();
+  if (dt == null) return safariDate(v);
+  final h = dt.hour.toString().padLeft(2, '0');
+  final min = dt.minute.toString().padLeft(2, '0');
+  return '${safariDate(v)} · $h:$min';
+}
+
+bool safariNotificationUnread(Map row) {
+  final v = row['read_at'];
+  return v == null || v.toString().trim().isEmpty || v.toString() == 'null';
 }
 
 String ledgerTypeLabel(dynamic type) {

@@ -54,7 +54,7 @@ class _SafariTouristsScreenState extends State<SafariTouristsScreen> {
       await safariError(context, 'This pass has no share link yet.');
       return;
     }
-    final guest = '${r['guest'] ?? 'your guest'}';
+    final guest = safariPassGuestSign(r);
     await Share.share('Safari Land shopping pass for $guest: $url');
   }
 
@@ -86,6 +86,55 @@ class _SafariTouristsScreenState extends State<SafariTouristsScreen> {
     }
   }
 
+  Widget _passCard(Map<String, dynamic> r, int number) {
+    final code = _code(r);
+    final url = _passUrl(r);
+    final status = safariPassStatus(r['status']);
+    final group = (r['trip_label'] ?? '').toString();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: SafariCard(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (url.isNotEmpty)
+              QrImageView(data: url, size: 72, backgroundColor: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(safariPassGuestSign(r, number), style: const TextStyle(fontWeight: FontWeight.w800)),
+                      Text(code, style: const TextStyle(color: SafariTheme.muted, letterSpacing: 0.4, fontSize: 12)),
+                    ]),
+                  ),
+                  TextButton.icon(
+                    onPressed: url.isEmpty ? null : () => _share(r),
+                    icon: const Icon(Icons.ios_share, size: 16),
+                    label: const Text('Share'),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                ]),
+                if (group.isNotEmpty)
+                  Text(group, style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
+                const SizedBox(height: 8),
+                Wrap(spacing: 6, runSpacing: 6, children: [
+                  SafariStatusChip(safariPassGuestSign(r, number), tone: SafariChipTone.gold),
+                  SafariStatusChip(status, tone: statusTone(r['status']?.toString())),
+                ]),
+              ]),
+            ),
+          ]),
+        ]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,7 +150,13 @@ class _SafariTouristsScreenState extends State<SafariTouristsScreen> {
                     const SizedBox(height: 4),
                     const Text('One pass is issued for each guest in the group.', style: TextStyle(color: SafariTheme.muted, fontSize: 12)),
                     const SizedBox(height: 10),
-                    TextField(controller: group, decoration: const InputDecoration(labelText: 'Group name')),
+                    TextField(
+                      controller: group,
+                      decoration: const InputDecoration(
+                        labelText: 'Group name',
+                        hintText: 'Serengeti Trip',
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     TextField(controller: count, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Guest count')),
                     const SizedBox(height: 12),
@@ -115,51 +170,13 @@ class _SafariTouristsScreenState extends State<SafariTouristsScreen> {
                 if (rows.isEmpty)
                   const SafariEmpty('No passes yet.')
                 else
-                  ...rows.map((raw) {
-                    final r = Map<String, dynamic>.from(raw as Map);
-                    final code = _code(r);
-                    final url = _passUrl(r);
-                    final status = safariPassStatus(r['status']);
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: SafariCard(
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            if (url.isNotEmpty)
-                              QrImageView(data: url, size: 72, backgroundColor: Colors.white),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                  Expanded(
-                                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                      Text('${r['guest']}', style: const TextStyle(fontWeight: FontWeight.w800)),
-                                      Text(code, style: const TextStyle(color: SafariTheme.muted, letterSpacing: 0.4, fontSize: 12)),
-                                    ]),
-                                  ),
-                                  TextButton.icon(
-                                    onPressed: url.isEmpty ? null : () => _share(r),
-                                    icon: const Icon(Icons.ios_share, size: 16),
-                                    label: const Text('Share'),
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                                      minimumSize: Size.zero,
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                      visualDensity: VisualDensity.compact,
-                                    ),
-                                  ),
-                                ]),
-                                if ((r['trip_label'] ?? '').toString().isNotEmpty)
-                                  Text('${r['trip_label']}', style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
-                                const SizedBox(height: 8),
-                                SafariStatusChip(status, tone: statusTone(r['status']?.toString())),
-                              ]),
-                            ),
-                          ]),
-                        ]),
-                      ),
-                    );
-                  }),
+                  ...() {
+                    final numbers = safariPassGuestNumbers(rows);
+                    return [
+                      for (var i = 0; i < rows.length; i++)
+                        _passCard(Map<String, dynamic>.from(rows[i] as Map), numbers[i]),
+                    ];
+                  }(),
               ],
             ),
     );

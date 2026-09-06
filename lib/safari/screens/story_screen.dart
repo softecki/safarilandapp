@@ -23,8 +23,9 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
   final email = TextEditingController();
   final photos = <XFile>[];
   Map<String, dynamic>? story;
-  String? draft;
+  final narration = TextEditingController();
   bool loading = false;
+  bool reviewing = false;
 
   @override
   void dispose() {
@@ -33,6 +34,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
     location.dispose();
     whatsapp.dispose();
     email.dispose();
+    narration.dispose();
     super.dispose();
   }
 
@@ -101,17 +103,22 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
       }
       final processed = await SafariApi.post('/stories/${story!['id']}/process');
       story = Map<String, dynamic>.from(SafariApi.data(processed) as Map);
-      draft = _cleaned(story!);
+      narration.text = _cleaned(story!);
       if (!mounted) return;
-      setState(() {});
+      setState(() => reviewing = true);
       await safariSheet<void>(
         context,
         Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('ChatGPT narration', style: Theme.of(context).textTheme.headlineSmall),
+          Text('Review narration', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 10),
-          Text(draft!.isEmpty ? 'No narration yet. Check that an OpenAI API key is saved in admin → API Keys.' : draft!, style: const TextStyle(height: 1.45)),
+          Text(
+            narration.text.isEmpty
+                ? 'No narration yet. Add a ChatGPT API key under portal Settings → ChatGPT.'
+                : narration.text,
+            style: const TextStyle(height: 1.45),
+          ),
           const SizedBox(height: 16),
-          ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('Review & approve')),
+          ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('Edit & save')),
         ]),
       );
     } catch (e) {
@@ -125,7 +132,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
     if (story == null) return;
     try {
       await SafariApi.post('/stories/${story!['id']}/approve', {
-        'approved_text': draft ?? text.text.trim(),
+        'approved_text': narration.text.trim().isNotEmpty ? narration.text.trim() : text.text.trim(),
         'publish': true,
         'public': false,
       });
@@ -149,7 +156,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
         children: [
           Text('Capture the moment', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 4),
-          const Text('Add the guest email and WhatsApp, then ChatGPT writes the Memory Book narration.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
+          const Text('Add notes, then ChatGPT writes a narration. Review it below before you save it to the Memory Book.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
           const SizedBox(height: 16),
           TextField(controller: title, decoration: const InputDecoration(labelText: 'Title')),
           const SizedBox(height: 12),
@@ -200,17 +207,23 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
           ),
           const SizedBox(height: 20),
           SafariLoadingButton(label: loading ? 'Writing narration…' : 'Create narration', loading: loading, onPressed: _process),
-          if (story != null) ...[
+          if (reviewing) ...[
             const SizedBox(height: 16),
             SafariCard(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('ChatGPT narration', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                const Row(children: [
+                  Text('Review narration', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                  SizedBox(width: 8),
+                  SafariStatusChip('Review', tone: SafariChipTone.warn),
+                ]),
                 const SizedBox(height: 8),
-                Text(draft?.isNotEmpty == true ? draft! : 'No narration yet. Add a note and try again.'),
+                const Text('Edit if needed, then save. This is what the guest will read.', style: TextStyle(color: SafariTheme.muted, fontSize: 12)),
+                const SizedBox(height: 10),
+                TextField(controller: narration, maxLines: 10, decoration: const InputDecoration(labelText: 'ChatGPT narration')),
               ]),
             ),
             const SizedBox(height: 12),
-            SafariGoldButton(label: 'Approve, email & WhatsApp', onPressed: _approve),
+            SafariGoldButton(label: 'Save narration, email & WhatsApp', onPressed: _approve),
           ],
         ],
       ),

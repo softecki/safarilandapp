@@ -34,7 +34,7 @@ class SafariPasses {
       });
     } catch (_) {
       final passJson = await SafariApi.post('/passes', {
-        'first_name': (firstName == null || firstName.isEmpty) ? 'Guest' : firstName,
+        'first_name': (firstName == null || firstName.isEmpty) ? 'Guest 1' : firstName,
         if (groupName != null && groupName.isNotEmpty) 'last_name': groupName,
       });
       final pass = Map<String, dynamic>.from(SafariApi.data(passJson) as Map? ?? {});

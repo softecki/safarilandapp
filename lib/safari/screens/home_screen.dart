@@ -47,6 +47,15 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
 
   Map<String, dynamic> _map(dynamic raw) => Map<String, dynamic>.from(raw as Map? ?? {});
 
+  int get _unread => (home?['unread_notifications'] as num?)?.toInt() ?? 0;
+
+  Future<void> _openNotifications() async {
+    await SafariNav.push(context, const SafariNotificationsScreen());
+    if (!mounted) return;
+    setState(() => loading = true);
+    await _load();
+  }
+
   Future<void> _coming(Map trip) async {
     final count = TextEditingController(text: '${trip['guest_count'] ?? trip['guests_count'] ?? 1}');
     final ok = await safariSheet<bool>(
@@ -93,7 +102,8 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
           ? Column(
               children: [
                 SafariStickyHeader(
-                  onNotify: () => SafariNav.push(context, const SafariNotificationsScreen()),
+                  unread: _unread,
+                  onNotify: _openNotifications,
                 ),
                 const Expanded(child: Center(child: CircularProgressIndicator())),
               ],
@@ -108,7 +118,8 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                 padding: EdgeInsets.zero,
                 children: [
                   SafariStickyHeader(
-                    onNotify: () => SafariNav.push(context, const SafariNotificationsScreen()),
+                    unread: _unread,
+                    onNotify: _openNotifications,
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 88),
@@ -201,7 +212,13 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                           child: Row(children: [
                             const Icon(Icons.payments_outlined, color: SafariTheme.gold),
                             const SizedBox(width: 10),
-                            Expanded(child: Text(ledgerTypeLabel(row['ledger_type'] ?? 'POINTS'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+                            Expanded(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                const Text('Withdrawal amount', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                                if (safariDate(row['created_at']).isNotEmpty)
+                                  Text(safariDate(row['created_at']), style: const TextStyle(color: SafariTheme.muted, fontSize: 11)),
+                              ]),
+                            ),
                             SafariCountUp(row['amount'], moneyFormat: true, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: SafariTheme.maroon)),
                           ]),
                         ),

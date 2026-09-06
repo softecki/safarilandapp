@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wicom/safari/safari_api.dart';
 import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
@@ -25,6 +26,21 @@ class _SafariShellState extends State<SafariShell> {
     super.initState();
     index = SafariTabs.index.value;
     SafariTabs.index.addListener(_onTab);
+    _loadUnread();
+  }
+
+  Future<void> _loadUnread() async {
+    try {
+      final json = await SafariApi.get('/notifications');
+      final rows = (SafariApi.data(json) as List?) ?? [];
+      final count = rows.where((r) => r is Map && safariNotificationUnread(r as Map)).length;
+      if (mounted) setState(() => unread = count);
+    } catch (_) {}
+  }
+
+  Future<void> _openNotifications() async {
+    await SafariNav.push(context, const SafariNotificationsScreen());
+    await _loadUnread();
   }
 
   @override
@@ -58,10 +74,10 @@ class _SafariShellState extends State<SafariShell> {
     return Scaffold(
       body: Column(
         children: [
-          if (index != SafariTabs.home)
+          if (index != SafariTabs.home && index != SafariTabs.trips)
             SafariStickyHeader(
               unread: unread,
-              onNotify: () => SafariNav.push(context, const SafariNotificationsScreen()),
+              onNotify: _openNotifications,
             ),
           Expanded(child: IndexedStack(index: index, children: _pages)),
         ],

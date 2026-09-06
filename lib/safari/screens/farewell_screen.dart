@@ -21,7 +21,9 @@ class _SafariFarewellScreenState extends State<SafariFarewellScreen> {
   bool loading = false;
   bool activating = false;
   bool fetching = true;
+  bool reviewing = false;
   dynamic selectedGuestId;
+  Map<String, dynamic>? draftFarewell;
 
   @override
   void initState() {
@@ -77,9 +79,13 @@ class _SafariFarewellScreenState extends State<SafariFarewellScreen> {
     }
   }
 
-  Future<void> _save() async {
+  Future<void> _narrate() async {
     if (guestName.text.trim().isEmpty || guestEmail.text.trim().isEmpty || safariWhatsAppDigits(guestWhatsapp.text.trim()) == null) {
       await safariError(context, 'Enter the guest name, email, and WhatsApp number.');
+      return;
+    }
+    if (text.text.trim().isEmpty) {
+      await safariError(context, 'Write a farewell note first so ChatGPT can narrate it.');
       return;
     }
     setState(() => loading = true);
@@ -92,11 +98,43 @@ class _SafariFarewellScreenState extends State<SafariFarewellScreen> {
         'guest_whatsapp': guestWhatsapp.text.trim(),
         'language': 'en',
       });
-      final f = SafariApi.data(json) as Map;
-      await SafariApi.post('/farewells/${f['id']}/approve', {'approved_text': f['approved_text'] ?? text.text});
-      text.clear();
+      draftFarewell = Map<String, dynamic>.from(SafariApi.data(json) as Map);
+      final narrated = (draftFarewell!['approved_text'] ?? text.text).toString();
+      text.text = narrated;
+      reviewing = true;
       await _load();
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Farewell saved. Activate to email and WhatsApp the guest.')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Review the ChatGPT narration, then save it.')),
+        );
+      }
+    } catch (e) {
+      await safariError(context, e);
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  Future<void> _saveReviewed() async {
+    final id = draftFarewell?['id'] ?? _existingFor(selectedGuestId)?['id'];
+    if (id == null) {
+      await safariError(context, 'Create a narration first.');
+      return;
+    }
+    if (text.text.trim().isEmpty) {
+      await safariError(context, 'The narration cannot be empty.');
+      return;
+    }
+    setState(() => loading = true);
+    try {
+      await SafariApi.post('/farewells/$id/approve', {'approved_text': text.text.trim()});
+      await _load();
+      if (mounted) {
+        setState(() => reviewing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Farewell saved. Activate to email and WhatsApp the guest.')),
+        );
+      }
     } catch (e) {
       await safariError(context, e);
     } finally {
@@ -150,7 +188,7 @@ class _SafariFarewellScreenState extends State<SafariFarewellScreen> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(trip?['label']?.toString() ?? 'Farewell', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 6),
-                    const Text('Enter the guest name, email, and WhatsApp. Activate emails them and opens WhatsApp.', style: TextStyle(fontSize: 13)),
+                    const Text('Write a note, let ChatGPT narrate it, review the text, then save. Activate emails the guest and opens WhatsApp.', style: TextStyle(fontSize: 13)),
                   ]),
                 ),
                 const SafariSectionTitle('Guest'),
@@ -206,13 +244,29 @@ class _SafariFarewellScreenState extends State<SafariFarewellScreen> {
                 TextField(
                   controller: text,
                   maxLines: 7,
-                  decoration: const InputDecoration(
-                    labelText: 'Farewell message',
-                    hintText: 'Thank them for the days you shared. Keep it personal.',
+                  decoration: InputDecoration(
+                    labelText: reviewing ? 'Review ChatGPT narration' : 'Farewell note',
+                    hintText: reviewing
+                        ? 'Edit the narration before you save it.'
+                        : 'Thank them for the days you shared. Keep it personal.',
                   ),
                 ),
+                if (reviewing) ...[
+                  const SizedBox(height: 8),
+                  const SafariStatusChip('Review before saving', tone: SafariChipTone.warn),
+                ],
                 const SizedBox(height: 16),
-                SafariLoadingButton(label: loading ? 'Saving…' : 'Save & approve', loading: loading, onPressed: _save),
+                SafariLoadingButton(
+                  label: loading ? 'Writing narration…' : 'Create narration',
+                  loading: loading && !reviewing,
+                  onPressed: _narrate,
+                ),
+                const SizedBox(height: 8),
+                SafariLoadingButton(
+                  label: loading && reviewing ? 'Saving…' : 'Save reviewed narration',
+                  loading: loading && reviewing,
+                  onPressed: _saveReviewed,
+                ),
                 const SizedBox(height: 8),
                 SafariGoldButton(label: activating ? 'Sending…' : 'Activate, email & WhatsApp', onPressed: activating ? null : _activate),
               ],

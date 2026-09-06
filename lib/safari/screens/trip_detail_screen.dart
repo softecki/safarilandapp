@@ -26,6 +26,29 @@ const _stateLabels = {
   'ARCHIVED': 'Archive',
 };
 
+String _statusName(String state) {
+  return switch (state.toUpperCase()) {
+    'UPCOMING' => 'Upcoming',
+    'ON_SAFARI' => 'On Safari',
+    'FAREWELL_PREPARATION' => 'Farewell',
+    'FAREWELL_READY' => 'Farewell ready',
+    'APPRECIATION_OPEN' => 'Appreciation',
+    'COMPLETED' => 'Completed',
+    'ARCHIVED' => 'Archived',
+    _ => state.replaceAll('_', ' '),
+  };
+}
+
+SafariChipTone _statusTone(String state) {
+  return switch (state.toUpperCase()) {
+    'UPCOMING' => SafariChipTone.warn,
+    'ON_SAFARI' => SafariChipTone.gold,
+    'COMPLETED' => SafariChipTone.success,
+    'ARCHIVED' => SafariChipTone.neutral,
+    _ => SafariChipTone.gold,
+  };
+}
+
 class SafariTripDetailScreen extends StatefulWidget {
   const SafariTripDetailScreen({super.key, required this.id});
   final dynamic id;
@@ -90,7 +113,7 @@ class _SafariTripDetailScreenState extends State<SafariTripDetailScreen> {
             child: Column(children: [
               Row(children: [
                 const Expanded(child: Text('Trip state', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
-                SafariStatusChip(state.replaceAll('_', ' '), tone: SafariChipTone.gold),
+                SafariStatusChip(_statusName(state), tone: _statusTone(state)),
               ]),
               const SizedBox(height: 10),
               Row(children: [
@@ -142,8 +165,9 @@ class _SafariTripDetailScreenState extends State<SafariTripDetailScreen> {
           if (guests.isEmpty)
             const SafariEmpty('Create a pass for this safari.', icon: Icons.confirmation_number_outlined)
           else
-            ...guests.map((g) {
-              final row = Map<String, dynamic>.from(g as Map);
+            ...guests.asMap().entries.map((entry) {
+              final row = Map<String, dynamic>.from(entry.value as Map);
+              final sign = safariPassGuestSign(row, entry.key + 1);
               final name = safariGuestName(row);
               final pass = Map<String, dynamic>.from(row['pass'] as Map? ?? {});
               final status = safariPassStatus(pass['status'] ?? row['status']);
@@ -155,12 +179,14 @@ class _SafariTripDetailScreenState extends State<SafariTripDetailScreen> {
                   child: Row(children: [
                     CircleAvatar(
                       backgroundColor: SafariTheme.pillFill,
-                      child: Text(safariInitials(name), style: const TextStyle(color: SafariTheme.maroon, fontWeight: FontWeight.w800)),
+                      child: Text('${safariPassGuestNumber(row, entry.key + 1)}', style: const TextStyle(color: SafariTheme.maroon, fontWeight: FontWeight.w800)),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                        Text(sign, style: const TextStyle(fontWeight: FontWeight.w700)),
+                        if (name.isNotEmpty && name.toLowerCase() != sign.toLowerCase())
+                          Text(name, style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
                         if (code.isNotEmpty)
                           Text(code, style: const TextStyle(color: SafariTheme.muted, fontSize: 12, letterSpacing: 0.4)),
                       ]),
@@ -174,9 +200,10 @@ class _SafariTripDetailScreenState extends State<SafariTripDetailScreen> {
           TextButton(
             onPressed: () async {
               try {
+                final typed = guestName.text.trim();
                 await SafariPasses.addPassToTrip(
                   widget.id,
-                  firstName: guestName.text.trim(),
+                  firstName: typed.isEmpty ? 'Guest ${guests.length + 1}' : typed,
                   groupName: trip!['label']?.toString(),
                 );
                 guestName.clear();
