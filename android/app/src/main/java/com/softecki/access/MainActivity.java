@@ -1,4 +1,4 @@
-package com.softecki.safariland;
+package com.softecki.access;
 
 import io.flutter.embedding.android.FlutterActivity;
 

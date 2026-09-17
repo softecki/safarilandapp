@@ -1,91 +1,125 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:wicom/pamoja/app_nav.dart';
-import 'package:wicom/pamoja/auth_screens.dart';
-import 'package:wicom/pamoja/brand.dart';
-import 'package:wicom/pamoja/session.dart';
-import 'package:wicom/pamoja/theme.dart';
-import 'package:wicom/pamoja/shell.dart';
+import 'dart:ui' show PointerDeviceKind;
+import 'package:wicom/core/font_loader.dart';
+import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_brand.dart';
+import 'package:wicom/safari/safari_gate.dart';
+import 'package:wicom/safari/safari_nav.dart';
+import 'package:wicom/safari/safari_theme.dart';
+import 'package:wicom/safari/screens/login_screen.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await PamojaSession.instance.load();
-  pamojaOnLogout = () {
-    pamojaNavigatorKey.currentState?.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const PamojaLoginScreen()),
+  await EasyLocalization.ensureInitialized();
+  await SafariApi.loadSession();
+
+  SafariApi.onUnauthorized = () {
+    final nav = navigatorKey.currentState;
+    if (nav == null) return;
+    nav.pushAndRemoveUntil(
+      SafariNav.fade<void>(const SafariLoginScreen()),
       (_) => false,
     );
   };
-  runApp(const PamojaApp());
+
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('sw')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      startLocale: const Locale('en'),
+      child: const MyApp(),
+    ),
+  );
+
+  FontLoader.preloadFonts().catchError((_) {});
 }
 
-class PamojaApp extends StatelessWidget {
-  const PamojaApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: pamojaNavigatorKey,
-      title: 'PAMOJA',
-      theme: PamojaTheme.material(),
+      navigatorKey: navigatorKey,
+      title: SafariBrand.name,
+      theme: SafariTheme.material(),
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
       debugShowCheckedModeBanner: false,
-      home: const PamojaSplashScreen(),
+      home: const SafariSplashScreen(),
+      builder: (context, child) {
+        return ScrollConfiguration(
+          behavior: const MaterialScrollBehavior().copyWith(
+            dragDevices: {PointerDeviceKind.mouse, PointerDeviceKind.touch},
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }
 
-class PamojaSplashScreen extends StatefulWidget {
-  const PamojaSplashScreen({super.key});
+class SafariSplashScreen extends StatefulWidget {
+  const SafariSplashScreen({super.key});
 
   @override
-  State<PamojaSplashScreen> createState() => _PamojaSplashScreenState();
+  State<SafariSplashScreen> createState() => _SafariSplashScreenState();
 }
 
-class _PamojaSplashScreenState extends State<PamojaSplashScreen> {
+class _SafariSplashScreenState extends State<SafariSplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future<void>.delayed(const Duration(milliseconds: 1200), _go);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _boot());
   }
 
-  void _go() {
+  Future<void> _boot() async {
+    await SafariApi.loadSession();
+    Widget next = const SafariLoginScreen();
+    if (SafariApi.isLoggedIn) {
+      try {
+        final json = await SafariApi.get('/auth/me');
+        SafariApi.driver = Map<String, dynamic>.from(SafariApi.data(json) as Map);
+        next = SafariGate.home();
+      } catch (_) {
+        next = const SafariLoginScreen();
+      }
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 700));
     if (!mounted) return;
-    final next = PamojaSession.instance.loggedIn ? const PamojaShell() : const PamojaLoginScreen();
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => next));
+    Navigator.pushReplacement(context, SafariNav.fade(next));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [PamojaBrand.lake, PamojaBrand.indigo, PamojaBrand.night],
+      backgroundColor: SafariTheme.maroon,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            SafariBrand.posterAsset,
+            fit: BoxFit.contain,
+            alignment: Alignment.center,
+            errorBuilder: (_, __, ___) => const ColoredBox(color: SafariTheme.maroon),
           ),
-        ),
-        child: const SafeArea(
-          child: Column(
-            children: [
-              Spacer(),
-              Text('PAMOJA', style: TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.w800, letterSpacing: 4)),
-              SizedBox(height: 8),
-              Text('DIGITAL PLATFORM ECOSYSTEM', style: TextStyle(color: Colors.white70, letterSpacing: 2.4, fontSize: 11, fontWeight: FontWeight.w600)),
-              SizedBox(height: 16),
-              Text('One region. One fan experience.', style: TextStyle(color: Colors.white, fontSize: 16)),
-              Spacer(),
-              Padding(
-                padding: EdgeInsets.only(bottom: 48),
-                child: CircularProgressIndicator(color: Colors.white),
-              ),
-              Padding(
-                padding: EdgeInsets.only(bottom: 24),
-                child: Text('AFCON 2027  ·  Tanzania · Kenya · Uganda', style: TextStyle(color: Colors.white70, fontSize: 12)),
-              ),
-            ],
+          const SafeArea(
+            child: Column(
+              children: [
+                Spacer(),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(32, 0, 32, 48),
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
