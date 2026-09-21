@@ -49,5 +49,6 @@
 	<string>Attendance needs your location to attach GPS coordinates to gate scans and employee check-ins.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs camera access to scan QR codes for cylinders, inventory, gate attendance, and employee check-ins.</string>
+	<!-- Google Sign-In: after creating the iOS OAuth client, add GIDClientID and a CFBundleURLTypes scheme of the reversed client ID. -->
 </dict>
 </plist>

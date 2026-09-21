@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:wicom/safari/safari_api.dart';
 
@@ -50,13 +51,29 @@ class SafariGoogleAuth {
     try {
       await client.signOut();
     } catch (_) {}
-    final account = await client.signIn();
-    if (account == null) return null;
-    final auth = await account.authentication;
-    final idToken = auth.idToken;
-    if (idToken == null || idToken.isEmpty) {
-      throw Exception('Google did not return an ID token. Confirm the Web client ID is set and try again.');
+    try {
+      final account = await client.signIn();
+      if (account == null) return null;
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('Google did not return an ID token. Confirm the Web client ID is set and try again.');
+      }
+      return idToken;
+    } on PlatformException catch (e) {
+      final code = e.code.toLowerCase();
+      if (code.contains('cancel')) return null;
+      throw Exception(e.message ?? 'Google Sign-In failed.');
     }
-    return idToken;
+  }
+
+  static Future<Map<String, dynamic>?> authenticate({bool isDriver = true}) async {
+    final idToken = await signIn();
+    if (idToken == null) return null;
+    final json = await SafariApi.post('/auth/google', {
+      'id_token': idToken,
+      'is_driver': isDriver,
+    });
+    return Map<String, dynamic>.from(SafariApi.data(json) as Map);
   }
 }

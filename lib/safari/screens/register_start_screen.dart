@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_google_auth.dart';
 import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
+import 'package:wicom/safari/safari_gate.dart';
 import 'package:wicom/safari/screens/otp_screen.dart';
+import 'package:wicom/safari/screens/register_screen.dart';
 
 class SafariRegisterStartScreen extends StatefulWidget {
   const SafariRegisterStartScreen({super.key});
@@ -52,6 +55,34 @@ class _SafariRegisterStartScreenState extends State<SafariRegisterStartScreen> {
         ),
       );
     } catch (e) {
+      if (mounted) await safariError(context, e);
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  Future<void> _google() async {
+    setState(() => loading = true);
+    try {
+      final data = await SafariGoogleAuth.authenticate(isDriver: isDriver);
+      if (data == null) return;
+      if (!mounted) return;
+      if (data['needs_registration'] == true) {
+        await SafariNav.push(
+          context,
+          SafariRegisterScreen(
+            googleRegistrationToken: data['google_registration_token']?.toString(),
+            email: data['email']?.toString(),
+            googleName: data['name']?.toString(),
+            isDriver: isDriver,
+          ),
+        );
+        return;
+      }
+      await SafariApi.saveAuth(data['token'].toString(), Map<String, dynamic>.from(data['driver'] as Map));
+      if (!mounted) return;
+      SafariNav.reset(context, SafariGate.home());
+    } catch (e) {
       await safariError(context, e);
     } finally {
       if (mounted) setState(() => loading = false);
@@ -91,6 +122,16 @@ class _SafariRegisterStartScreenState extends State<SafariRegisterStartScreen> {
             ),
             const SizedBox(height: 22),
             SafariLoadingButton(label: 'Send code', loading: loading, onPressed: _send),
+            const SizedBox(height: 16),
+            const Row(
+              children: [
+                Expanded(child: Divider()),
+                Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('or', style: TextStyle(color: SafariTheme.muted))),
+                Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SafariGoogleButton(loading: loading, onPressed: _google, label: 'Sign up with Google'),
           ],
         ),
       ),

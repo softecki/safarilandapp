@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
 import 'package:wicom/safari/safari_brand.dart';
 import 'package:wicom/safari/safari_gate.dart';
+import 'package:wicom/safari/safari_google_auth.dart';
 import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/forgot_password_screen.dart';
+import 'package:wicom/safari/screens/register_screen.dart';
 import 'package:wicom/safari/screens/register_start_screen.dart';
 
 class SafariLoginScreen extends StatefulWidget {
@@ -35,6 +37,34 @@ class _SafariLoginScreenState extends State<SafariLoginScreen> {
         'password': password.text,
       });
       final data = SafariApi.data(json) as Map<String, dynamic>;
+      await SafariApi.saveAuth(data['token'].toString(), Map<String, dynamic>.from(data['driver'] as Map));
+      if (!mounted) return;
+      SafariNav.reset(context, SafariGate.home());
+    } catch (e) {
+      await safariError(context, e);
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  Future<void> _google() async {
+    setState(() => loading = true);
+    try {
+      final data = await SafariGoogleAuth.authenticate(isDriver: true);
+      if (data == null) return;
+      if (!mounted) return;
+      if (data['needs_registration'] == true) {
+        await SafariNav.push(
+          context,
+          SafariRegisterScreen(
+            googleRegistrationToken: data['google_registration_token']?.toString(),
+            email: data['email']?.toString(),
+            googleName: data['name']?.toString(),
+            isDriver: true,
+          ),
+        );
+        return;
+      }
       await SafariApi.saveAuth(data['token'].toString(), Map<String, dynamic>.from(data['driver'] as Map));
       if (!mounted) return;
       SafariNav.reset(context, SafariGate.home());
@@ -91,6 +121,16 @@ class _SafariLoginScreenState extends State<SafariLoginScreen> {
                   ),
                 ),
                 SafariLoadingButton(label: 'Sign in', loading: loading, onPressed: _login),
+                const SizedBox(height: 16),
+                const Row(
+                  children: [
+                    Expanded(child: Divider()),
+                    Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('or', style: TextStyle(color: SafariTheme.muted))),
+                    Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SafariGoogleButton(loading: loading, onPressed: _google, label: 'Sign in with Google'),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => SafariNav.push(context, const SafariRegisterStartScreen()),

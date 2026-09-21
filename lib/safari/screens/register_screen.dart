@@ -8,10 +8,21 @@ import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 
 class SafariRegisterScreen extends StatefulWidget {
-  const SafariRegisterScreen({super.key, required this.phone, required this.registrationToken, this.email, this.isDriver = false});
+  const SafariRegisterScreen({
+    super.key,
+    this.phone = '',
+    this.registrationToken,
+    this.googleRegistrationToken,
+    this.email,
+    this.googleName,
+    this.isDriver = false,
+  }) : assert(registrationToken != null || googleRegistrationToken != null);
+
   final String phone;
-  final String registrationToken;
+  final String? registrationToken;
+  final String? googleRegistrationToken;
   final String? email;
+  final String? googleName;
   final bool isDriver;
 
   @override
@@ -19,9 +30,10 @@ class SafariRegisterScreen extends StatefulWidget {
 }
 
 class _SafariRegisterScreenState extends State<SafariRegisterScreen> {
-  final name = TextEditingController();
+  late final name = TextEditingController(text: widget.googleName ?? '');
   final whatsapp = TextEditingController();
   late final email = TextEditingController(text: widget.email ?? '');
+  late final phone = TextEditingController(text: widget.phone);
   final phoneTwo = TextEditingController();
   final company = TextEditingController();
   final licence = TextEditingController();
@@ -41,6 +53,7 @@ class _SafariRegisterScreenState extends State<SafariRegisterScreen> {
     name.dispose();
     whatsapp.dispose();
     email.dispose();
+    phone.dispose();
     phoneTwo.dispose();
     company.dispose();
     licence.dispose();
@@ -57,6 +70,8 @@ class _SafariRegisterScreenState extends State<SafariRegisterScreen> {
     final m = birth!.month.toString().padLeft(2, '0');
     return '$d/$m/${birth!.year}';
   }
+
+  bool get _fromGoogle => (widget.googleRegistrationToken ?? '').isNotEmpty;
 
   Future<void> _pickBirth() async {
     final now = DateTime.now();
@@ -78,6 +93,18 @@ class _SafariRegisterScreenState extends State<SafariRegisterScreen> {
       await safariError(context, 'Email is required');
       return;
     }
+    if (_fromGoogle && phone.text.trim().isEmpty) {
+      await safariError(context, 'Enter your mobile number.');
+      return;
+    }
+    if (!_fromGoogle && password.text.isEmpty) {
+      await safariError(context, 'Enter a password.');
+      return;
+    }
+    if (password.text.isNotEmpty && password.text != confirm.text) {
+      await safariError(context, 'Passwords do not match.');
+      return;
+    }
     if (birth == null) {
       await safariError(context, 'Select your date of birth.');
       return;
@@ -97,13 +124,15 @@ class _SafariRegisterScreenState extends State<SafariRegisterScreen> {
         files.add(await http.MultipartFile.fromPath('photo', photo!.path));
       }
       final json = await SafariApi.request('POST', '/auth/register', fields: {
-        'registration_token': widget.registrationToken,
+        if (widget.registrationToken != null) 'registration_token': widget.registrationToken!,
+        if (widget.googleRegistrationToken != null) 'google_registration_token': widget.googleRegistrationToken!,
         'name': name.text.trim(),
-        'whatsapp': whatsapp.text.trim().isEmpty ? widget.phone : whatsapp.text.trim(),
+        'phone': phone.text.trim(),
+        'whatsapp': whatsapp.text.trim().isEmpty ? phone.text.trim() : whatsapp.text.trim(),
         'email': email.text.trim(),
         'is_driver': widget.isDriver ? '1' : '0',
-        'password': password.text,
-        'password_confirmation': confirm.text,
+        if (password.text.isNotEmpty) 'password': password.text,
+        if (password.text.isNotEmpty) 'password_confirmation': confirm.text,
         'date_of_birth': '${birth!.year}-${birth!.month.toString().padLeft(2, '0')}-${birth!.day.toString().padLeft(2, '0')}',
         'gender': gender,
         'marital_status': marital,
@@ -132,11 +161,25 @@ class _SafariRegisterScreenState extends State<SafariRegisterScreen> {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          Text('Number ${widget.phone} verified. Complete the same member details used on the portal.', style: const TextStyle(color: SafariTheme.muted)),
+          Text(
+            _fromGoogle
+                ? 'Google verified ${widget.email ?? 'your email'}. Add your mobile number and member details.'
+                : 'Number ${widget.phone} verified. Complete the same member details used on the portal.',
+            style: const TextStyle(color: SafariTheme.muted),
+          ),
           const SafariSectionTitle('Member details'),
           TextField(controller: name, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Full name *')),
           const SizedBox(height: 12),
-          TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email *')),
+          TextField(
+            controller: email,
+            readOnly: _fromGoogle,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(labelText: 'Email *', helperText: _fromGoogle ? 'Taken from your Google account' : null),
+          ),
+          if (_fromGoogle) ...[
+            const SizedBox(height: 12),
+            TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Mobile number *', hintText: '07XXXXXXXX')),
+          ],
           const SizedBox(height: 12),
           InkWell(
             onTap: _pickBirth,
@@ -170,7 +213,7 @@ class _SafariRegisterScreenState extends State<SafariRegisterScreen> {
           const SafariSectionTitle('Contact'),
           TextField(controller: phoneTwo, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Second phone', hintText: '07xx or +255…')),
           const SizedBox(height: 12),
-          TextField(controller: whatsapp, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'WhatsApp', hintText: 'Leave blank to use the verified number')),
+          TextField(controller: whatsapp, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'WhatsApp', hintText: _fromGoogle ? 'Leave blank to use your mobile number' : 'Leave blank to use the verified number')),
           if (widget.isDriver) ...[
             const SafariSectionTitle('Guide details'),
             TextField(controller: company, decoration: const InputDecoration(labelText: 'Company / operator')),
@@ -181,8 +224,13 @@ class _SafariRegisterScreenState extends State<SafariRegisterScreen> {
             const SizedBox(height: 12),
             TextField(controller: languages, decoration: const InputDecoration(labelText: 'Languages', hintText: 'English, Swahili, French')),
           ],
-          const SafariSectionTitle('Password & photo'),
-          SafariPasswordField(controller: password),
+          SafariSectionTitle(_fromGoogle ? 'Password (optional) & photo' : 'Password & photo'),
+          if (_fromGoogle)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: Text('You can skip a password and keep using Google to sign in.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
+            ),
+          SafariPasswordField(controller: password, label: _fromGoogle ? 'Password (optional)' : 'Password'),
           const SizedBox(height: 12),
           SafariPasswordField(controller: confirm, label: 'Confirm password'),
           const SizedBox(height: 12),

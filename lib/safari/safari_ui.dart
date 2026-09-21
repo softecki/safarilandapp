@@ -927,6 +927,46 @@ class SafariGoldButton extends StatelessWidget {
   }
 }
 
+class SafariGoogleButton extends StatelessWidget {
+  const SafariGoogleButton({super.key, required this.loading, required this.onPressed, this.label = 'Continue with Google'});
+  final bool loading;
+  final VoidCallback? onPressed;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: loading ? () {} : onPressed,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: SafariTheme.black,
+        backgroundColor: Colors.white,
+        side: const BorderSide(color: SafariTheme.cardBorder),
+        minimumSize: const Size(0, 48),
+      ),
+      child: loading
+          ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: SafariTheme.wine))
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 18,
+                  height: 18,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: const Color(0xFF4285F4), width: 1.4),
+                  ),
+                  child: const Text('G', style: TextStyle(color: Color(0xFF4285F4), fontWeight: FontWeight.w800, fontSize: 12, height: 1)),
+                ),
+                const SizedBox(width: 10),
+                Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+              ],
+            ),
+    );
+  }
+}
+
 class SafariAltButton extends StatelessWidget {
   const SafariAltButton({super.key, required this.label, required this.onPressed});
   final String label;
