@@ -115,9 +115,11 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 88),
                 children: [
                   Row(children: [
-                    Expanded(child: Text('My QR', style: Theme.of(context).textTheme.titleLarge)),
+                    Expanded(child: Text('My QR', style: SafariTheme.display(size: 28))),
                     TextButton(onPressed: _add, child: const Text('Add source')),
                   ]),
+                  const SizedBox(height: 6),
+                  const Text('Your permanent code sits with scans and passes — share it, copy it, keep it with you.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
                   const SizedBox(height: 8),
                   if (hero == null)
                     const SafariEmpty('Create a QR so guests can open a shopping pass.', icon: Icons.qr_code_2)
@@ -129,8 +131,8 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
                         const Text('Share this with every guest. It never expires.', style: TextStyle(color: SafariTheme.muted, fontSize: 12)),
                         const SizedBox(height: 10),
                         Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: SafariTheme.cardBorder)),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(color: SafariTheme.sand, borderRadius: BorderRadius.circular(20)),
                           child: QrImageView(
                             data: _url(hero),
                             size: 180,

@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:wicom/safari/safari_api.dart';
-import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
 import 'package:wicom/safari/safari_ui.dart';
 
@@ -154,9 +153,9 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
         children: [
-          Text('Capture the moment', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 4),
-          const Text('Add notes, then ChatGPT writes a narration. Review it below before you save it to the Memory Book.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
+          Text('Capture the moment', style: SafariTheme.display(size: 26)),
+          const SizedBox(height: 6),
+          const Text('Notes, voice, location and photos first. Then review the AI narration before it reaches the Memory Book.', style: TextStyle(color: SafariTheme.muted, fontSize: 14)),
           const SizedBox(height: 16),
           TextField(controller: title, decoration: const InputDecoration(labelText: 'Title')),
           const SizedBox(height: 12),

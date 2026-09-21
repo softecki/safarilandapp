@@ -123,7 +123,9 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 88),
-                    child: Column(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: SafariTheme.contentMaxWidth),
+                      child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                   SafariWalletHero(
@@ -152,30 +154,56 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                   ]),
                   if (current.isNotEmpty) ...[
                     SafariSectionTitle('Current Safari', action: 'View trip', onAction: () => SafariNav.push(context, SafariTripDetailScreen(id: current['id']))),
-                    SafariCard(
-                      goldEdge: true,
-                      onTap: () => SafariNav.push(context, SafariTripDetailScreen(id: current['id'])),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Row(children: [
-                          SafariStatusChip('${current['state']}'.replaceAll('_', ' '), tone: SafariChipTone.gold),
-                          const Spacer(),
-                          Text('${safariGuestCount(current)} guests', style: const TextStyle(color: SafariTheme.muted, fontSize: 12)),
-                        ]),
-                        const SizedBox(height: 10),
-                        Text(current['label']?.toString() ?? 'Trip', style: Theme.of(context).textTheme.titleMedium),
-                        if ((current['itinerary'] ?? current['primary_nationality'] ?? '').toString().isNotEmpty)
-                          Text(
-                            '${current['primary_nationality'] ?? ''} · ${current['primary_language'] ?? ''}',
-                            style: const TextStyle(color: SafariTheme.muted),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(SafariTheme.cardRadius),
+                      child: Stack(
+                        children: [
+                          Image.asset(
+                            'assets/images/safari_land_poster.png',
+                            height: 168,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(height: 168, color: SafariTheme.darkEarth),
                           ),
-                        const SizedBox(height: 12),
-                        Row(children: [
-                          Expanded(child: SafariAltButton(label: 'Capture Story', onPressed: () => SafariNav.push(context, SafariStoryScreen(tripId: current['id'])))),
-                          const SizedBox(width: 8),
-                          Expanded(child: SafariGoldButton(label: 'Farewell', onPressed: () => SafariNav.pushUp(context, SafariFarewellScreen(trip: current)))),
-                        ]),
-                      ]),
+                          Container(
+                            height: 168,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Colors.transparent, SafariTheme.darkEarth.withValues(alpha: 0.85)],
+                              ),
+                            ),
+                          ),
+                          Positioned.fill(
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => SafariNav.push(context, SafariTripDetailScreen(id: current['id'])),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                    SafariStatusChip('${current['state']}'.replaceAll('_', ' '), tone: SafariChipTone.gold),
+                                    const Spacer(),
+                                    Text(current['label']?.toString() ?? 'Trip', style: SafariTheme.display(color: Colors.white, size: 24)),
+                                    Text(
+                                      '${safariGuestCount(current)} guests${(current['primary_nationality'] ?? '').toString().isNotEmpty ? ' · ${current['primary_nationality']}' : ''}',
+                                      style: const TextStyle(color: Colors.white70),
+                                    ),
+                                  ]),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: 10),
+                    Row(children: [
+                      Expanded(child: SafariAltButton(label: 'Capture Story', onPressed: () => SafariNav.push(context, SafariStoryScreen(tripId: current['id'])))),
+                      const SizedBox(width: 8),
+                      Expanded(child: SafariGoldButton(label: 'Farewell', onPressed: () => SafariNav.pushUp(context, SafariFarewellScreen(trip: current)))),
+                    ]),
                   ],
                   const SafariSectionTitle('Quick tools'),
                   GridView.count(
@@ -225,6 +253,7 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                       );
                     }),
                       ],
+                    ),
                     ),
                   ),
                 ],

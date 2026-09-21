@@ -1,5 +1,4 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wicom/safari/safari_api.dart';
 import 'package:wicom/safari/safari_brand.dart';
@@ -25,11 +24,10 @@ class SafariLogo extends StatelessWidget {
       filterQuality: FilterQuality.high,
       errorBuilder: (_, __, ___) => Text(
         SafariBrand.shortName.toUpperCase(),
-        style: GoogleFonts.playfairDisplay(
-          fontSize: height * 0.42,
-          fontWeight: FontWeight.w700,
+        style: SafariTheme.display(
+          size: height * 0.42,
+          weight: FontWeight.w700,
           color: variant == SafariLogoVariant.poster ? Colors.white : SafariTheme.black,
-          letterSpacing: 2,
         ),
       ),
     );
@@ -47,21 +45,14 @@ class SafariCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final body = Container(
       width: double.infinity,
-      padding: padding ?? const EdgeInsets.all(12),
+      padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(SafariTheme.cardRadius),
         border: goldEdge
-            ? const Border(
-                left: BorderSide(color: SafariTheme.gold, width: 4),
-                top: BorderSide(color: SafariTheme.cardBorder),
-                right: BorderSide(color: SafariTheme.cardBorder),
-                bottom: BorderSide(color: SafariTheme.cardBorder),
-              )
+            ? Border.all(color: SafariTheme.gold.withValues(alpha: 0.55))
             : Border.all(color: SafariTheme.cardBorder),
-        boxShadow: [
-          BoxShadow(color: SafariTheme.maroon.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 4)),
-        ],
+        boxShadow: SafariTheme.quietShadow,
       ),
       child: child,
     );
@@ -81,14 +72,10 @@ class SafariHero extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [SafariTheme.maroon, SafariTheme.maroonDark],
-        ),
+        borderRadius: BorderRadius.circular(SafariTheme.cardRadius),
+        gradient: SafariTheme.heroGradient,
       ),
       child: DefaultTextStyle.merge(style: const TextStyle(color: Colors.white), child: child),
     );
@@ -108,9 +95,9 @@ class SafariTagline extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: light ? SafariTheme.goldSoft : SafariTheme.muted,
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: FontWeight.w600,
-            letterSpacing: 1.6,
+            letterSpacing: 1.8,
           ),
         ),
         const SizedBox(height: 6),
@@ -243,20 +230,20 @@ class SafariActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafariCard(
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
       child: Column(
         children: [
           Container(
-            height: 32,
-            width: 32,
+            height: 48,
+            width: 48,
             decoration: BoxDecoration(
-              color: SafariTheme.maroon.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
+              color: SafariTheme.sand,
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: SafariTheme.maroon, size: 18),
+            child: Icon(icon, color: SafariTheme.wine, size: 22),
           ),
-          const SizedBox(height: 6),
-          Text(label, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11)),
+          const SizedBox(height: 8),
+          Text(label, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
         ],
       ),
     );
@@ -499,21 +486,19 @@ class SafariWordmark extends StatelessWidget {
       children: [
         Text(
           'SAFARI LAND',
-          style: GoogleFonts.playfairDisplay(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
+          style: SafariTheme.display(
+            size: 22,
+            weight: FontWeight.w700,
             color: light ? Colors.white : SafariTheme.black,
-            letterSpacing: 1.6,
-            height: 1.05,
           ),
         ),
-        const SizedBox(height: 3),
+        const SizedBox(height: 4),
         Text(
           'GO BEYOND THE SAFARI',
           style: TextStyle(
-            fontSize: 8,
+            fontSize: 9,
             fontWeight: FontWeight.w600,
-            letterSpacing: 1.4,
+            letterSpacing: 1.6,
             height: 1.2,
             color: light ? SafariTheme.goldSoft : SafariTheme.muted,
           ),
@@ -535,51 +520,71 @@ class SafariStickyHeader extends StatelessWidget {
     final first = name.split(' ').first;
     final initials = name.split(' ').where((p) => p.isNotEmpty).take(2).map((p) => p[0]).join().toUpperCase();
     final tier = (d['tier_category']?['label'] ?? d['loyalty']?['label'] ?? 'Guide').toString();
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(16, MediaQuery.paddingOf(context).top + 8, 16, 12),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [SafariTheme.maroon, SafariTheme.maroonDark],
-        ),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Expanded(child: SafariWordmark()),
-          if (onNotify != null)
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              onPressed: onNotify,
-              icon: Badge(isLabelVisible: unread > 0, child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 20)),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              SafariBrand.posterAsset,
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+              errorBuilder: (_, __, ___) => const ColoredBox(color: SafariTheme.darkEarth),
             ),
-          CircleAvatar(
-            radius: 14,
-            backgroundColor: Colors.white.withValues(alpha: 0.18),
-            child: Text(initials.isEmpty ? 'G' : initials, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11)),
           ),
-        ]),
-        const SizedBox(height: 8),
-        Row(children: [
-          Expanded(
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    SafariTheme.darkEarth.withValues(alpha: 0.55),
+                    SafariTheme.wine.withValues(alpha: 0.88),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, MediaQuery.paddingOf(context).top + 10, 16, 18),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Driver-Guide Partner', style: TextStyle(color: Colors.white70, fontSize: 11)),
-              const SizedBox(height: 2),
-              Text('Karibu, $first', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+              Row(children: [
+                const Expanded(child: SafariWordmark()),
+                if (onNotify != null)
+                  IconButton(
+                    onPressed: onNotify,
+                    icon: Badge(isLabelVisible: unread > 0, child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22)),
+                  ),
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.white.withValues(alpha: 0.18),
+                  child: Text(initials.isEmpty ? 'G' : initials, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
+                ),
+              ]),
+              const SizedBox(height: 16),
+              Row(children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('Driver-Guide Partner', style: TextStyle(color: SafariTheme.goldSoft, fontSize: 11, letterSpacing: 0.8, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Text('Karibu, $first', style: SafariTheme.display(color: Colors.white, size: 26)),
+                  ]),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: SafariTheme.gold.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: SafariTheme.gold.withValues(alpha: 0.45)),
+                  ),
+                  child: Text(tier, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11)),
+                ),
+              ]),
             ]),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
-            ),
-            child: Text(tier, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 10)),
-          ),
-        ]),
-      ]),
+        ],
+      ),
     );
   }
 }
@@ -603,12 +608,12 @@ class SafariWalletHero extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        gradient: const LinearGradient(colors: [Colors.white, Color(0xFFF4E9D4)]),
-        border: Border.all(color: SafariTheme.cardBorder),
-        boxShadow: [BoxShadow(color: SafariTheme.maroon.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 4))],
+        borderRadius: BorderRadius.circular(SafariTheme.cardRadius),
+        color: Colors.white,
+        border: Border.all(color: SafariTheme.gold.withValues(alpha: 0.45)),
+        boxShadow: SafariTheme.quietShadow,
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label, style: const TextStyle(color: SafariTheme.muted, fontSize: 12, fontWeight: FontWeight.w500)),
@@ -617,14 +622,14 @@ class SafariWalletHero extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: SafariCountUp(amount, moneyFormat: true, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: SafariTheme.maroon)),
+              child: SafariCountUp(amount, moneyFormat: true, style: SafariTheme.display(size: 28, color: SafariTheme.wine, weight: FontWeight.w700)),
             ),
             if (actionLabel != null)
               SizedBox(
                 height: 34,
                 child: ElevatedButton(
                   onPressed: onAction,
-                  style: ElevatedButton.styleFrom(minimumSize: const Size(0, 34), padding: const EdgeInsets.symmetric(horizontal: 14)),
+                  style: ElevatedButton.styleFrom(minimumSize: const Size(0, 48), padding: const EdgeInsets.symmetric(horizontal: 16)),
                   child: Text(actionLabel!),
                 ),
               ),
@@ -751,7 +756,7 @@ class SafariFilterTabs extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: i == index ? SafariTheme.maroon : SafariTheme.altFill,
+                color: i == index ? SafariTheme.wine : SafariTheme.sand,
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
@@ -807,11 +812,75 @@ class SafariFarewellHero extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(14)),
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [SafariTheme.maroonDark, SafariTheme.gold]),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(SafariTheme.cardRadius)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [SafariTheme.darkEarth, SafariTheme.wine.withValues(alpha: 0.92)],
+        ),
       ),
       child: DefaultTextStyle.merge(style: const TextStyle(color: Colors.white), child: child),
+    );
+  }
+}
+
+class SafariPageBody extends StatelessWidget {
+  const SafariPageBody({super.key, required this.child, this.padding});
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: SafariTheme.contentMaxWidth),
+        child: SingleChildScrollView(
+          padding: padding ?? const EdgeInsets.fromLTRB(16, 12, 16, 88),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class SafariPhotoBanner extends StatelessWidget {
+  const SafariPhotoBanner({super.key, required this.child, this.height = 168});
+  final Widget child;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: height + MediaQuery.paddingOf(context).top,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            SafariBrand.posterAsset,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const ColoredBox(color: SafariTheme.darkEarth),
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  SafariTheme.darkEarth.withValues(alpha: 0.35),
+                  SafariTheme.wine.withValues(alpha: 0.82),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, MediaQuery.paddingOf(context).top + 8, 16, 16),
+            child: child,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -852,7 +921,7 @@ class SafariGoldButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: onPressed,
-      style: ElevatedButton.styleFrom(backgroundColor: SafariTheme.gold, foregroundColor: SafariTheme.maroonDark, minimumSize: const Size(0, 38), textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+      style: ElevatedButton.styleFrom(backgroundColor: SafariTheme.gold, foregroundColor: SafariTheme.darkEarth, minimumSize: const Size(0, 48), textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
       child: Text(label),
     );
   }
@@ -867,7 +936,7 @@ class SafariAltButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: onPressed,
-      style: ElevatedButton.styleFrom(backgroundColor: SafariTheme.altFill, foregroundColor: SafariTheme.maroon, minimumSize: const Size(0, 38), textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+      style: ElevatedButton.styleFrom(backgroundColor: SafariTheme.sand, foregroundColor: SafariTheme.wine, minimumSize: const Size(0, 48), textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
       child: Text(label),
     );
   }
@@ -917,7 +986,7 @@ Future<T?> safariSheet<T>(BuildContext context, Widget child) {
     context: context,
     isScrollControlled: true,
     backgroundColor: SafariTheme.canvas,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
     builder: (ctx) => Padding(
       padding: EdgeInsets.fromLTRB(16, 14, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
       child: child,

@@ -7,6 +7,7 @@ import 'package:wicom/safari/safari_brand.dart';
 import 'package:wicom/safari/safari_gate.dart';
 import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
+import 'package:wicom/safari/safari_ui.dart';
 import 'package:wicom/safari/screens/login_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -98,25 +99,47 @@ class _SafariSplashScreenState extends State<SafariSplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: SafariTheme.maroon,
+      backgroundColor: SafariTheme.darkEarth,
       body: Stack(
         fit: StackFit.expand,
         children: [
           Image.asset(
             SafariBrand.posterAsset,
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
             alignment: Alignment.center,
-            errorBuilder: (_, __, ___) => const ColoredBox(color: SafariTheme.maroon),
+            errorBuilder: (_, __, ___) => const ColoredBox(color: SafariTheme.darkEarth),
           ),
-          const SafeArea(
-            child: Column(
-              children: [
-                Spacer(),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(32, 0, 32, 48),
-                  child: CircularProgressIndicator(color: Colors.white),
-                ),
-              ],
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  SafariTheme.darkEarth.withValues(alpha: 0.25),
+                  SafariTheme.wine.withValues(alpha: 0.78),
+                ],
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(28, 28, 28, 40),
+              child: Column(
+                children: [
+                  const SafariLogo(height: 72),
+                  const SizedBox(height: 12),
+                  const SafariTagline(light: true),
+                  const Spacer(),
+                  Text('Go beyond the safari', style: SafariTheme.display(color: Colors.white, size: 32)),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Driver-guide partner platform',
+                    style: TextStyle(color: SafariTheme.goldSoft, fontWeight: FontWeight.w600, letterSpacing: 0.6),
+                  ),
+                  const SizedBox(height: 28),
+                  const CircularProgressIndicator(color: SafariTheme.gold),
+                ],
+              ),
             ),
           ),
         ],

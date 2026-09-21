@@ -1,0 +1,1 @@
+C:\xampp\htdocs\project\safariLandApp\build\app\intermediates\cxx\RelWithDebInfo\6t1h2h42\obj\arm64-v8a

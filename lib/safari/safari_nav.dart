@@ -16,8 +16,8 @@ class SafariNav {
   static Route<T> slide<T>(Widget page) {
     return PageRouteBuilder<T>(
       pageBuilder: (_, __, ___) => page,
-      transitionDuration: const Duration(milliseconds: 380),
-      reverseTransitionDuration: const Duration(milliseconds: 280),
+      transitionDuration: SafariTheme.motion,
+      reverseTransitionDuration: const Duration(milliseconds: 180),
       transitionsBuilder: (_, animation, __, child) {
         final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
         return SlideTransition(
@@ -31,7 +31,7 @@ class SafariNav {
   static Route<T> fade<T>(Widget page) {
     return PageRouteBuilder<T>(
       pageBuilder: (_, __, ___) => page,
-      transitionDuration: const Duration(milliseconds: 420),
+      transitionDuration: SafariTheme.motion,
       transitionsBuilder: (_, animation, __, child) => FadeTransition(
         opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
         child: child,
@@ -42,8 +42,8 @@ class SafariNav {
   static Route<T> up<T>(Widget page) {
     return PageRouteBuilder<T>(
       pageBuilder: (_, __, ___) => page,
-      transitionDuration: const Duration(milliseconds: 400),
-      reverseTransitionDuration: const Duration(milliseconds: 300),
+      transitionDuration: SafariTheme.motion,
+      reverseTransitionDuration: const Duration(milliseconds: 180),
       transitionsBuilder: (_, animation, __, child) {
         final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
         return SlideTransition(
@@ -57,7 +57,7 @@ class SafariNav {
   static Route<T> scale<T>(Widget page) {
     return PageRouteBuilder<T>(
       pageBuilder: (_, __, ___) => page,
-      transitionDuration: const Duration(milliseconds: 480),
+      transitionDuration: SafariTheme.motion,
       transitionsBuilder: (_, animation, __, child) {
         final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutBack);
         return FadeTransition(

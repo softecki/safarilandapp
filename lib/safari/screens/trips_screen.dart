@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:wicom/safari/safari_api.dart';
 import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
@@ -132,54 +131,35 @@ class _SafariTripsScreenState extends State<SafariTripsScreen> {
   }
 
   Widget _tripsBanner() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(16, MediaQuery.paddingOf(context).top + 14, 16, 18),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [SafariTheme.maroon, SafariTheme.maroonDark],
-        ),
-      ),
+    return SafariPhotoBanner(
+      height: 168,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(
-                'TRIPS',
-                style: GoogleFonts.playfairDisplay(
-                  color: SafariTheme.goldSoft,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 2.2,
-                ),
-              ),
+              const Text('TRIPS', style: TextStyle(color: SafariTheme.goldSoft, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 2.2)),
               const SizedBox(height: 4),
-              const Text(
-                'Your safaris',
-                style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800, height: 1.1),
-              ),
+              Text('Your safaris', style: SafariTheme.display(color: Colors.white, size: 28)),
             ]),
           ),
           Material(
             color: SafariTheme.gold,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             child: InkWell(
               onTap: _newTrip,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 child: Row(children: [
-                  Icon(Icons.add, size: 18, color: SafariTheme.maroonDark),
+                  Icon(Icons.add, size: 18, color: SafariTheme.darkEarth),
                   SizedBox(width: 4),
-                  Text('New trip', style: TextStyle(color: SafariTheme.maroonDark, fontWeight: FontWeight.w800, fontSize: 13)),
+                  Text('New trip', style: TextStyle(color: SafariTheme.darkEarth, fontWeight: FontWeight.w800, fontSize: 13)),
                 ]),
               ),
             ),
           ),
         ]),
-        const SizedBox(height: 16),
+        const Spacer(),
         Row(children: [
           _statPill('${_count(0)}', 'Upcoming'),
           const SizedBox(width: 8),

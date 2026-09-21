@@ -87,25 +87,31 @@ class _SafariOtpScreenState extends State<SafariOtpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Enter code')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          Text(_hint, style: const TextStyle(color: SafariTheme.muted)),
-          const SizedBox(height: 20),
-          TextField(
-            controller: code,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            maxLength: 6,
-            style: const TextStyle(fontSize: 20, letterSpacing: 8, fontWeight: FontWeight.w700),
-            decoration: const InputDecoration(
-              hintText: 'Enter OTP',
-              counterText: '',
+      body: SafariPageBody(
+        padding: const EdgeInsets.fromLTRB(22, 8, 22, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Enter your code', style: SafariTheme.display(size: 26)),
+            const SizedBox(height: 8),
+            Text(_hint, style: const TextStyle(color: SafariTheme.muted)),
+            const SizedBox(height: 20),
+            TextField(
+              controller: code,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              maxLength: 6,
+              style: const TextStyle(fontSize: 22, letterSpacing: 10, fontWeight: FontWeight.w700),
+              decoration: const InputDecoration(
+                labelText: 'One-time code',
+                hintText: '000000',
+                counterText: '',
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-          SafariLoadingButton(label: 'Verify', loading: loading, onPressed: _verify),
-        ],
+            const SizedBox(height: 20),
+            SafariLoadingButton(label: 'Verify', loading: loading, onPressed: _verify),
+          ],
+        ),
       ),
     );
   }

@@ -52,15 +52,20 @@ class _SafariForgotPasswordScreenState extends State<SafariForgotPasswordScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Forgot password')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          const Text('Enter the mobile number on your account. We will send a one-time code.', style: TextStyle(color: SafariTheme.muted)),
-          const SizedBox(height: 20),
-          TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Mobile number', hintText: '07XXXXXXXX')),
-          const SizedBox(height: 20),
-          SafariLoadingButton(label: 'Send code', loading: loading, onPressed: _send),
-        ],
+      body: SafariPageBody(
+        padding: const EdgeInsets.fromLTRB(22, 8, 22, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Recover access', style: SafariTheme.display(size: 26)),
+            const SizedBox(height: 8),
+            const Text('Enter the mobile number on your account. We will send a one-time code.', style: TextStyle(color: SafariTheme.muted)),
+            const SizedBox(height: 20),
+            TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Mobile number', hintText: '07XXXXXXXX')),
+            const SizedBox(height: 20),
+            SafariLoadingButton(label: 'Send code', loading: loading, onPressed: _send),
+          ],
+        ),
       ),
     );
   }

@@ -62,8 +62,12 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
                 children: [
                   if (!Navigator.canPop(context))
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text('Wallet', style: Theme.of(context).textTheme.titleLarge),
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text('Wallet', style: SafariTheme.display(size: 28)),
+                        const SizedBox(height: 4),
+                        const Text('Available points, withdrawals, and referral activity.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
+                      ]),
                     ),
                   SafariWalletHero(
                     label: 'Available points',

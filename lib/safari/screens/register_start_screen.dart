@@ -62,30 +62,37 @@ class _SafariRegisterStartScreenState extends State<SafariRegisterStartScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Create account')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const Text('We will send a one-time code to your phone and email.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
-          const SizedBox(height: 20),
-          TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Mobile number', hintText: '07XXXXXXXX')),
-          const SizedBox(height: 12),
-          TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email')),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              SizedBox(
-                width: 22,
-                child: isDriver
-                    ? const Icon(Icons.check_circle, size: 18, color: Color(0xFF1F6B3A))
-                    : null,
+      body: SafariPageBody(
+        padding: const EdgeInsets.fromLTRB(22, 8, 22, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Join Safari Land', style: SafariTheme.display(size: 28)),
+            const SizedBox(height: 8),
+            const Text('We will send a one-time code to your phone and email.', style: TextStyle(color: SafariTheme.muted, fontSize: 14)),
+            const SizedBox(height: 22),
+            TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Mobile number', hintText: '07XXXXXXXX')),
+            const SizedBox(height: 14),
+            TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email')),
+            const SizedBox(height: 16),
+            SafariCard(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(isDriver ? 'Driver-guide' : 'Guide partner', style: const TextStyle(fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 4),
+                      const Text('Choose the role that matches how you work.', style: TextStyle(color: SafariTheme.muted, fontSize: 12)),
+                    ]),
+                  ),
+                  Switch(value: isDriver, onChanged: (v) => setState(() => isDriver = v)),
+                ],
               ),
-              const Expanded(child: Text('I am a driver', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14))),
-              Switch(value: isDriver, onChanged: (v) => setState(() => isDriver = v)),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SafariLoadingButton(label: 'Send code', loading: loading, onPressed: _send),
-        ],
+            ),
+            const SizedBox(height: 22),
+            SafariLoadingButton(label: 'Send code', loading: loading, onPressed: _send),
+          ],
+        ),
       ),
     );
   }

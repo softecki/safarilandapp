@@ -186,9 +186,11 @@ class _SafariFarewellScreenState extends State<SafariFarewellScreen> {
               children: [
                 SafariFarewellHero(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(trip?['label']?.toString() ?? 'Farewell', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 6),
-                    const Text('Write a note, let ChatGPT narrate it, review the text, then save. Activate emails the guest and opens WhatsApp.', style: TextStyle(fontSize: 13)),
+                    const Text('FAREWELL STUDIO', style: TextStyle(color: SafariTheme.goldSoft, fontSize: 11, letterSpacing: 1.6, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 8),
+                    Text(trip?['label']?.toString() ?? 'Farewell', style: SafariTheme.display(color: Colors.white, size: 26)),
+                    const SizedBox(height: 8),
+                    const Text('1 Guest  ·  2 Note  ·  3 Narration  ·  4 Activate', style: TextStyle(fontSize: 13, color: SafariTheme.goldSoft)),
                   ]),
                 ),
                 const SafariSectionTitle('Guest'),

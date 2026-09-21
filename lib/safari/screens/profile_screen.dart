@@ -140,8 +140,8 @@ class _SafariProfileScreenState extends State<SafariProfileScreen> {
         children: [
           if (!Navigator.canPop(context))
             Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text('Guide Passport', style: Theme.of(context).textTheme.titleLarge),
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Text('Guide Passport', style: SafariTheme.display(size: 28)),
             ),
           SafariCard(
             child: Column(children: [
@@ -173,7 +173,7 @@ class _SafariProfileScreenState extends State<SafariProfileScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              Text(name, style: Theme.of(context).textTheme.titleMedium),
+              Text(name, style: SafariTheme.display(size: 26)),
               const SizedBox(height: 2),
               Text(d['member_no']?.toString() ?? 'Pending ID', style: const TextStyle(color: SafariTheme.gold, fontWeight: FontWeight.w600, fontSize: 12)),
               if (d['company'] != null) Text('${d['company']}', style: const TextStyle(color: SafariTheme.muted, fontSize: 13)),

@@ -85,8 +85,8 @@ class _SafariShellState extends State<SafariShell> {
       floatingActionButton: FloatingActionButton(
         heroTag: 'safari-qr-fab',
         onPressed: () => _go(SafariTabs.qr),
-        backgroundColor: qrOn ? SafariTheme.gold : SafariTheme.maroon,
-        foregroundColor: qrOn ? SafariTheme.maroonDark : Colors.white,
+        backgroundColor: qrOn ? SafariTheme.gold : SafariTheme.wine,
+        foregroundColor: qrOn ? SafariTheme.darkEarth : Colors.white,
         child: const Icon(Icons.qr_code_2, size: 24),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -98,8 +98,8 @@ class _SafariShellState extends State<SafariShell> {
         notchMargin: 8,
         padding: EdgeInsets.zero,
         child: SizedBox(
-          height: 58,
-          child: Row(
+        height: 60,
+        child: Row(
             children: [
               _navItem(SafariTabs.home, Icons.home_outlined, Icons.home_rounded, 'Home'),
               _navItem(SafariTabs.trips, Icons.groups_outlined, Icons.groups_rounded, 'Trips'),
@@ -121,14 +121,14 @@ class _SafariShellState extends State<SafariShell> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(on ? active : icon, color: on ? SafariTheme.maroon : SafariTheme.muted),
-            const SizedBox(height: 2),
+            Icon(on ? active : icon, color: on ? SafariTheme.wine : SafariTheme.muted, size: 24),
+            const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: on ? SafariTheme.maroon : SafariTheme.muted,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: on ? SafariTheme.wine : SafariTheme.muted,
               ),
             ),
           ],

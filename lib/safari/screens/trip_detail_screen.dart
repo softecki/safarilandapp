@@ -108,6 +108,10 @@ class _SafariTripDetailScreenState extends State<SafariTripDetailScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
         children: [
+          Text('Trip command center', style: SafariTheme.display(size: 24)),
+          const SizedBox(height: 4),
+          const Text('State, guests, story, memory book, farewell and passes in one place.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
+          const SizedBox(height: 14),
           SafariCard(
             goldEdge: state == 'ON_SAFARI',
             child: Column(children: [

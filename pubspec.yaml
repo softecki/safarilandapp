@@ -66,6 +66,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.0
   iconsax: ^0.0.8
   google_fonts: ^6.2.1
+  google_sign_in: ^6.2.2
   workmanager: ^0.7.0
   # Connectivity checking
   connectivity_plus: ^6.0.5
@@ -93,13 +94,13 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/images/safari_land_logo.png"
-  adaptive_icon_background: "#F6F0E8"
+  adaptive_icon_background: "#FBF7F1"
   adaptive_icon_foreground: "assets/images/safari_land_logo.png"
   web:
     generate: true
     image_path: "assets/images/safari_land_logo.png"
-    background_color: "#F6F0E8"
-    theme_color: "#6E0B12"
+    background_color: "#FBF7F1"
+    theme_color: "#761113"
 
 
 flutter:

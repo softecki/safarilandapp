@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wicom/safari/safari_api.dart';
+import 'package:wicom/safari/safari_brand.dart';
 import 'package:wicom/safari/safari_gate.dart';
 import 'package:wicom/safari/safari_nav.dart';
 import 'package:wicom/safari/safari_theme.dart';
@@ -47,42 +48,58 @@ class _SafariLoginScreenState extends State<SafariLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-          children: [
-            const SizedBox(height: 20),
-            const Center(child: SafariLogo(height: 64)),
-            const SizedBox(height: 8),
-            const SafariTagline(),
-            const SizedBox(height: 22),
-            Text('Sign in', style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 6),
-            const Text('Use your phone and password.', style: TextStyle(color: SafariTheme.muted, fontSize: 13)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: phone,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Mobile number', hintText: '07XXXXXXXX'),
+      body: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          SafariPhotoBanner(
+            height: 220,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SafariWordmark(),
+                const Spacer(),
+                Text('Karibu', style: SafariTheme.display(color: Colors.white, size: 34)),
+                const SizedBox(height: 4),
+                const Text(
+                  SafariBrand.tagline,
+                  style: TextStyle(color: SafariTheme.goldSoft, fontWeight: FontWeight.w600, letterSpacing: 1.4, fontSize: 11),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            SafariPasswordField(controller: password),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => SafariNav.push(context, const SafariForgotPasswordScreen()),
-                style: TextButton.styleFrom(visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 4)),
-                child: const Text('Forgot Password', style: TextStyle(fontSize: 12, color: SafariTheme.muted)),
-              ),
+          ),
+          SafariPageBody(
+            padding: const EdgeInsets.fromLTRB(22, 24, 22, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Sign in', style: SafariTheme.display(size: 28)),
+                const SizedBox(height: 6),
+                const Text('Use your mobile number and password.', style: TextStyle(color: SafariTheme.muted, fontSize: 14)),
+                const SizedBox(height: 22),
+                TextField(
+                  controller: phone,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(labelText: 'Mobile number', hintText: '07XXXXXXXX'),
+                ),
+                const SizedBox(height: 14),
+                SafariPasswordField(controller: password),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => SafariNav.push(context, const SafariForgotPasswordScreen()),
+                    child: const Text('Forgot password'),
+                  ),
+                ),
+                SafariLoadingButton(label: 'Sign in', loading: loading, onPressed: _login),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => SafariNav.push(context, const SafariRegisterStartScreen()),
+                  child: const Text('Create account'),
+                ),
+              ],
             ),
-            SafariLoadingButton(label: 'Sign in', loading: loading, onPressed: _login),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => SafariNav.push(context, const SafariRegisterStartScreen()),
-              child: const Text('Create account'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
