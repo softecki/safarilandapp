@@ -17,6 +17,7 @@ class SafariWalletScreen extends StatefulWidget {
 class _SafariWalletScreenState extends State<SafariWalletScreen> {
   Map<String, dynamic>? data;
   bool loading = true;
+  Object? loadError;
 
   @override
   void initState() {
@@ -28,8 +29,13 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
     try {
       final json = await SafariApi.get('/wallet');
       data = Map<String, dynamic>.from(SafariApi.data(json) as Map);
+      loadError = null;
     } catch (e) {
-      await safariError(context, e);
+      loadError = e;
+      if (!safariIsOffline(e)) {
+        if (!context.mounted) return;
+        await safariError(context, e);
+      }
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -51,8 +57,18 @@ class _SafariWalletScreenState extends State<SafariWalletScreen> {
       appBar: Navigator.canPop(context) ? AppBar(title: const Text('Wallet')) : null,
       body: loading
           ? const Center(child: CircularProgressIndicator())
+          : loadError != null
+              ? SafariOffline(
+                  onRetry: () {
+                    setState(() {
+                      loading = true;
+                      loadError = null;
+                    });
+                    _load();
+                  },
+                )
           : RefreshIndicator(
-              color: SafariTheme.gold,
+              color: SafariTheme.wine,
               onRefresh: () async {
                 setState(() => loading = true);
                 await _load();

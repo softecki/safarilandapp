@@ -23,6 +23,8 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
   Map<String, dynamic>? home;
   bool loading = true;
 
+  Object? loadError;
+
   @override
   void initState() {
     super.initState();
@@ -33,13 +35,18 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
     try {
       final json = await SafariApi.get('/home');
       home = Map<String, dynamic>.from(SafariApi.data(json) as Map);
+      loadError = null;
       SafariApi.driver = Map<String, dynamic>.from(home?['driver'] as Map? ?? SafariApi.driver ?? {});
       final token = SafariApi.token;
       if (token != null && SafariApi.driver != null) {
         await SafariApi.saveAuth(token, SafariApi.driver!);
       }
     } catch (e) {
-      await safariError(context, e);
+      loadError = e;
+      if (!safariIsOffline(e)) {
+        if (!context.mounted) return;
+        await safariError(context, e);
+      }
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -76,8 +83,10 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
         'guest_count': int.tryParse(count.text) ?? safariGuestCount(trip),
         'eta_at': DateTime.now().add(const Duration(hours: 2)).toIso8601String(),
       });
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Safari Land notified')));
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Safari Land notified')));
     } catch (e) {
+      if (!context.mounted) return;
       await safariError(context, e);
     }
   }
@@ -108,8 +117,25 @@ class _SafariHomeScreenState extends State<SafariHomeScreen> {
                 const Expanded(child: Center(child: CircularProgressIndicator())),
               ],
             )
+          : loadError != null
+              ? Column(
+                  children: [
+                    SafariStickyHeader(unread: _unread, onNotify: _openNotifications),
+                    Expanded(
+                      child: SafariOffline(
+                        onRetry: () {
+                          setState(() {
+                            loading = true;
+                            loadError = null;
+                          });
+                          _load();
+                        },
+                      ),
+                    ),
+                  ],
+                )
           : RefreshIndicator(
-              color: SafariTheme.gold,
+              color: SafariTheme.wine,
               onRefresh: () async {
                 setState(() => loading = true);
                 await _load();

@@ -36,9 +36,7 @@ class SafariTheme {
     colors: [wine, darkEarth],
   );
 
-  static List<BoxShadow> get quietShadow => [
-        BoxShadow(color: darkEarth.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, 3)),
-      ];
+  static List<BoxShadow> get quietShadow => const [];
 
   static TextStyle display({Color color = black, double size = 28, FontWeight weight = FontWeight.w600}) {
     try {
@@ -127,7 +125,7 @@ class SafariTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: wine,
-          side: const BorderSide(color: gold, width: 1.2),
+          side: const BorderSide(color: cardBorder, width: 1.2),
           minimumSize: const Size.fromHeight(52),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
@@ -142,10 +140,10 @@ class SafariTheme {
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: wine,
         foregroundColor: Colors.white,
-        elevation: 2,
+        elevation: 0,
         shape: CircleBorder(),
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(color: gold),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(color: wine),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: darkEarth,
         contentTextStyle: const TextStyle(color: Colors.white, fontSize: 13),

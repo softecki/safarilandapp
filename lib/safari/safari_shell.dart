@@ -33,7 +33,7 @@ class _SafariShellState extends State<SafariShell> {
     try {
       final json = await SafariApi.get('/notifications');
       final rows = (SafariApi.data(json) as List?) ?? [];
-      final count = rows.where((r) => r is Map && safariNotificationUnread(r as Map)).length;
+      final count = rows.where((r) => r is Map && safariNotificationUnread(r)).length;
       if (mounted) setState(() => unread = count);
     } catch (_) {}
   }
@@ -90,10 +90,16 @@ class _SafariShellState extends State<SafariShell> {
         child: const Icon(Icons.qr_code_2, size: 24),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: SafariTheme.cardBorder)),
+        ),
+        child: BottomAppBar(
         color: Colors.white,
-        elevation: 10,
-        shadowColor: SafariTheme.maroon.withValues(alpha: 0.16),
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         shape: const CircularNotchedRectangle(),
         notchMargin: 8,
         padding: EdgeInsets.zero,
@@ -108,6 +114,7 @@ class _SafariShellState extends State<SafariShell> {
               _navItem(SafariTabs.profile, Icons.person_outline, Icons.person_rounded, 'Profile'),
             ],
           ),
+        ),
         ),
       ),
     );

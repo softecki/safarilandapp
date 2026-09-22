@@ -201,22 +201,136 @@ String safariPassStatus(dynamic status) {
 }
 
 class SafariEmpty extends StatelessWidget {
-  const SafariEmpty(this.message, {super.key, this.icon = Icons.inbox_outlined});
+  const SafariEmpty(this.message, {super.key, this.icon = Icons.inbox_outlined, this.actionLabel, this.onAction});
   final String message;
   final IconData icon;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20),
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 12),
       child: Column(
         children: [
-          Icon(icon, color: SafariTheme.gold, size: 28),
-          const SizedBox(height: 8),
-          Text(message, textAlign: TextAlign.center, style: const TextStyle(color: SafariTheme.muted, fontSize: 13)),
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(color: SafariTheme.sand, borderRadius: BorderRadius.circular(16)),
+            child: Icon(icon, color: SafariTheme.wine, size: 26),
+          ),
+          const SizedBox(height: 12),
+          Text(message, textAlign: TextAlign.center, style: const TextStyle(color: SafariTheme.muted, fontSize: 13, height: 1.4)),
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(height: 14),
+            SizedBox(
+              height: 44,
+              child: OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
+            ),
+          ],
         ],
       ),
     );
+  }
+}
+
+bool safariIsOffline(Object e) {
+  final s = e.toString().toLowerCase();
+  return s.contains('socketexception') ||
+      s.contains('failed host lookup') ||
+      s.contains('network is unreachable') ||
+      s.contains('connection refused') ||
+      s.contains('connection reset') ||
+      s.contains('timed out') ||
+      s.contains('timeout') ||
+      s.contains('clientexception') ||
+      s.contains('xmlhttprequest') ||
+      s.contains('network error');
+}
+
+class SafariOffline extends StatelessWidget {
+  const SafariOffline({super.key, required this.onRetry, this.message});
+  final VoidCallback onRetry;
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SafariEmpty(
+        message ?? 'You appear to be offline. Check your connection and try again.',
+        icon: Icons.wifi_off_outlined,
+        actionLabel: 'Try again',
+        onAction: onRetry,
+      ),
+    );
+  }
+}
+
+class SafariStepBar extends StatelessWidget {
+  const SafariStepBar({super.key, required this.steps, required this.index, this.onBack});
+  final List<String> steps;
+  final int index;
+  final ValueChanged<int>? onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            for (var i = 0; i < steps.length; i++) ...[
+              _dot(i),
+              if (i < steps.length - 1)
+                Expanded(
+                  child: Container(
+                    height: 1,
+                    color: i < index ? SafariTheme.wine : SafariTheme.cardBorder,
+                  ),
+                ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            for (var i = 0; i < steps.length; i++)
+              Expanded(
+                child: Text(
+                  steps[i],
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: i == index ? FontWeight.w700 : FontWeight.w500,
+                    color: i == index ? SafariTheme.wine : SafariTheme.muted,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _dot(int i) {
+    final on = i <= index;
+    final child = Container(
+      width: 28,
+      height: 28,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: on ? SafariTheme.wine : SafariTheme.sand,
+        shape: BoxShape.circle,
+        border: Border.all(color: on ? SafariTheme.wine : SafariTheme.cardBorder),
+      ),
+      child: Text(
+        '${i + 1}',
+        style: TextStyle(color: on ? Colors.white : SafariTheme.muted, fontSize: 12, fontWeight: FontWeight.w700),
+      ),
+    );
+    if (onBack != null && i < index) {
+      return InkWell(onTap: () => onBack!(i), customBorder: const CircleBorder(), child: child);
+    }
+    return child;
   }
 }
 

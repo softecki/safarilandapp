@@ -17,6 +17,7 @@ class _SafariTripsScreenState extends State<SafariTripsScreen> {
   List trips = [];
   bool loading = true;
   int filter = 0;
+  Object? loadError;
   static const _filters = ['Upcoming', 'On Safari', 'Completed'];
 
   @override
@@ -29,8 +30,13 @@ class _SafariTripsScreenState extends State<SafariTripsScreen> {
     try {
       final json = await SafariApi.get('/trips');
       trips = (SafariApi.data(json) as List?) ?? [];
+      loadError = null;
     } catch (e) {
-      await safariError(context, e);
+      loadError = e;
+      if (!safariIsOffline(e)) {
+        if (!context.mounted) return;
+        await safariError(context, e);
+      }
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -93,8 +99,18 @@ class _SafariTripsScreenState extends State<SafariTripsScreen> {
       appBar: nested ? AppBar(title: const Text('Trips')) : null,
       body: loading
           ? const Center(child: CircularProgressIndicator())
+          : loadError != null
+              ? SafariOffline(
+                  onRetry: () {
+                    setState(() {
+                      loading = true;
+                      loadError = null;
+                    });
+                    _load();
+                  },
+                )
           : RefreshIndicator(
-              color: SafariTheme.gold,
+              color: SafariTheme.wine,
               onRefresh: () async {
                 setState(() => loading = true);
                 await _load();
@@ -143,7 +159,7 @@ class _SafariTripsScreenState extends State<SafariTripsScreen> {
             ]),
           ),
           Material(
-            color: SafariTheme.gold,
+            color: SafariTheme.wine,
             borderRadius: BorderRadius.circular(14),
             child: InkWell(
               onTap: _newTrip,
@@ -151,9 +167,9 @@ class _SafariTripsScreenState extends State<SafariTripsScreen> {
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 child: Row(children: [
-                  Icon(Icons.add, size: 18, color: SafariTheme.darkEarth),
+                  Icon(Icons.add, size: 18, color: Colors.white),
                   SizedBox(width: 4),
-                  Text('New trip', style: TextStyle(color: SafariTheme.darkEarth, fontWeight: FontWeight.w800, fontSize: 13)),
+                  Text('New trip', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13)),
                 ]),
               ),
             ),

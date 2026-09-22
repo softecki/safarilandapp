@@ -15,6 +15,8 @@ class SafariStoryScreen extends StatefulWidget {
 }
 
 class _SafariStoryScreenState extends State<SafariStoryScreen> {
+  static const _steps = ['Capture', 'Guest', 'Review'];
+  int step = 0;
   final text = TextEditingController();
   final title = TextEditingController();
   final location = TextEditingController();
@@ -24,7 +26,6 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
   Map<String, dynamic>? story;
   final narration = TextEditingController();
   bool loading = false;
-  bool reviewing = false;
 
   @override
   void dispose() {
@@ -61,6 +62,14 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
     final cleaned = variants.whereType<Map>().where((v) => '${v['kind']}' == 'cleaned' || '${v['language']}' == 'en');
     if (cleaned.isNotEmpty) return '${cleaned.first['body'] ?? ''}';
     return story['approved_text']?.toString() ?? story['source_text']?.toString() ?? '';
+  }
+
+  Future<void> _goGuest() async {
+    if (text.text.trim().isEmpty) {
+      await safariError(context, 'Add a voice note or a few lines about what happened.');
+      return;
+    }
+    setState(() => step = 1);
   }
 
   Future<void> _process() async {
@@ -104,22 +113,7 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
       story = Map<String, dynamic>.from(SafariApi.data(processed) as Map);
       narration.text = _cleaned(story!);
       if (!mounted) return;
-      setState(() => reviewing = true);
-      await safariSheet<void>(
-        context,
-        Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Review narration', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 10),
-          Text(
-            narration.text.isEmpty
-                ? 'No narration yet. Add a ChatGPT API key under portal Settings → ChatGPT.'
-                : narration.text,
-            style: const TextStyle(height: 1.45),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('Edit & save')),
-        ]),
-      );
+      setState(() => step = 2);
     } catch (e) {
       await safariError(context, e);
     } finally {
@@ -137,94 +131,150 @@ class _SafariStoryScreenState extends State<SafariStoryScreen> {
       });
       final url = '${SafariApi.guestBase()}/m/${widget.tripId}';
       final opened = await safariOpenWhatsApp(whatsapp.text.trim(), 'Safari Story from your guide: $url');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(opened ? 'Saved. Opening WhatsApp…' : 'Saved to Memory Book')));
-        Navigator.pop(context);
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(opened ? 'Saved. Opening WhatsApp…' : 'Saved to Memory Book')));
+      Navigator.pop(context);
     } catch (e) {
+      if (!context.mounted) return;
       await safariError(context, e);
     }
   }
 
+  Widget _photoTile(int i, XFile file) {
+    return FutureBuilder(
+      future: file.readAsBytes(),
+      builder: (context, snap) {
+        final image = snap.hasData
+            ? Image.memory(snap.data!, width: 88, height: 88, fit: BoxFit.cover)
+            : Container(
+                width: 88,
+                height: 88,
+                alignment: Alignment.center,
+                color: SafariTheme.sand,
+                child: const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+              );
+        return Stack(children: [
+          ClipRRect(borderRadius: BorderRadius.circular(14), child: image),
+          Positioned(
+            right: 0,
+            child: IconButton(
+              icon: const Icon(Icons.close, size: 18, color: Colors.white),
+              style: IconButton.styleFrom(backgroundColor: SafariTheme.darkEarth.withValues(alpha: 0.55), minimumSize: const Size(36, 36)),
+              onPressed: () => setState(() => photos.removeAt(i)),
+            ),
+          ),
+        ]);
+      },
+    );
+  }
+
+  Widget _capture() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text('Capture the moment', style: SafariTheme.display(size: 26)),
+      const SizedBox(height: 6),
+      const Text('Photos and a short note first. Guest details come next, then you review the narration.', style: TextStyle(color: SafariTheme.muted, fontSize: 14)),
+      const SizedBox(height: 16),
+      Row(children: [
+        const Expanded(child: Text('Photos', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+        Text('${photos.length}/6', style: const TextStyle(color: SafariTheme.muted)),
+      ]),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          ...photos.asMap().entries.map((e) => _photoTile(e.key, e.value)),
+          if (photos.length < 6)
+            InkWell(
+              onTap: _pick,
+              child: Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(color: SafariTheme.sand, borderRadius: BorderRadius.circular(14), border: Border.all(color: SafariTheme.cardBorder)),
+                child: const Icon(Icons.add_a_photo_outlined, color: SafariTheme.wine),
+              ),
+            ),
+        ],
+      ),
+      const SizedBox(height: 16),
+      TextField(controller: text, maxLines: 6, decoration: const InputDecoration(labelText: 'What happened *', hintText: 'Say what happened, who was there, and why it mattered.')),
+      const SizedBox(height: 12),
+      TextField(controller: title, decoration: const InputDecoration(labelText: 'Title', hintText: 'Optional')),
+      const SizedBox(height: 12),
+      TextField(controller: location, decoration: const InputDecoration(labelText: 'Location', hintText: 'Serengeti, Ngorongoro, camp name…')),
+      const SizedBox(height: 20),
+      SafariLoadingButton(label: 'Continue to guest', loading: false, onPressed: _goGuest),
+    ]);
+  }
+
+  Widget _guest() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text('Who is this for?', style: SafariTheme.display(size: 26)),
+      const SizedBox(height: 6),
+      const Text('The Memory Book link is emailed and opened on WhatsApp after you approve the narration.', style: TextStyle(color: SafariTheme.muted, fontSize: 14)),
+      const SizedBox(height: 16),
+      TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Guest email *')),
+      const SizedBox(height: 12),
+      TextField(controller: whatsapp, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Guest WhatsApp *', hintText: '07xx or +255…')),
+      const SizedBox(height: 20),
+      SafariLoadingButton(label: loading ? 'Writing narration…' : 'Create narration', loading: loading, onPressed: _process),
+    ]);
+  }
+
+  Widget _review() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text('Review narration', style: SafariTheme.display(size: 26)),
+      const SizedBox(height: 6),
+      const Text('Edit if needed, then save. This is what the guest will read.', style: TextStyle(color: SafariTheme.muted, fontSize: 14)),
+      const SizedBox(height: 16),
+      SafariCard(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const SafariStatusChip('Review', tone: SafariChipTone.warn),
+          const SizedBox(height: 10),
+          TextField(
+            controller: narration,
+            maxLines: 10,
+            decoration: InputDecoration(
+              labelText: 'ChatGPT narration',
+              hintText: narration.text.isEmpty ? 'No narration yet. Add a ChatGPT API key under portal Settings → ChatGPT.' : null,
+            ),
+          ),
+        ]),
+      ),
+      const SizedBox(height: 12),
+      SafariGoldButton(label: 'Save narration, email & WhatsApp', onPressed: _approve),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Safari Story')),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
-        children: [
-          Text('Capture the moment', style: SafariTheme.display(size: 26)),
-          const SizedBox(height: 6),
-          const Text('Notes, voice, location and photos first. Then review the AI narration before it reaches the Memory Book.', style: TextStyle(color: SafariTheme.muted, fontSize: 14)),
-          const SizedBox(height: 16),
-          TextField(controller: title, decoration: const InputDecoration(labelText: 'Title')),
-          const SizedBox(height: 12),
-          TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Guest email')),
-          const SizedBox(height: 12),
-          TextField(controller: whatsapp, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Guest WhatsApp', hintText: '07xx or +255…')),
-          const SizedBox(height: 12),
-          TextField(controller: text, maxLines: 6, decoration: const InputDecoration(labelText: 'Voice note', hintText: 'Say what happened, who was there, and why it mattered.')),
-          const SizedBox(height: 12),
-          TextField(controller: location, decoration: const InputDecoration(labelText: 'Location', hintText: 'Serengeti, Ngorongoro, camp name…')),
-          const SizedBox(height: 16),
-          Row(children: [
-            const Expanded(child: Text('Photos', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
-            Text('${photos.length}/6', style: const TextStyle(color: SafariTheme.muted)),
-          ]),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              ...photos.asMap().entries.map((e) => Stack(children: [
-                    Container(
-                      width: 88,
-                      height: 88,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(color: SafariTheme.statFill, borderRadius: BorderRadius.circular(14)),
-                      child: Text(e.value.name.isEmpty ? 'Photo ${e.key + 1}' : e.value.name, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10)),
-                    ),
-                    Positioned(
-                      right: 0,
-                      child: IconButton(
-                        icon: const Icon(Icons.close, size: 18),
-                        onPressed: () => setState(() => photos.removeAt(e.key)),
-                      ),
-                    ),
-                  ])),
-              if (photos.length < 6)
-                InkWell(
-                  onTap: _pick,
-                  child: Container(
-                    width: 88,
-                    height: 88,
-                    decoration: BoxDecoration(color: SafariTheme.altFill, borderRadius: BorderRadius.circular(14)),
-                    child: const Icon(Icons.add_a_photo_outlined, color: SafariTheme.maroon),
-                  ),
-                ),
-            ],
+    return PopScope(
+      canPop: step == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && step > 0) setState(() => step--);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Safari Story'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (step > 0) {
+                setState(() => step--);
+              } else {
+                Navigator.maybePop(context);
+              }
+            },
           ),
-          const SizedBox(height: 20),
-          SafariLoadingButton(label: loading ? 'Writing narration…' : 'Create narration', loading: loading, onPressed: _process),
-          if (reviewing) ...[
-            const SizedBox(height: 16),
-            SafariCard(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Row(children: [
-                  Text('Review narration', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                  SizedBox(width: 8),
-                  SafariStatusChip('Review', tone: SafariChipTone.warn),
-                ]),
-                const SizedBox(height: 8),
-                const Text('Edit if needed, then save. This is what the guest will read.', style: TextStyle(color: SafariTheme.muted, fontSize: 12)),
-                const SizedBox(height: 10),
-                TextField(controller: narration, maxLines: 10, decoration: const InputDecoration(labelText: 'ChatGPT narration')),
-              ]),
-            ),
-            const SizedBox(height: 12),
-            SafariGoldButton(label: 'Save narration, email & WhatsApp', onPressed: _approve),
+        ),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+          children: [
+            SafariStepBar(steps: _steps, index: step, onBack: (i) => setState(() => step = i)),
+            const SizedBox(height: 18),
+            if (step == 0) _capture() else if (step == 1) _guest() else _review(),
           ],
-        ],
+        ),
       ),
     );
   }

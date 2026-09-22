@@ -17,6 +17,7 @@ class SafariQrScreen extends StatefulWidget {
 class _SafariQrScreenState extends State<SafariQrScreen> {
   List assets = [];
   bool loading = true;
+  Object? loadError;
 
   @override
   void initState() {
@@ -34,8 +35,13 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
         if (ap == bp) return 0;
         return ap ? -1 : 1;
       });
+      loadError = null;
     } catch (e) {
-      await safariError(context, e);
+      loadError = e;
+      if (!safariIsOffline(e)) {
+        if (!context.mounted) return;
+        await safariError(context, e);
+      }
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -71,6 +77,7 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
       await SafariApi.post('/referral-assets', {'source_type': source});
       await _load();
     } catch (e) {
+      if (!context.mounted) return;
       await safariError(context, e);
     }
   }
@@ -91,6 +98,7 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
       await SafariApi.post('/referral-assets/${a['id']}/disable');
       await _load();
     } catch (e) {
+      if (!context.mounted) return;
       await safariError(context, e);
     }
   }
@@ -105,8 +113,18 @@ class _SafariQrScreenState extends State<SafariQrScreen> {
       appBar: Navigator.canPop(context) ? AppBar(title: const Text('My QR')) : null,
       body: loading
           ? const Center(child: CircularProgressIndicator())
+          : loadError != null
+              ? SafariOffline(
+                  onRetry: () {
+                    setState(() {
+                      loading = true;
+                      loadError = null;
+                    });
+                    _load();
+                  },
+                )
           : RefreshIndicator(
-              color: SafariTheme.gold,
+              color: SafariTheme.wine,
               onRefresh: () async {
                 setState(() => loading = true);
                 await _load();
